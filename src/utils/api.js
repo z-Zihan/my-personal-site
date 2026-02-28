@@ -1,0 +1,53 @@
+import axios from 'axios'
+
+const API_BASE = '/api'
+
+const api = axios.create({
+  baseURL: API_BASE,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+// 请求拦截器 - 自动添加 token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('admin_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// 文章相关 API
+export const articlesApi = {
+  getList: (params) => api.get('/articles', { params }),
+  getDetail: (id) => api.get('/article-detail', { params: { id } }),
+  create: (data) => api.post('/create-article', data),
+  update: (data) => api.put('/update-article', data),
+  delete: (id) => api.delete('/delete-article', { params: { id } }),
+  toggleStatus: (data) => api.patch('/toggle-article-status', data),
+}
+
+// 留言相关 API
+export const messagesApi = {
+  getList: () => api.get('/messages'),
+  create: (data) => api.post('/create-message', data),
+  delete: (id) => api.delete('/delete-message', { params: { id } }),
+}
+
+// 热点资讯 API
+export const hotNewsApi = {
+  getList: () => api.get('/hot-news'),
+}
+
+// 统计 API
+export const statsApi = {
+  getStats: () => api.get('/stats'),
+}
+
+// 登录 API
+export const authApi = {
+  login: (data) => api.post('/login', data),
+}
+
+export default api
