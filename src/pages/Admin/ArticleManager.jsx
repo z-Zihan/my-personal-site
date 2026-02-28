@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { articlesApi } from '../../utils/api'
-import { Table, Button, Space, Tag, Popconfirm, message, Modal, Form, Input, Switch, Select } from 'antd'
+import { Table, Button, Space, Tag, Popconfirm, message, Modal, Form, Input, Select, Typography } from 'antd'
 import { EditOutlined, DeleteOutlined, PoweroffOutlined, PlusOutlined } from '@ant-design/icons'
 import { formatDate } from '../../utils/helpers'
 
 const { TextArea } = Input
+const { Title } = Typography
 
 function ArticleManager() {
   const [articles, setArticles] = useState([])
@@ -111,11 +112,13 @@ function ArticleManager() {
     {
       title: '操作',
       key: 'action',
-      width: 200,
+      width: 220,
+      fixed: 'right',
       render: (_, record) => (
-        <Space>
+        <Space size="small">
           <Button
             type="link"
+            size="small"
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
           >
@@ -123,6 +126,7 @@ function ArticleManager() {
           </Button>
           <Button
             type="link"
+            size="small"
             icon={<PoweroffOutlined />}
             onClick={() => handleToggleStatus(record)}
           >
@@ -131,8 +135,10 @@ function ArticleManager() {
           <Popconfirm
             title="确定删除吗？"
             onConfirm={() => handleDelete(record.id)}
+            okText="确定"
+            cancelText="取消"
           >
-            <Button type="link" danger icon={<DeleteOutlined />}>
+            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
               删除
             </Button>
           </Popconfirm>
@@ -142,9 +148,9 @@ function ArticleManager() {
   ]
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">文章管理</h1>
+    <div style={{ padding: '0 24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <Title level={3} style={{ margin: 0 }}>文章管理</Title>
         <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
           新建文章
         </Button>
@@ -155,7 +161,8 @@ function ArticleManager() {
         dataSource={articles}
         rowKey="id"
         loading={loading}
-        pagination={{ pageSize: 10 }}
+        pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => `共 ${total} 条` }}
+        scroll={{ x: 1000 }}
       />
 
       <Modal
@@ -164,33 +171,35 @@ function ArticleManager() {
         onOk={handleSubmit}
         onCancel={() => setModalVisible(false)}
         width={800}
+        okText="确定"
+        cancelText="取消"
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item
             name="title"
             label="标题"
             rules={[{ required: true, message: '请输入标题' }]}
           >
-            <Input />
+            <Input placeholder="请输入文章标题" />
           </Form.Item>
           <Form.Item
             name="summary"
             label="摘要"
           >
-            <TextArea rows={2} />
+            <TextArea rows={2} placeholder="请输入文章摘要" />
           </Form.Item>
           <Form.Item
             name="content"
             label="内容"
             rules={[{ required: true, message: '请输入内容' }]}
           >
-            <TextArea rows={10} />
+            <TextArea rows={10} placeholder="请输入文章内容" />
           </Form.Item>
           <Form.Item
             name="cover"
             label="封面图片 URL"
           >
-            <Input />
+            <Input placeholder="请输入封面图片链接" />
           </Form.Item>
           <Form.Item
             name="status"

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { messagesApi } from '../../utils/api'
-import { Table, Button, Space, Popconfirm, message } from 'antd'
+import { Table, Button, Popconfirm, message, Typography } from 'antd'
 import { DeleteOutlined } from '@ant-design/icons'
 import { formatDate } from '../../utils/helpers'
+
+const { Title } = Typography
 
 function MessageManager() {
   const [messages, setMessages] = useState([])
@@ -59,10 +61,13 @@ function MessageManager() {
       title: '操作',
       key: 'action',
       width: 100,
+      fixed: 'right',
       render: (_, record) => (
         <Popconfirm
           title="确定删除吗？"
           onConfirm={() => handleDelete(record.id)}
+          okText="确定"
+          cancelText="取消"
         >
           <Button type="link" danger icon={<DeleteOutlined />}>
             删除
@@ -73,15 +78,16 @@ function MessageManager() {
   ]
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">留言管理</h1>
+    <div style={{ padding: '0 24px' }}>
+      <Title level={3} style={{ marginBottom: 24 }}>留言管理</Title>
 
       <Table
         columns={columns}
         dataSource={messages}
         rowKey="id"
         loading={loading}
-        pagination={{ pageSize: 10 }}
+        pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => `共 ${total} 条` }}
+        scroll={{ x: 800 }}
       />
     </div>
   )

@@ -1,21 +1,27 @@
-import { useState, useEffect } from 'react'
-import { Outlet, Navigate, useLocation } from 'react-router-dom'
-import { Layout, Menu } from 'antd'
+import { useState } from 'react'
+import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Layout, Menu, theme } from 'antd'
 import {
   DashboardOutlined,
   FileTextOutlined,
   MessageOutlined,
   LogoutOutlined,
   HomeOutlined,
+  MenuUnfoldOutlined,
+  MenuFoldOutlined,
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
 
-const { Sider, Content } = Layout
+const { Sider, Content, Header } = Layout
 
 function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
   const { token, logout } = useAuthStore()
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken()
 
   // 检查是否登录或有 dev=1 参数
   const isAuthenticated = token || new URLSearchParams(location.search).get('dev') === '1'
@@ -58,17 +64,19 @@ function AdminLayout() {
   const handleMenuClick = (e) => {
     if (e.key === 'logout') {
       logout()
-      window.location.href = '/admin/login'
+      navigate('/admin/login', { replace: true })
     } else {
-      window.location.href = e.key
+      navigate(e.key)
     }
   }
 
-  const currentKey = location.pathname.includes('articles')
-    ? '/admin/articles'
-    : location.pathname.includes('messages')
-    ? '/admin/messages'
-    : '/admin/dashboard'
+  const getSelectedKey = () => {
+    const path = location.pathname
+    if (path.includes('articles')) return '/admin/articles'
+    if (path.includes('messages')) return '/admin/messages'
+    if (path.includes('login')) return '/admin/login'
+    return '/admin/dashboard'
+  }
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -77,28 +85,71 @@ function AdminLayout() {
         collapsed={collapsed}
         onCollapse={setCollapsed}
         theme="dark"
+        width={200}
         style={{
           background: 'linear-gradient(180deg, #0a0a0f 0%, #1a1a2e 100%)',
+          overflow: 'auto',
         }}
       >
-        <div className="h-16 flex items-center justify-center">
-          <h1 className={`text-white font-bold ${collapsed ? 'text-lg' : 'text-xl'}`}>
-            {collapsed ? 'ADMIN' : '管理后台'}
-          </h1>
+        <div
+          style={{
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '16px 0',
+          }}
+        >
+          {collapsed ? (
+            <span style={{ color: '#00f0ff', fontSize: 24, fontWeight: 'bold' }}>管</span>
+          ) : (
+            <span style={{ color: '#00f0ff', fontSize: 18, fontWeight: 'bold' }}>管理后台</span>
+          )}
         </div>
         <Menu
           mode="inline"
-          selectedKeys={[currentKey]}
+          selectedKeys={[getSelectedKey()]}
           items={menuItems}
           onClick={handleMenuClick}
           theme="dark"
+          inlineIndent={16}
+          style={{
+            borderRight: 0,
+          }}
         />
       </Sider>
       <Layout>
+        <Header
+          style={{
+            padding: '0 24px',
+            background: colorBgContainer,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: 64,
+          }}
+        >
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 18,
+              color: '#00f0ff',
+            }}
+          >
+            {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          </button>
+        </Header>
         <Content
           style={{
-            margin: 0,
-            background: 'linear-gradient(135deg, #0a0a0f 0%, #0d0d1a 100%)',
+            padding: 24,
+            margin: 16,
+            background: colorBgContainer,
+            borderRadius: borderRadiusLG,
+            minHeight: 'calc(100vh - 128px)',
+            overflow: 'auto',
           }}
         >
           <Outlet />

@@ -4,6 +4,25 @@ export const config = {
   runtime: 'edge',
 }
 
+// 简单的 token 验证函数（不查数据库）
+function validateToken(token) {
+  // 检查 token 格式：admin_时间戳_随机字符串
+  if (!token || !token.startsWith('admin_')) {
+    return false
+  }
+  const parts = token.split('_')
+  if (parts.length < 3) {
+    return false
+  }
+  // 简单验证时间戳（7 天有效期）
+  const timestamp = parseInt(parts[1])
+  if (isNaN(timestamp)) {
+    return false
+  }
+  const expiresAt = timestamp + 7 * 24 * 60 * 60 * 1000
+  return Date.now() < expiresAt
+}
+
 export default async function handler(req) {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
@@ -22,14 +41,8 @@ export default async function handler(req) {
 
     const token = authHeader.substring(7)
 
-    const { data: session } = await supabase
-      .from('admin_sessions')
-      .select('*')
-      .eq('token', token)
-      .gte('expires_at', new Date().toISOString())
-      .single()
-
-    if (!session) {
+    // 验证 token
+    if (!validateToken(token)) {
       return errorResponse('Invalid or expired token', 401)
     }
 

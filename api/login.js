@@ -1,10 +1,11 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { jsonResponse, errorResponse, optionsResponse } from './_lib.js'
 
 export const config = {
   runtime: 'edge',
 }
 
-// 简单 hardcoded 管理员账号
+// 管理员账号验证（ hardcoded）
+// 注意：Token 验证在需要认证的 API 中进行
 const ADMIN_USERNAME = 'admin'
 const ADMIN_PASSWORD = 'admin'
 
@@ -32,22 +33,9 @@ export default async function handler(req) {
 
     // 生成 token (简单 UUID)
     const token = `admin_${Date.now()}_${Math.random().toString(36).substring(2)}`
-
-    // 存储 session 到数据库 (7 天有效期)
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
-    const { error } = await supabase
-      .from('admin_sessions')
-      .insert([{
-        token,
-        expires_at: expiresAt.toISOString(),
-      }])
-
-    if (error) {
-      console.error('Error storing session:', error)
-      // 即使存储失败也返回成功，token 仍然有效
-    }
-
+    // 不再存储到数据库，仅前端验证
     return jsonResponse({
       data: {
         token,

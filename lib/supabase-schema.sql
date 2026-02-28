@@ -1,6 +1,8 @@
 -- ============================================
 -- Supabase Database Schema for Personal Blog
 -- ============================================
+-- 注意：此 SQL 仅在 Supabase 后台执行，不要暴露给前端
+-- ============================================
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -63,19 +65,6 @@ CREATE TABLE IF NOT EXISTS daily_views (
 CREATE INDEX IF NOT EXISTS idx_daily_views_date ON daily_views(date);
 
 -- ============================================
--- 5. Admin Login Sessions (管理员会话表)
--- ============================================
-CREATE TABLE IF NOT EXISTS admin_sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  token TEXT UNIQUE NOT NULL,
-  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_admin_sessions_token ON admin_sessions(token);
-CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires_at ON admin_sessions(expires_at);
-
--- ============================================
 -- Function: Update updated_at timestamp
 -- ============================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -107,19 +96,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================
--- Sample Data (Optional - for testing)
+-- Sample Data (可选 - 测试数据)
 -- ============================================
 -- INSERT INTO articles (title, summary, content, cover, status, views) VALUES
 -- ('欢迎来到我的博客', '这是我的第一篇文章', '欢迎来到我的个人博客网站！这里会分享技术文章、热点资讯等内容。', 'https://picsum.photos/800/400', 'published', 100),
 -- ('React 18 新特性解析', '深入讲解 React 18 的并发特性', 'React 18 带来了许多令人兴奋的新特性，包括并发渲染、自动批处理、过渡更新等...', 'https://picsum.photos/800/401', 'published', 250),
 -- ('Supabase 入门指南', '快速上手 Supabase 数据库', 'Supabase 是一个开源的 Firebase 替代品，提供了完整的后端即服务...', 'https://picsum.photos/800/402', 'published', 180);
-
--- ============================================
--- Row Level Security (RLS) - Optional
--- ============================================
--- 如果启用 RLS，需要添加相应的策略
--- ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE hot_news ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE daily_views ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE admin_sessions ENABLE ROW LEVEL SECURITY;

@@ -21,7 +21,7 @@
 
 1. 进入左侧 "SQL Editor"
 2. 点击 "New query"
-3. 复制项目根目录 `lib/supabase-schema.sql` 的全部内容
+3. 复制 `lib/supabase-schema.sql` 的全部内容
 4. 粘贴并点击 "Run" 执行
 
 ### 4. （可选）插入测试数据
@@ -37,7 +37,53 @@ INSERT INTO articles (title, summary, content, cover, status, views) VALUES
 
 ---
 
-## 二、本地开发配置
+## 二、验证 Supabase 连接
+
+### 方法一：通过浏览器控制台测试
+
+1. 打开部署后的网站
+2. 按 `F12` 打开浏览器控制台
+3. 切换到 Network 标签
+4. 访问文章列表页面 `/blog`
+5. 查看是否有 `/api/articles` 请求
+6. 如果看到请求成功（状态码 200），说明 Supabase 连接正常
+
+### 方法二：直接访问 API 测试
+
+在浏览器中访问：
+```
+https://your-domain.vercel.app/api/articles
+```
+
+如果看到返回的 JSON 数据（即使为空数组），说明 Supabase 连接正常。
+
+如果看到错误信息，可能是：
+- 环境变量未正确配置
+- Supabase 表未创建
+
+### 方法三：通过 Vercel 日志检查
+
+1. 访问 [Vercel Dashboard](https://vercel.com/dashboard)
+2. 选择你的项目
+3. 点击 "Deployments"
+4. 点击最新的部署
+5. 选择 "Functions" 标签
+6. 点击任意 API 函数查看日志
+7. 如果有 Supabase 连接错误，会显示在日志中
+
+### 方法四：使用 curl 测试
+
+```bash
+# 测试 API 是否正常
+curl https://your-domain.vercel.app/api/articles
+
+# 测试 Supabase 连接（查看返回数据）
+curl -v https://your-domain.vercel.app/api/stats
+```
+
+---
+
+## 三、本地开发配置
 
 ### 1. 创建 .env 文件
 
@@ -64,7 +110,7 @@ npm run dev
 
 ---
 
-## 三、GitHub 仓库设置
+## 四、GitHub 仓库设置
 
 ### 1. 初始化 Git
 
@@ -92,7 +138,7 @@ git push -u origin main
 
 ---
 
-## 四、Vercel 部署
+## 五、Vercel 部署
 
 ### 1. 登录 Vercel
 
@@ -133,7 +179,7 @@ git push -u origin main
 
 ---
 
-## 五、验证部署
+## 六、验证部署
 
 ### 前台验证
 
@@ -167,7 +213,7 @@ curl https://your-domain.vercel.app/api/hot-news
 
 ---
 
-## 六、常见问题
+## 七、常见问题
 
 ### 1. API 返回 500 错误
 
@@ -195,9 +241,15 @@ curl https://your-domain.vercel.app/api/hot-news
 - 推荐使用 Unsplash、Picsum 等图床
 - 或配置 Supabase Storage
 
+### 5. 移动端显示问题
+
+- 清除浏览器缓存
+- 检查是否是响应式布局问题
+- 在 Chrome DevTools 中使用设备模拟器测试
+
 ---
 
-## 七、后续维护
+## 八、后续维护
 
 ### 更新代码
 
@@ -213,7 +265,9 @@ Vercel 会自动检测并重新部署。
 
 1. Vercel Dashboard → 选择项目
 2. 点击 "Deployments"
-3. 查看最近的部署日志
+3. 点击最近的部署
+4. 选择 "Functions" 标签
+5. 查看 API 函数日志
 
 ### 数据库管理
 

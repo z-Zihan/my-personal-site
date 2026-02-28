@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useStats } from '../../hooks/useStats'
-import { Card, Statistic, Row, Col, Table, Tag } from 'antd'
+import { Card, Statistic, Row, Col, Typography } from 'antd'
 import {
   FileTextOutlined,
   EyeOutlined,
@@ -8,6 +8,8 @@ import {
   FireOutlined,
 } from '@ant-design/icons'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+
+const { Title } = Typography
 
 function Dashboard() {
   const { stats, loading, refetch } = useStats()
@@ -17,7 +19,7 @@ function Dashboard() {
   }, [])
 
   if (loading || !stats) {
-    return <div className="p-6">加载中...</div>
+    return <div style={{ padding: 24 }}>加载中...</div>
   }
 
   // 格式化每日访问数据
@@ -27,11 +29,11 @@ function Dashboard() {
   }))
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">仪表盘</h1>
+    <div style={{ padding: '24px 0' }}>
+      <Title level={3} style={{ marginBottom: 24 }}>仪表盘</Title>
 
       {/* 统计卡片 */}
-      <Row gutter={[16, 16]} className="mb-8">
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
@@ -75,7 +77,7 @@ function Dashboard() {
       </Row>
 
       {/* 访问量图表 */}
-      <Card title="最近 7 天访问量" className="mb-8">
+      <Card title="最近 7 天访问量" style={{ marginBottom: 24 }}>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#333" />
@@ -91,32 +93,6 @@ function Dashboard() {
             <Bar dataKey="views" fill="#00f0ff" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
-      </Card>
-
-      {/* 快速操作 */}
-      <Card title="快速操作">
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} lg={6}>
-            <Card
-              hoverable
-              className="text-center cursor-pointer"
-              onClick={() => (window.location.href = '/admin/articles')}
-            >
-              <FileTextOutlined className="text-3xl text-primary mb-2" />
-              <p>管理文章</p>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card
-              hoverable
-              className="text-center cursor-pointer"
-              onClick={() => (window.location.href = '/admin/messages')}
-            >
-              <MessageOutlined className="text-3xl text-green mb-2" />
-              <p>管理留言</p>
-            </Card>
-          </Col>
-        </Row>
       </Card>
     </div>
   )
