@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { Layout as AntLayout, Menu, Dropdown } from 'antd'
+import { Layout as AntLayout, Menu } from 'antd'
 import {
   DashboardOutlined,
   FileTextOutlined,
@@ -9,24 +9,23 @@ import {
   HomeOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
-  GlobalOutlined,
+  UserOutlined,
   MoonOutlined,
   SunOutlined,
-  UserOutlined,
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
-import { getLanguage, setLanguage } from '../../utils/i18n'
-import ThemeToggle from '../../components/common/ThemeToggle'
+import { useThemeStore } from '../../store/themeStore'
 
 const { Sider, Content, Header } = AntLayout
 
 function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [isDark, setIsDark] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { token, logout, checkAuth } = useAuthStore()
-  const [language, setLang] = useState(getLanguage())
+  const { setDarkMode } = useThemeStore()
 
   // 检查认证状态
   useEffect(() => {
@@ -37,6 +36,15 @@ function AdminLayout() {
       navigate('/admin/login', { replace: true })
     }
   }, [checkAuth, navigate])
+
+  // 初始化主题
+  useEffect(() => {
+    const dark = localStorage.getItem('darkMode') === 'true'
+    setIsDark(dark)
+    if (dark) {
+      document.documentElement.classList.add('dark')
+    }
+  }, [])
 
   if (loading || !token) {
     return (
@@ -51,9 +59,15 @@ function AdminLayout() {
     )
   }
 
-  const handleLanguageChange = (lang) => {
-    setLanguage(lang)
-    setLang(lang)
+  const handleThemeToggle = (checked) => {
+    setIsDark(checked)
+    setDarkMode(checked)
+    localStorage.setItem('darkMode', checked.toString())
+    if (checked) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
   }
 
   const handleLogout = () => {
@@ -81,17 +95,67 @@ function AdminLayout() {
       type: 'divider',
     },
     {
+      key: 'home',
+      icon: <HomeOutlined />,
+      label: (
+        <a href="/" style={{ color: 'inherit', textDecoration: 'none' }}>
+          返回首页
+        </a>
+      ),
+    },
+    {
+      type: 'divider',
+    },
+    // Footer 区域 - 主题切换
+    {
+      key: 'theme-toggle',
+      label: (
+        <div
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            padding: '8px 0',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span style={{ fontSize: 14 }}>
+            {isDark ? <MoonOutlined /> : <SunOutlined />} 主题
+          </span>
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            cursor: 'pointer',
+          }}>
+            <input
+              type="checkbox"
+              checked={isDark}
+              onChange={(e) => handleThemeToggle(e.target.checked)}
+              style={{ 
+                marginRight: 8,
+                cursor: 'pointer',
+              }}
+            />
+          </label>
+        </div>
+      ),
+    },
+    // Footer 区域 - 退出登录
+    {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: '退出登录',
       danger: true,
+      onClick: handleLogout,
     },
   ]
 
   const handleMenuClick = (e) => {
     if (e.key === 'logout') {
       handleLogout()
-    } else {
+    } else if (e.key === 'home') {
+      // 已处理
+    } else if (e.key !== 'theme-toggle') {
       navigate(e.key)
     }
   }
@@ -102,14 +166,6 @@ function AdminLayout() {
     if (path.includes('messages')) return '/admin/messages'
     return '/admin/dashboard'
   }
-
-  // 语言切换菜单
-  const languageMenu = (
-    <Menu onClick={(e) => handleLanguageChange(e.key)} selectedKeys={[language]}>
-      <Menu.Item key="zh">🇨🇳 中文</Menu.Item>
-      <Menu.Item key="en">🇺🇸 English</Menu.Item>
-    </Menu>
-  )
 
   return (
     <AntLayout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
@@ -147,7 +203,13 @@ function AdminLayout() {
           onClick={handleMenuClick}
           theme="light"
           inlineIndent={16}
-          style={{ borderRight: 0 }}
+          style={{ 
+            borderRight: 0,
+            height: 'calc(100vh - 64px)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
         />
       </Sider>
       <AntLayout>
@@ -173,30 +235,11 @@ function AdminLayout() {
                 color: '#7000ff',
               }}
             >
-              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              {collapsed ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
             </button>
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* 返回首页 */}
-            <a
-              href="/"
-              style={{ color: '#666', textDecoration: 'none', fontSize: 14 }}
-            >
-              🏠 返回首页
-            </a>
-            
-            {/* 语言切换 */}
-            <Dropdown overlay={languageMenu} trigger={['click']}>
-              <span style={{ cursor: 'pointer', fontSize: 18 }}>
-                <GlobalOutlined />
-              </span>
-            </Dropdown>
-            
-            {/* 主题切换 */}
-            <ThemeToggle />
-            
-            {/* 用户信息 */}
             <span style={{ color: '#666', fontSize: 14 }}>
               <UserOutlined /> 管理员
             </span>

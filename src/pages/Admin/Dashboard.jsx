@@ -6,7 +6,6 @@ import {
   MessageOutlined,
   FireOutlined,
   UserOutlined,
-  GlobalOutlined,
   LaptopOutlined,
 } from '@ant-design/icons'
 import {
@@ -36,8 +35,8 @@ function Dashboard() {
         axios.get('/api/stats'),
         axios.get('/api/analytics?type=overview')
       ])
-      setStats(statsRes.data.data || statsRes.data)
-      setAnalytics(analyticsRes.data.data || analyticsRes.data)
+      setStats(statsRes.data?.data || statsRes.data)
+      setAnalytics(analyticsRes.data?.data || analyticsRes.data)
 
       // 获取详细统计数据
       const [daily, pages, devices, browsers] = await Promise.all([
@@ -48,12 +47,14 @@ function Dashboard() {
       ])
 
       // 确保数据是数组
+      const safeArray = (data) => Array.isArray(data) ? data : []
+
       setAnalytics(prev => ({
         ...prev,
-        daily: Array.isArray(daily.data?.data) ? daily.data.data : [],
-        pages: Array.isArray(pages.data?.data) ? pages.data.data : [],
-        devices: Array.isArray(devices.data?.data) ? devices.data.data : [],
-        browsers: Array.isArray(browsers.data?.data) ? browsers.data.data : [],
+        daily: safeArray(daily.data?.data || daily.data),
+        pages: safeArray(pages.data?.data || pages.data),
+        devices: safeArray(devices.data?.data || devices.data),
+        browsers: safeArray(browsers.data?.data || browsers.data),
       }))
     } catch (error) {
       console.error('Fetch data error:', error)
@@ -71,6 +72,14 @@ function Dashboard() {
     )
   }
 
+  if (!stats || !analytics) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Empty description="暂无数据" />
+      </div>
+    )
+  }
+
   return (
     <div style={{ padding: '24px 0' }}>
       <Title level={3} style={{ marginBottom: 24 }}>📊 数据仪表盘</Title>
@@ -81,7 +90,7 @@ function Dashboard() {
           <Card>
             <Statistic
               title="总访客数"
-              value={analytics?.totalVisitors || 0}
+              value={analytics.totalVisitors || 0}
               prefix={<UserOutlined />}
               valueStyle={{ color: '#00f0ff' }}
             />
@@ -91,7 +100,7 @@ function Dashboard() {
           <Card>
             <Statistic
               title="总浏览量"
-              value={analytics?.totalPageViews || 0}
+              value={analytics.totalPageViews || 0}
               prefix={<EyeOutlined />}
               valueStyle={{ color: '#7000ff' }}
             />
@@ -101,7 +110,7 @@ function Dashboard() {
           <Card>
             <Statistic
               title="总会话数"
-              value={analytics?.totalSessions || 0}
+              value={analytics.totalSessions || 0}
               prefix={<LaptopOutlined />}
               valueStyle={{ color: '#00ff88' }}
             />
@@ -111,7 +120,7 @@ function Dashboard() {
           <Card>
             <Statistic
               title="总事件数"
-              value={analytics?.totalEvents || 0}
+              value={analytics.totalEvents || 0}
               prefix={<FireOutlined />}
               valueStyle={{ color: '#ff6600' }}
             />
@@ -125,7 +134,7 @@ function Dashboard() {
           <Card>
             <Statistic
               title="总文章数"
-              value={stats?.totalArticles || 0}
+              value={stats.totalArticles || 0}
               prefix={<FileTextOutlined />}
               valueStyle={{ color: '#00f0ff' }}
             />
@@ -135,7 +144,7 @@ function Dashboard() {
           <Card>
             <Statistic
               title="总留言数"
-              value={stats?.totalMessages || 0}
+              value={stats.totalMessages || 0}
               prefix={<MessageOutlined />}
               valueStyle={{ color: '#00ff88' }}
             />
@@ -145,7 +154,7 @@ function Dashboard() {
           <Card>
             <Statistic
               title="总热点数"
-              value={stats?.totalNews || 0}
+              value={stats.totalNews || 0}
               prefix={<FireOutlined />}
               valueStyle={{ color: '#ff6600' }}
             />
@@ -158,7 +167,7 @@ function Dashboard() {
         {/* 每日访问趋势 */}
         <Col xs={24} lg={12}>
           <Card title="📈 近 7 天访问趋势" style={{ marginBottom: 24 }}>
-            {analytics?.daily && analytics.daily.length > 0 ? (
+            {analytics.daily && analytics.daily.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={analytics.daily}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#333" />
@@ -175,7 +184,7 @@ function Dashboard() {
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <Empty description="暂无数据" style={{ padding: 40 }} />
+              <Empty description="暂无访问数据" style={{ padding: 40 }} />
             )}
           </Card>
         </Col>
@@ -183,7 +192,7 @@ function Dashboard() {
         {/* 设备分布 */}
         <Col xs={24} lg={12}>
           <Card title="📱 设备分布" style={{ marginBottom: 24 }}>
-            {analytics?.devices && Array.isArray(analytics.devices) && analytics.devices.length > 0 ? (
+            {analytics.devices && analytics.devices.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -204,7 +213,7 @@ function Dashboard() {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <Empty description="暂无数据" style={{ padding: 40 }} />
+              <Empty description="暂无设备数据" style={{ padding: 40 }} />
             )}
           </Card>
         </Col>
@@ -212,7 +221,7 @@ function Dashboard() {
         {/* 热门页面 */}
         <Col xs={24} lg={12}>
           <Card title="🔥 热门页面 TOP 10" style={{ marginBottom: 24 }}>
-            {analytics?.pages && analytics.pages.length > 0 ? (
+            {analytics.pages && analytics.pages.length > 0 ? (
               <Table
                 dataSource={analytics.pages}
                 pagination={false}
@@ -233,16 +242,16 @@ function Dashboard() {
                   {
                     title: '占比',
                     key: 'percentage',
-                    render: (_, record, index) => {
+                    render: (_, record) => {
                       const total = analytics.pages.reduce((sum, p) => sum + p.views, 0)
-                      const percentage = Math.round((record.views / total) * 100)
+                      const percentage = total > 0 ? Math.round((record.views / total) * 100) : 0
                       return <Progress percent={percentage} size="small" strokeColor="#00f0ff" />
                     },
                   },
                 ]}
               />
             ) : (
-              <Empty description="暂无数据" style={{ padding: 40 }} />
+              <Empty description="暂无页面数据" style={{ padding: 40 }} />
             )}
           </Card>
         </Col>
@@ -250,7 +259,7 @@ function Dashboard() {
         {/* 浏览器分布 */}
         <Col xs={24} lg={12}>
           <Card title="🌐 浏览器分布" style={{ marginBottom: 24 }}>
-            {analytics?.browsers && Array.isArray(analytics.browsers) && analytics.browsers.length > 0 ? (
+            {analytics.browsers && analytics.browsers.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={analytics.browsers}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#333" />
@@ -267,7 +276,7 @@ function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <Empty description="暂无数据" style={{ padding: 40 }} />
+              <Empty description="暂无浏览器数据" style={{ padding: 40 }} />
             )}
           </Card>
         </Col>
