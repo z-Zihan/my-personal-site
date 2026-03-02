@@ -1,111 +1,118 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { articlesApi } from '../utils/api'
-import { formatDate } from '../utils/helpers'
-import ParticleBackground from '../components/ParticleBackground'
+import React, { useEffect, useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import ReadingProgress from '../components/common/ReadingProgress';
+import TableOfContents from '../components/common/TableOfContents';
+import ShareButtons from '../components/common/ShareButtons';
+import LikeButton from '../components/common/LikeButton';
+import ReadingTime from '../components/common/ReadingTime';
+import CommentSection from '../components/common/CommentSection';
 
-function BlogDetail() {
-  const { id } = useParams()
-  const [article, setArticle] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+export default function BlogDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [article, setArticle] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const contentRef = useRef(null);
 
   useEffect(() => {
-    const fetchArticle = async () => {
-      try {
-        const { data } = await articlesApi.getDetail(id)
-        setArticle(data.data)
-      } catch (err) {
-        setError('文章不存在或已被删除')
-      } finally {
-        setLoading(false)
-      }
+    fetchArticle();
+  }, [id]);
+
+  const fetchArticle = async () => {
+    try {
+      const res = await axios.get(`/api/article-detail?id=${id}`);
+      setArticle(res.data.data);
+      
+      // 增加阅读量
+      axios.post('/api/increment-views', { id }).catch(() => {});
+    } catch (error) {
+      console.error('Fetch article error:', error);
+    } finally {
+      setLoading(false);
     }
-    fetchArticle()
-  }, [id])
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
-        <div className="text-primary text-xl">加载中...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin text-4xl">⏳</div>
       </div>
-    )
+    );
   }
 
-  if (error || !article) {
+  if (!article) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">404</h1>
-          <p className="text-gray-400 mb-8">{error || '文章不存在'}</p>
-          <Link
-            to="/blog"
-            className="px-6 py-3 border border-primary text-primary rounded hover:bg-primary hover:text-dark transition-all"
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">文章未找到</h1>
+          <button
+            onClick={() => navigate('/')}
+            className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
           >
-            返回文章列表
-          </Link>
+            返回首页
+          </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-20">
-      <ParticleBackground />
-
-      <article className="max-w-4xl mx-auto px-4">
-        <Link
-          to="/blog"
-          className="inline-flex items-center mb-8 text-primary hover:underline"
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          返回列表
-        </Link>
-
-        <motion.header
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass rounded-2xl p-8 mb-8 neon-border"
-        >
-          {article.cover && (
-            <img
-              src={article.cover}
-              alt={article.title}
-              className="w-full h-64 md:h-96 object-cover rounded-xl mb-8"
-            />
-          )}
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 neon-text">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+      <ReadingProgress />
+      <TableOfContents contentRef={contentRef} />
+      
+      {/* Header */}
+      <header className="bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 py-20">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
             {article.title}
           </h1>
-          <div className="flex items-center gap-6 text-gray-400">
-            <span>{formatDate(article.created_at)}</span>
-            <span className="flex items-center">
-              <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-              </svg>
-              {article.views} 阅读
-            </span>
+          <div className="flex items-center justify-center gap-6 text-white/80">
+            <span>📅 {new Date(article.created_at).toLocaleDateString('zh-CN')}</span>
+            <ReadingTime content={article.content} />
+            <span>👁️ {article.views || 0} 次阅读</span>
           </div>
-        </motion.header>
+        </div>
+      </header>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="glass rounded-2xl p-8"
+      {/* Content */}
+      <main className="max-w-4xl mx-auto px-4 py-12">
+        <article
+          ref={contentRef}
+          className="prose prose-lg dark:prose-invert max-w-none
+            prose-headings:text-gray-900 dark:prose-headings:text-white
+            prose-p:text-gray-700 dark:prose-p:text-gray-300
+            prose-a:text-purple-500 hover:prose-a:text-purple-600
+            prose-code:text-pink-500 dark:prose-code:text-pink-400
+            prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700"
         >
-          <div
-            className="prose prose-invert prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.content.replace(/\n/g, '<br />') }}
-          />
-        </motion.div>
-      </article>
-    </div>
-  )
-}
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {article.content}
+          </ReactMarkdown>
+        </article>
 
-export default BlogDetail
+        {/* Actions */}
+        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <LikeButton articleId={id} initialLikes={article.likes} />
+            <ShareButtons 
+              title={article.title} 
+              url={window.location.href}
+            />
+          </div>
+        </div>
+
+        {/* Comments */}
+        <CommentSection articleId={id} />
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 dark:bg-black py-8 text-center text-gray-400">
+        <p>© 2026 Zihan's Blog. All rights reserved.</p>
+      </footer>
+    </div>
+  );
+}

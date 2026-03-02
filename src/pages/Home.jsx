@@ -1,159 +1,171 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { articlesApi, hotNewsApi } from '../utils/api'
-import ParticleBackground from '../components/ParticleBackground'
-import ArticleCard from '../components/ArticleCard'
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import ThemeToggle from '../components/common/ThemeToggle';
+import SearchBar from '../components/common/SearchBar';
+import ReadingTime from '../components/common/ReadingTime';
 
-function Home() {
-  const [featuredArticles, setFeaturedArticles] = useState([])
-  const [hotNews, setHotNews] = useState([])
-  const [loading, setLoading] = useState(true)
+export default function Home() {
+  const navigate = useNavigate();
+  const [articles, setArticles] = useState([]);
+  const [hotNews, setHotNews] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [articlesRes, newsRes] = await Promise.all([
-          articlesApi.getList({ limit: 6, status: 'published' }),
-          hotNewsApi.getList(),
-        ])
-        setFeaturedArticles(articlesRes.data.data || [])
-        setHotNews((newsRes.data.data || []).slice(0, 5))
-      } catch (error) {
-        console.error('Error fetching data:', error)
-      } finally {
-        setLoading(false)
-      }
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const [articlesRes, newsRes, statsRes] = await Promise.all([
+        axios.get('/api/articles?page=1&limit=6'),
+        axios.get('/api/hot-news'),
+        axios.get('/api/stats')
+      ]);
+      setArticles(articlesRes.data.data || []);
+      setHotNews(newsRes.data.data || []);
+      setStats(statsRes.data.data);
+    } catch (error) {
+      console.error('Fetch data error:', error);
+    } finally {
+      setLoading(false);
     }
-    fetchData()
-  }, [])
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin text-4xl">⏳</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen">
-      <ParticleBackground />
-
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+      <ThemeToggle />
+      
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent" />
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1 }}
-          className="text-center z-10 px-4"
-        >
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-4 sm:mb-6 neon-text">
-            WELCOME TO
+      <section className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-600 to-cyan-600 py-32">
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="relative max-w-6xl mx-auto px-4 text-center">
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 animate-fade-in">
+            Zihan's Blog
           </h1>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-6 sm:mb-8 text-primary">
-            MY PERSONAL BLOG
-          </h2>
-          <p className="text-base sm:text-xl text-gray-400 mb-8 sm:mb-12 max-w-xs sm:max-w-2xl mx-auto px-4">
-            探索技术世界，分享知识经验
+          <p className="text-xl md:text-2xl text-white/80 mb-8 animate-fade-in-up">
+            探索技术 · 记录生活 · 分享思考
           </p>
-          <Link
-            to="/blog"
-            className="inline-block px-6 sm:px-8 py-3 sm:py-4 bg-primary text-dark font-bold rounded-full hover:bg-secondary hover:text-white transition-all neon-border text-sm sm:text-base"
-          >
-            开始浏览
-          </Link>
-        </motion.div>
-
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-          className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2"
-        >
-          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
-        </motion.div>
-      </section>
-
-      {/* Featured Articles */}
-      <section className="py-12 sm:py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            className="text-2xl sm:text-4xl font-bold text-center mb-8 sm:mb-12 neon-text"
-          >
-            精选文章
-          </motion.h2>
-
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="glass rounded-xl h-64 sm:h-80 animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-              {featuredArticles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
+          
+          {/* Search */}
+          <div className="max-w-md mx-auto mb-8">
+            <SearchBar />
+          </div>
+          
+          {/* Stats */}
+          {stats && (
+            <div className="flex justify-center gap-8 text-white animate-fade-in-up">
+              <div className="text-center">
+                <div className="text-3xl font-bold">{stats.total_articles || 0}</div>
+                <div className="text-white/70">文章</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold">{stats.total_views || 0}</div>
+                <div className="text-white/70">阅读</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold">{stats.total_messages || 0}</div>
+                <div className="text-white/70">留言</div>
+              </div>
             </div>
           )}
-
-          <div className="text-center mt-8 sm:mt-12">
-            <Link
-              to="/blog"
-              className="inline-block px-6 sm:px-8 py-2 sm:py-3 border border-primary text-primary rounded-full hover:bg-primary hover:text-dark transition-all text-sm sm:text-base"
-            >
-              查看更多
-            </Link>
-          </div>
         </div>
+      </section>
+
+      {/* Articles */}
+      <section className="max-w-6xl mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+          ✨ 最新文章
+        </h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {articles.map((article, index) => (
+            <article
+              key={article.id}
+              onClick={() => navigate(`/blog/${article.id}`)}
+              className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2 animate-fade-in-up"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              {article.cover && (
+                <img
+                  src={article.cover}
+                  alt={article.title}
+                  className="w-full h-48 object-cover"
+                  loading="lazy"
+                />
+              )}
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                  {article.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                  {article.summary}
+                </p>
+                <div className="flex items-center justify-between text-sm text-gray-500">
+                  <ReadingTime content={article.content} />
+                  <span>👁️ {article.views || 0}</span>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+        {articles.length > 0 && (
+          <div className="text-center mt-12">
+            <button
+              onClick={() => navigate('/blog')}
+              className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:opacity-90 transition-opacity"
+            >
+              查看全部文章 →
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Hot News */}
-      <section className="py-12 sm:py-20 px-4 glass">
-        <div className="max-w-4xl mx-auto w-full">
-          <motion.h2
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            className="text-2xl sm:text-4xl font-bold text-center mb-8 sm:mb-12 neon-text"
-          >
-            热点资讯
-          </motion.h2>
-
-          <div className="space-y-3 sm:space-y-4">
-            {hotNews.map((item, index) => (
-              <motion.a
-                key={item.id}
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="block glass p-3 sm:p-4 rounded-lg hover:bg-primary/10 transition-all"
-              >
-                <div className="flex items-center">
-                  <span className="text-xl sm:text-2xl font-bold text-primary mr-3 sm:mr-4 flex-shrink-0">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm sm:text-lg font-medium truncate">{item.title}</h3>
-                    <p className="text-xs sm:text-sm text-gray-500">{item.source}</p>
+      {hotNews.length > 0 && (
+        <section className="bg-gray-100 dark:bg-gray-800 py-16">
+          <div className="max-w-6xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+              🔥 热点资讯
+            </h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              {hotNews.slice(0, 6).map((news, index) => (
+                <a
+                  key={news.id}
+                  href={news.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white dark:bg-gray-700 p-4 rounded-lg hover:shadow-lg transition-shadow flex items-center gap-4"
+                >
+                  <span className="text-2xl">📰</span>
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white line-clamp-2">
+                      {news.title}
+                    </h4>
+                    <span className="text-sm text-gray-500">{news.source}</span>
                   </div>
-                </div>
-              </motion.a>
-            ))}
+                </a>
+              ))}
+            </div>
           </div>
+        </section>
+      )}
 
-          <div className="text-center mt-8 sm:mt-12">
-            <Link
-              to="/hot-news"
-              className="inline-block px-6 sm:px-8 py-2 sm:py-3 border border-primary text-primary rounded-full hover:bg-primary hover:text-dark transition-all text-sm sm:text-base"
-            >
-              查看全部
-            </Link>
-          </div>
+      {/* Footer */}
+      <footer className="bg-gray-900 dark:bg-black py-12">
+        <div className="max-w-6xl mx-auto px-4 text-center text-gray-400">
+          <p className="mb-4">Made with ❤️ by Zihan</p>
+          <p>© 2026 Zihan's Blog. All rights reserved.</p>
         </div>
-      </section>
+      </footer>
     </div>
-  )
+  );
 }
-
-export default Home

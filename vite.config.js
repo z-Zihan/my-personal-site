@@ -1,58 +1,89 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { fileURLToPath, URL } from 'node:url'
-import { readFileSync } from 'fs'
-import { resolve } from 'path'
+import { VitePWA } from 'vite-plugin-pwa'
 
-// 获取版本号
-const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'))
-const version = pkg.version
-
-// 构建时间
-const buildTime = new Date().toLocaleString('zh-CN', {
-  timeZone: 'Asia/Shanghai',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit'
-}).replace(/\//g, '-')
-
-// 环境
-const nodeEnv = process.env.NODE_ENV || 'production'
-
-// Banner 注释
-const bannerComment = `<!-- ${buildTime}｜环境：${nodeEnv} | 版本：${version} -->`
-
-console.log(`\n📦 Building version: ${version}`)
-console.log(`🕐 Build time: ${buildTime}`)
-console.log(`🌍 Environment: ${nodeEnv}\n`)
-
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    {
-      name: 'banner-plugin',
-      transformIndexHtml(html) {
-        return html.replace('<html lang="en">', `<html lang="en">\n  ${bannerComment}`)
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'pwa-512x512.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'],
+      manifest: {
+        name: "Zihan's Blog - 张子涵的个人博客",
+        short_name: 'ZihanBlog',
+        description: '探索技术 · 记录生活 · 分享思考',
+        theme_color: '#8b5cf6',
+        background_color: '#0f0f0f',
+        display: 'standalone',
+        orientation: 'portrait-primary',
+        scope: '/',
+        start_url: '/',
+        icons: [
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          }
+        ],
+        categories: ['blog', 'technology', 'lifestyle'],
+        lang: 'zh-CN',
+        dir: 'ltr'
       },
-    },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,svg,png,jpg,jpeg,webp,woff,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'supabase-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 7
+              }
+            }
+          }
+        ]
+      }
+    })
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@': '/src',
     },
   },
   server: {
     port: 3000,
+    host: true
   },
   build: {
     rollupOptions: {
       output: {
-        banner: `/* My Personal Site v${version} | ${buildTime} */`,
-      },
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['antd', 'framer-motion'],
+          utils: ['axios', 'zustand']
+        }
+      }
     },
-  },
+    chunkSizeWarningLimit: 1000
+  }
 })
