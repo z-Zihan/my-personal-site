@@ -5,10 +5,12 @@ import BlogList from '../pages/BlogList'
 import BlogDetail from '../pages/BlogDetail'
 import HotNews from '../pages/HotNews'
 import MessageBoard from '../pages/MessageBoard'
+import Profile from '../pages/Profile'
 import AdminLayout from '../pages/Admin/Layout'
 import AdminLogin from '../pages/Admin/Login'
 import Dashboard from '../pages/Admin/Dashboard'
 import ArticleManager from '../pages/Admin/ArticleManager'
+import ArticleEditor from '../pages/Admin/ArticleEditor'
 import MessageManager from '../pages/Admin/MessageManager'
 
 const router = createBrowserRouter([
@@ -22,10 +24,11 @@ const router = createBrowserRouter([
       { path: 'blog/:id', element: <BlogDetail /> },
       { path: 'hot-news', element: <HotNews /> },
       { path: 'message', element: <MessageBoard /> },
+      { path: 'profile', element: <Profile /> },
     ],
   },
   
-  // 后台登录页面（独立，不在 Layout 内）
+  // 后台登录页面（独立）
   {
     path: '/admin/login',
     element: <AdminLogin />,
@@ -47,6 +50,14 @@ const router = createBrowserRouter([
       {
         path: 'articles',
         element: <ArticleManager />,
+      },
+      {
+        path: 'articles/new',
+        element: <ArticleEditor />,
+      },
+      {
+        path: 'articles/:id',
+        element: <ArticleEditor />,
       },
       {
         path: 'messages',

@@ -1,83 +1,39 @@
-import { useState, useEffect } from 'react'
-import { articlesApi } from '../../utils/api'
-import { Table, Button, Space, Tag, Popconfirm, message, Modal, Form, Input, Select, Typography } from 'antd'
-import { EditOutlined, DeleteOutlined, PoweroffOutlined, PlusOutlined } from '@ant-design/icons'
-import { formatDate } from '../../utils/helpers'
-
-const { TextArea } = Input
-const { Title } = Typography
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Table, Button, Card, Space, Tag, Popconfirm, message } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import axios from 'axios';
 
 function ArticleManager() {
-  const [articles, setArticles] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [modalVisible, setModalVisible] = useState(false)
-  const [editingArticle, setEditingArticle] = useState(null)
-  const [form] = Form.useForm()
+  const navigate = useNavigate();
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchArticles()
-  }, [])
+    fetchArticles();
+  }, []);
 
   const fetchArticles = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const { data } = await articlesApi.getList({ limit: 100 })
-      setArticles(data.data || [])
+      const { data } = await axios.get('/api/articles?limit=100');
+      setArticles(data.data || []);
     } catch (error) {
-      message.error('加载文章失败')
+      message.error('加载文章失败');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleDelete = async (id) => {
     try {
-      await articlesApi.delete(id)
-      message.success('删除成功')
-      fetchArticles()
+      await axios.delete(`/api/delete-article?id=${id}`);
+      message.success('删除成功');
+      fetchArticles();
     } catch (error) {
-      message.error('删除失败')
+      message.error('删除失败');
     }
-  }
-
-  const handleToggleStatus = async (article) => {
-    try {
-      await articlesApi.toggleStatus({ id: article.id, status: article.status })
-      message.success('状态更新成功')
-      fetchArticles()
-    } catch (error) {
-      message.error('操作失败')
-    }
-  }
-
-  const handleEdit = (article) => {
-    setEditingArticle(article)
-    form.setFieldsValue(article)
-    setModalVisible(true)
-  }
-
-  const handleCreate = () => {
-    setEditingArticle(null)
-    form.resetFields()
-    setModalVisible(true)
-  }
-
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields()
-      if (editingArticle) {
-        await articlesApi.update({ id: editingArticle.id, ...values })
-        message.success('更新成功')
-      } else {
-        await articlesApi.create(values)
-        message.success('创建成功')
-      }
-      setModalVisible(false)
-      fetchArticles()
-    } catch (error) {
-      message.error('操作失败')
-    }
-  }
+  };
 
   const columns = [
     {
@@ -91,15 +47,21 @@ function ArticleManager() {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag color={status === 'published' ? 'green' : 'orange'}>
+        <Tag color={status === 'published' ? 'green' : 'gray'}>
           {status === 'published' ? '已发布' : '草稿'}
         </Tag>
       ),
     },
     {
-      title: '阅读量',
+      title: '浏览量',
       dataIndex: 'views',
       key: 'views',
+      width: 80,
+    },
+    {
+      title: '点赞数',
+      dataIndex: 'likes',
+      key: 'likes',
       width: 80,
     },
     {
@@ -107,114 +69,65 @@ function ArticleManager() {
       dataIndex: 'created_at',
       key: 'created_at',
       width: 180,
-      render: (date) => formatDate(date),
+      render: (date) => new Date(date).toLocaleDateString('zh-CN'),
     },
     {
       title: '操作',
       key: 'action',
-      width: 220,
-      fixed: 'right',
+      width: 200,
       render: (_, record) => (
-        <Space size="small">
+        <Space>
           <Button
-            type="link"
+            icon={<EyeOutlined />}
             size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
+            onClick={() => window.open(`/blog/${record.id}`, '_blank')}
           >
-            编辑
+            查看
           </Button>
           <Button
-            type="link"
+            icon={<EditOutlined />}
             size="small"
-            icon={<PoweroffOutlined />}
-            onClick={() => handleToggleStatus(record)}
+            onClick={() => navigate(`/admin/articles/${record.id}`)}
           >
-            {record.status === 'published' ? '下架' : '上架'}
+            编辑
           </Button>
           <Popconfirm
             title="确定删除吗？"
             onConfirm={() => handleDelete(record.id)}
-            okText="确定"
-            cancelText="取消"
           >
-            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
+            <Button icon={<DeleteOutlined />} size="small" danger>
               删除
             </Button>
           </Popconfirm>
         </Space>
       ),
     },
-  ]
+  ];
 
   return (
-    <div style={{ padding: '0 24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <Title level={3} style={{ margin: 0 }}>文章管理</Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-          新建文章
-        </Button>
-      </div>
-
-      <Table
-        columns={columns}
-        dataSource={articles}
-        rowKey="id"
-        loading={loading}
-        pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => `共 ${total} 条` }}
-        scroll={{ x: 1000 }}
-      />
-
-      <Modal
-        title={editingArticle ? '编辑文章' : '新建文章'}
-        open={modalVisible}
-        onOk={handleSubmit}
-        onCancel={() => setModalVisible(false)}
-        width={800}
-        okText="确定"
-        cancelText="取消"
+    <div>
+      <Card
+        title="文章管理"
+        extra={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate('/admin/articles/new')}
+          >
+            新建文章
+          </Button>
+        }
       >
-        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-          <Form.Item
-            name="title"
-            label="标题"
-            rules={[{ required: true, message: '请输入标题' }]}
-          >
-            <Input placeholder="请输入文章标题" />
-          </Form.Item>
-          <Form.Item
-            name="summary"
-            label="摘要"
-          >
-            <TextArea rows={2} placeholder="请输入文章摘要" />
-          </Form.Item>
-          <Form.Item
-            name="content"
-            label="内容"
-            rules={[{ required: true, message: '请输入内容' }]}
-          >
-            <TextArea rows={10} placeholder="请输入文章内容" />
-          </Form.Item>
-          <Form.Item
-            name="cover"
-            label="封面图片 URL"
-          >
-            <Input placeholder="请输入封面图片链接" />
-          </Form.Item>
-          <Form.Item
-            name="status"
-            label="状态"
-            initialValue="draft"
-          >
-            <Select>
-              <Select.Option value="published">已发布</Select.Option>
-              <Select.Option value="draft">草稿</Select.Option>
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
+        <Table
+          columns={columns}
+          dataSource={articles}
+          rowKey="id"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+        />
+      </Card>
     </div>
-  )
+  );
 }
 
-export default ArticleManager
+export default ArticleManager;

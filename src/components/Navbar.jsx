@@ -31,6 +31,12 @@ function Navbar() {
             <Link to="/message" className="hover:text-primary transition-colors text-sm lg:text-base">
               留言
             </Link>
+            <Link
+              to="/profile"
+              className="px-3 lg:px-4 py-2 border border-primary text-primary rounded text-sm lg:text-base hover:bg-primary hover:text-dark transition-all"
+            >
+              个人中心
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -56,36 +62,23 @@ function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden py-4 border-t border-gray-800"
+            className="md:hidden py-4"
           >
             <div className="flex flex-col space-y-4">
-              <Link
-                to="/"
-                className="hover:text-primary transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+              <Link to="/" className="hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>
                 首页
               </Link>
-              <Link
-                to="/blog"
-                className="hover:text-primary transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+              <Link to="/blog" className="hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>
                 文章
               </Link>
-              <Link
-                to="/hot-news"
-                className="hover:text-primary transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+              <Link to="/hot-news" className="hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>
                 热点
               </Link>
-              <Link
-                to="/message"
-                className="hover:text-primary transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+              <Link to="/message" className="hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>
                 留言
+              </Link>
+              <Link to="/profile" className="hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>
+                个人中心
               </Link>
             </div>
           </motion.div>

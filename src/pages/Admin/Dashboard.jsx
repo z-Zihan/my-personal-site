@@ -15,6 +15,7 @@ import {
   LineChart, Line,
 } from 'recharts'
 import axios from 'axios'
+import VisitorMap from '../../components/admin/VisitorMap'
 
 const { Title } = Typography
 
@@ -267,6 +268,14 @@ function Dashboard() {
             ) : (
               <Empty description="暂无数据" style={{ padding: 40 }} />
             )}
+          </Card>
+        </Col>
+
+      {/* 世界地图 */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24}>
+          <Card title="🌍 访客地域分布" style={{ marginBottom: 24 }}>
+            <VisitorMap />
           </Card>
         </Col>
       </Row>
