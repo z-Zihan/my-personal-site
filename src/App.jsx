@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 
@@ -10,6 +11,7 @@ function App() {
         <Outlet />
       </main>
       <Footer />
+      <Analytics />
     </div>
   )
 }

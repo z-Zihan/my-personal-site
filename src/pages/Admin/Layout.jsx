@@ -24,7 +24,7 @@ function AdminLayout() {
   } = theme.useToken()
 
   // 检查是否登录或有 dev=1 参数
-  const isAuthenticated = token || new URLSearchParams(location.search).get('dev') === '1'
+  const isAuthenticated = token || new URLSearchParams(location.search).get('dev') === '1' || (import.meta.env.DEV && new URLSearchParams(window.location.search).get('dev') === '1')
 
   if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />

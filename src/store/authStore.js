@@ -1,24 +1,31 @@
 import { create } from 'zustand'
 
-const useAuthStore = create((set) => ({
-  token: localStorage.getItem('admin_token'),
-  user: JSON.parse(localStorage.getItem('admin_user') || 'null'),
+// 开发模式检查
+const isDev = import.meta.env.DEV && new URLSearchParams(window.location.search).get('dev') === '1'
+
+const useAuthStore = create((set, get) => ({
+  token: isDev ? 'dev_token' : localStorage.getItem('admin_token'),
+  user: isDev ? { username: 'admin (dev)' } : JSON.parse(localStorage.getItem('admin_user') || 'null'),
+  isDev: isDev,
 
   login: (token, user) => {
-    localStorage.setItem('admin_token', token)
-    localStorage.setItem('admin_user', JSON.stringify(user))
+    if (!isDev) {
+      localStorage.setItem('admin_token', token)
+      localStorage.setItem('admin_user', JSON.stringify(user))
+    }
     set({ token, user })
   },
 
   logout: () => {
-    localStorage.removeItem('admin_token')
-    localStorage.removeItem('admin_user')
+    if (!isDev) {
+      localStorage.removeItem('admin_token')
+      localStorage.removeItem('admin_user')
+    }
     set({ token: null, user: null })
   },
 
   isAuthenticated: () => {
-    const token = localStorage.getItem('admin_token')
-    return !!token
+    return isDev || !!localStorage.getItem('admin_token')
   },
 }))
 

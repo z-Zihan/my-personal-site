@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useIntersectionObserver } from 'react-intersection-observer';
 
 export default function TableOfContents({ contentRef }) {
   const [headings, setHeadings] = useState([]);
