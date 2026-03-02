@@ -102,7 +102,7 @@ function AdminLogin() {
 
           <div style={{ textAlign: 'center', marginTop: 16 }}>
             <p style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: 12 }}>
-              默认账号：admin / admin
+              默认账号：admin / Admin@2026Secure
             </p>
           </div>
         </Card>

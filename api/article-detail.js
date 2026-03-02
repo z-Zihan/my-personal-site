@@ -22,31 +22,42 @@ export default async function handler(req) {
     }
 
     // 获取文章详情
-    const { data: article, error } = await supabase
+    const { data: article, error: fetchError } = await supabase
       .from('articles')
       .select('*')
       .eq('id', id)
       .single()
 
-    if (error || !article) {
+    if (fetchError) {
+      console.error('Supabase fetch error:', fetchError)
+      return errorResponse('Database error: ' + fetchError.message, 500)
+    }
+
+    if (!article) {
       return errorResponse('Article not found', 404)
     }
 
-    // 增加阅读量
-    await supabase
+    // 增加阅读量（异步，不阻塞响应）
+    supabase
       .from('articles')
       .update({ views: article.views + 1 })
       .eq('id', id)
-
-    // 增加每日访问量
-    await supabase.rpc('increment_daily_views').catch(() => {
-      // 如果存储过程不存在，手动插入
-      return null
-    })
+      .then(() => {
+        // 增加每日访问量
+        return supabase
+          .from('daily_views')
+          .upsert({ 
+            date: new Date().toISOString().split('T')[0], 
+            count: 1 
+          }, { 
+            onConflict: 'date' 
+          })
+      })
+      .catch(err => console.error('View increment error:', err))
 
     return jsonResponse({ data: article })
   } catch (error) {
     console.error('Error fetching article:', error)
-    return errorResponse('Internal server error', 500)
+    return errorResponse('Internal server error: ' + error.message, 500)
   }
 }
