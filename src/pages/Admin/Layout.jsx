@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { Layout as AntLayout, Menu } from 'antd'
+import { Layout as AntLayout, Menu, Popover } from 'antd'
 import {
   DashboardOutlined,
   FileTextOutlined,
   MessageOutlined,
   LogoutOutlined,
   HomeOutlined,
-  MenuUnfoldOutlined,
-  MenuFoldOutlined,
-  UserOutlined,
+  SettingOutlined,
   MoonOutlined,
   SunOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
 import { useThemeStore } from '../../store/themeStore'
@@ -22,6 +21,7 @@ function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [isDark, setIsDark] = useState(false)
+  const [popoverOpen, setPopoverOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { token, logout, checkAuth } = useAuthStore()
@@ -72,8 +72,56 @@ function AdminLayout() {
 
   const handleLogout = () => {
     logout()
+    setPopoverOpen(false)
     navigate('/admin/login', { replace: true })
   }
+
+  // Menu Footer 弹出卡片内容
+  const footerContent = (
+    <div style={{ padding: 12, minWidth: 200 }}>
+      <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f0f0f0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontSize: 14, color: '#666' }}>
+            {isDark ? <MoonOutlined /> : <SunOutlined />} 主题
+          </span>
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            cursor: 'pointer',
+          }}>
+            <input
+              type="checkbox"
+              checked={isDark}
+              onChange={(e) => handleThemeToggle(e.target.checked)}
+              style={{ 
+                width: 16,
+                height: 16,
+                cursor: 'pointer',
+              }}
+            />
+          </label>
+        </div>
+      </div>
+      <div
+        onClick={handleLogout}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '8px 12px',
+          borderRadius: 6,
+          cursor: 'pointer',
+          color: '#ff4d4f',
+          transition: 'background 0.3s',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.background = '#fff1f0'}
+        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+      >
+        <LogoutOutlined />
+        <span>退出登录</span>
+      </div>
+    </div>
+  )
 
   const menuItems = [
     {
@@ -103,59 +151,33 @@ function AdminLayout() {
         </a>
       ),
     },
+    // Menu Footer - 设置按钮（弹出卡片）
     {
       type: 'divider',
     },
-    // Footer 区域 - 主题切换
     {
-      key: 'theme-toggle',
+      key: 'settings',
+      icon: <SettingOutlined />,
       label: (
-        <div
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            padding: '8px 0',
-          }}
-          onClick={(e) => e.stopPropagation()}
+        <Popover
+          content={footerContent}
+          trigger="click"
+          open={popoverOpen}
+          onOpenChange={setPopoverOpen}
+          placement="rightTop"
+          overlayStyle={{ maxWidth: 250 }}
         >
-          <span style={{ fontSize: 14 }}>
-            {isDark ? <MoonOutlined /> : <SunOutlined />} 主题
-          </span>
-          <label style={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            cursor: 'pointer',
-          }}>
-            <input
-              type="checkbox"
-              checked={isDark}
-              onChange={(e) => handleThemeToggle(e.target.checked)}
-              style={{ 
-                marginRight: 8,
-                cursor: 'pointer',
-              }}
-            />
-          </label>
-        </div>
+          <span onClick={(e) => e.stopPropagation()}>设置</span>
+        </Popover>
       ),
-    },
-    // Footer 区域 - 退出登录
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: '退出登录',
-      danger: true,
-      onClick: handleLogout,
     },
   ]
 
   const handleMenuClick = (e) => {
-    if (e.key === 'logout') {
-      handleLogout()
-    } else if (e.key === 'home') {
+    if (e.key === 'home') {
       // 已处理
-    } else if (e.key !== 'theme-toggle') {
+    } else if (e.key !== 'settings') {
+      setPopoverOpen(false)
       navigate(e.key)
     }
   }
@@ -168,17 +190,18 @@ function AdminLayout() {
   }
 
   return (
-    <AntLayout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
+    <AntLayout style={{ minHeight: '100vh' }}>
       <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={setCollapsed}
-        theme="light"
         width={200}
         style={{
           background: '#ffffff',
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          bottom: 0,
           overflow: 'auto',
           boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
+          zIndex: 100,
         }}
       >
         <div
@@ -187,14 +210,10 @@ function AdminLayout() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '16px 0',
+            borderBottom: '1px solid #f0f0f0',
           }}
         >
-          {collapsed ? (
-            <span style={{ color: '#7000ff', fontSize: 24, fontWeight: 'bold' }}>管</span>
-          ) : (
-            <span style={{ color: '#7000ff', fontSize: 18, fontWeight: 'bold' }}>管理后台</span>
-          )}
+          <span style={{ color: '#7000ff', fontSize: 18, fontWeight: 'bold' }}>管理后台</span>
         </div>
         <Menu
           mode="inline"
@@ -206,44 +225,28 @@ function AdminLayout() {
           style={{ 
             borderRight: 0,
             height: 'calc(100vh - 64px)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
+            overflow: 'auto',
           }}
         />
       </Sider>
-      <AntLayout>
+      <AntLayout style={{ marginLeft: collapsed ? 0 : 200, transition: 'margin-left 0.3s' }}>
         <Header
           style={{
             padding: '0 24px',
             background: '#ffffff',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-start',
             height: 64,
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            position: 'sticky',
+            top: 0,
+            zIndex: 99,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: 18,
-                color: '#7000ff',
-              }}
-            >
-              {collapsed ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
-            </button>
-          </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span style={{ color: '#666', fontSize: 14 }}>
-              <UserOutlined /> 管理员
-            </span>
-          </div>
+          <span style={{ color: '#666', fontSize: 14 }}>
+            <UserOutlined /> 管理员
+          </span>
         </Header>
         <Content
           style={{
