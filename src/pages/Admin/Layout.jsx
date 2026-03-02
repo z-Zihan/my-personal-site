@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { Layout, Menu, theme } from 'antd'
+import { Layout as AntLayout, Menu, Spin } from 'antd'
 import {
   DashboardOutlined,
   FileTextOutlined,
@@ -12,44 +12,26 @@ import {
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
 
-const { Sider, Content, Header } = Layout
+const { Sider, Content, Header } = AntLayout
 
 function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [checking, setChecking] = useState(true)
   const location = useLocation()
   const navigate = useNavigate()
   const { token, logout } = useAuthStore()
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken()
 
-  useEffect(() => {
-    // 检查是否登录或有 dev=1 参数
-    const isDev = new URLSearchParams(location.search).get('dev') === '1'
-    const hasToken = !!token
-    
-    if (isDev || hasToken) {
-      setIsAuthenticated(true)
-    } else {
-      setIsAuthenticated(false)
-    }
-    setChecking(false)
-  }, [location.search, token])
+  // 检查是否登录或有 dev=1 参数
+  const isDev = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('dev') === '1'
+  const isAuthenticated = isDev || !!token
 
-  if (checking) {
-    return (
-      <Layout style={{ minHeight: '100vh' }}>
-        <Content style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="animate-spin text-4xl">⏳</div>
-        </Content>
-      </Layout>
-    )
+  // 如果未认证且不在登录页，重定向到登录页
+  if (!isAuthenticated && !location.pathname.includes('/admin/login')) {
+    return <Navigate to="/admin/login" replace />
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/admin/login" replace />
+  // 如果已认证且在登录页，重定向到 dashboard
+  if (isAuthenticated && location.pathname.includes('/admin/login')) {
+    return <Navigate to="/admin/dashboard" replace />
   }
 
   const menuItems = [
@@ -101,7 +83,7 @@ function AdminLayout() {
   }
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <AntLayout style={{ minHeight: '100vh', background: '#0a0a0f' }}>
       <Sider
         collapsible
         collapsed={collapsed}
@@ -135,16 +117,14 @@ function AdminLayout() {
           onClick={handleMenuClick}
           theme="dark"
           inlineIndent={16}
-          style={{
-            borderRight: 0,
-          }}
+          style={{ borderRight: 0 }}
         />
       </Sider>
-      <Layout>
+      <AntLayout>
         <Header
           style={{
             padding: '0 24px',
-            background: colorBgContainer,
+            background: '#1a1a2e',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -163,21 +143,24 @@ function AdminLayout() {
           >
             {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           </button>
+          {isDev && (
+            <span style={{ color: '#00ff88', fontSize: 12 }}>🟢 开发模式</span>
+          )}
         </Header>
         <Content
           style={{
             padding: 24,
             margin: 16,
-            background: colorBgContainer,
-            borderRadius: borderRadiusLG,
+            background: '#1a1a2e',
+            borderRadius: 8,
             minHeight: 'calc(100vh - 128px)',
             overflow: 'auto',
           }}
         >
           <Outlet />
         </Content>
-      </Layout>
-    </Layout>
+      </AntLayout>
+    </AntLayout>
   )
 }
 
