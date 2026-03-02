@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { Layout as AntLayout, Menu, Switch } from 'antd'
+import { Layout as AntLayout, Menu, Switch, Popover } from 'antd'
 import {
   DashboardOutlined,
   FileTextOutlined,
   MessageOutlined,
   LogoutOutlined,
   HomeOutlined,
+  SettingOutlined,
   MoonOutlined,
   SunOutlined,
   UserOutlined,
@@ -19,6 +20,7 @@ const { Sider, Content, Header } = AntLayout
 function AdminLayout() {
   const [loading, setLoading] = useState(true)
   const [isDark, setIsDark] = useState(false)
+  const [popoverOpen, setPopoverOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { token, logout, checkAuth } = useAuthStore()
@@ -69,8 +71,48 @@ function AdminLayout() {
 
   const handleLogout = () => {
     logout()
+    setPopoverOpen(false)
     navigate('/admin/login', { replace: true })
   }
+
+  // 弹出卡片内容
+  const popoverContent = (
+    <div style={{ padding: 12, minWidth: 220 }}>
+      <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f0f0f0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 14, color: '#666' }}>
+            {isDark ? <MoonOutlined /> : <SunOutlined />} 主题
+          </span>
+          <Switch
+            size="small"
+            checked={isDark}
+            onChange={handleThemeToggle}
+            checkedChildren="🌙"
+            unCheckedChildren="☀️"
+          />
+        </div>
+      </div>
+      <div
+        onClick={handleLogout}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '10px 12px',
+          borderRadius: 6,
+          cursor: 'pointer',
+          color: '#ff4d4f',
+          transition: 'background 0.3s',
+          fontWeight: 500,
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.background = '#fff1f0'}
+        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+      >
+        <LogoutOutlined />
+        <span>退出登录</span>
+      </div>
+    </div>
+  )
 
   const menuItems = [
     {
@@ -91,46 +133,47 @@ function AdminLayout() {
     {
       type: 'divider',
     },
-    // Menu Footer - 主题切换
+    // Menu Footer - 设置（弹出卡片）- 始终在最下方
     {
-      key: 'theme',
-      icon: isDark ? <MoonOutlined style={{ fontSize: 18 }} /> : <SunOutlined style={{ fontSize: 18 }} />,
+      key: 'settings',
+      icon: <SettingOutlined style={{ fontSize: 18 }} />,
       label: (
-        <div 
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            minHeight: 40,
-          }}
-          onClick={(e) => e.stopPropagation()}
+        <Popover
+          content={popoverContent}
+          trigger="click"
+          open={popoverOpen}
+          onOpenChange={setPopoverOpen}
+          placement="rightTop"
+          overlayStyle={{ maxWidth: 250 }}
+          arrow={false}
         >
-          <span style={{ fontSize: 15, fontWeight: 500 }}>主题</span>
-          <Switch
-            size="default"
-            checked={isDark}
-            onChange={handleThemeToggle}
-            checkedChildren="🌙"
-            unCheckedChildren="☀️"
-            style={{ minWidth: 60 }}
-          />
-        </div>
+          <span 
+            style={{ 
+              fontSize: 15, 
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+            }}
+            onClick={(e) => {
+              e.stopPropagation()
+              setPopoverOpen(!popoverOpen)
+            }}
+          >
+            <span>设置</span>
+            <span style={{ fontSize: 10, color: '#999' }}>▼</span>
+          </span>
+        </Popover>
       ),
-    },
-    // Menu Footer - 退出登录
-    {
-      key: 'logout',
-      icon: <LogoutOutlined style={{ fontSize: 18 }} />,
-      label: <span style={{ fontSize: 15, fontWeight: 500 }}>退出登录</span>,
-      danger: true,
-      onClick: handleLogout,
     },
   ]
 
   const handleMenuClick = (e) => {
-    if (e.key === 'logout') {
-      handleLogout()
-    } else if (e.key !== 'theme') {
+    if (e.key === 'settings') {
+      // 不跳转，由 Popover 处理
+    } else {
+      setPopoverOpen(false)
       navigate(e.key)
     }
   }
@@ -171,7 +214,7 @@ function AdminLayout() {
         >
           <span style={{ color: '#7000ff', fontSize: 20, fontWeight: 'bold' }}>管理后台</span>
         </div>
-        <div style={{ flex: 1, overflow: 'auto' }}>
+        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
           <Menu
             mode="inline"
             selectedKeys={[getSelectedKey()]}
@@ -181,7 +224,7 @@ function AdminLayout() {
             inlineIndent={16}
             style={{ 
               borderRight: 0,
-              fontSize: 15,
+              flex: 1,
             }}
             itemStyle={{
               height: 56,
