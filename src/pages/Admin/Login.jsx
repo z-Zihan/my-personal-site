@@ -15,6 +15,16 @@ function AdminLogin() {
   // 检查是否是开发模式
   const isDev = new URLSearchParams(location.search).get('dev') === '1'
 
+  // 强制浅色模式（仅登录页）
+  useEffect(() => {
+    document.documentElement.classList.remove('dark')
+    document.documentElement.style.backgroundColor = '#f0f2f5'
+    
+    return () => {
+      document.documentElement.style.backgroundColor = ''
+    }
+  }, [])
+
   // 如果已经登录，跳转到 dashboard
   useEffect(() => {
     if (isAuthenticated()) {
@@ -25,7 +35,6 @@ function AdminLogin() {
   // 开发模式自动登录
   useEffect(() => {
     if (isDev && !isAuthenticated()) {
-      // 开发模式：自动"登录"，有效期 1 天
       const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString()
       login('dev_token', { username: 'admin (dev)' }, expiresAt)
       message.success('🟢 开发模式 - 已自动登录（有效期 1 天）')
@@ -53,40 +62,39 @@ function AdminLogin() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%)'
+        background: '#f0f2f5'
       }}>
-        <Card style={{ textAlign: 'center', background: 'rgba(255,255,255,0.05)' }}>
+        <Card style={{ textAlign: 'center', background: '#ffffff' }}>
           <div className="animate-spin text-4xl mb-4">⏳</div>
-          <p style={{ color: '#00ff88' }}>已登录，跳转中...</p>
+          <p style={{ color: '#7000ff' }}>已登录，跳转中...</p>
         </Card>
       </div>
     )
   }
 
-  // 登录页面（独立，无侧边栏）
+  // 登录页面（独立，浅色模式）
   return (
     <div style={{
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%)'
+      background: '#f0f2f5'
     }}>
       <Card
         style={{
           width: '100%',
           maxWidth: 400,
-          background: 'rgba(255, 255, 255, 0.05)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          background: '#ffffff',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         }}
-        bodyStyle={{ padding: '24px' }}
+        bodyStyle={{ padding: '32px' }}
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Title level={2} style={{ color: '#00f0ff', marginBottom: 8 }}>
+          <Title level={2} style={{ color: '#7000ff', marginBottom: 8 }}>
             后台管理登录
           </Title>
-          <p style={{ color: 'rgba(255, 255, 255, 0.6)' }}>请输入管理员账号</p>
+          <p style={{ color: '#666' }}>请输入管理员账号</p>
         </div>
 
         <Form
@@ -94,47 +102,46 @@ function AdminLogin() {
           onFinish={handleSubmit}
           autoComplete="off"
           size="large"
+          layout="vertical"
         >
           <Form.Item
             name="username"
+            label="用户名"
             rules={[{ required: true, message: '请输入用户名' }]}
+            style={{ marginBottom: 20 }}
           >
             <Input
-              prefix={<UserOutlined style={{ color: '#00f0ff' }} />}
-              placeholder="用户名"
-              style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(0, 240, 255, 0.3)',
-                color: '#fff',
-              }}
+              prefix={<UserOutlined style={{ color: '#7000ff' }} />}
+              placeholder="请输入用户名"
+              size="large"
             />
           </Form.Item>
 
           <Form.Item
             name="password"
+            label="密码"
             rules={[{ required: true, message: '请输入密码' }]}
+            style={{ marginBottom: 24 }}
           >
             <Input.Password
-              prefix={<LockOutlined style={{ color: '#00f0ff' }} />}
-              placeholder="密码"
-              style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(0, 240, 255, 0.3)',
-                color: '#fff',
-              }}
+              prefix={<LockOutlined style={{ color: '#7000ff' }} />}
+              placeholder="请输入密码"
+              size="large"
             />
           </Form.Item>
 
-          <Form.Item>
+          <Form.Item style={{ marginBottom: 0 }}>
             <Button
               type="primary"
               htmlType="submit"
               size="large"
               style={{
                 width: '100%',
-                background: '#00f0ff',
+                height: 44,
+                background: '#7000ff',
                 border: 'none',
-                color: '#0a0a0f',
+                fontSize: 16,
+                fontWeight: 500,
               }}
             >
               登录
@@ -142,12 +149,12 @@ function AdminLogin() {
           </Form.Item>
         </Form>
 
-        <div style={{ textAlign: 'center', marginTop: 16 }}>
-          <p style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: 12 }}>
+        <div style={{ textAlign: 'center', marginTop: 20 }}>
+          <p style={{ color: '#999', fontSize: 13 }}>
             默认账号：admin / Admin@2026Secure
           </p>
           {isDev && (
-            <p style={{ color: '#00ff88', fontSize: 12, marginTop: 8 }}>
+            <p style={{ color: '#52c41a', fontSize: 13, marginTop: 8 }}>
               🟢 开发模式
             </p>
           )}

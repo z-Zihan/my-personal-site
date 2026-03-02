@@ -13,7 +13,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
-import { useThemeStore } from '../../store/themeStore'
+import { useAdminThemeStore } from '../../store/adminThemeStore'
 
 const { Sider, Content, Header } = AntLayout
 
@@ -23,7 +23,7 @@ function AdminLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const { token, logout, checkAuth } = useAuthStore()
-  const { darkMode, setDarkMode } = useThemeStore()
+  const { adminDarkMode, setAdminDarkMode, initAdminTheme } = useAdminThemeStore()
 
   // 检查认证状态
   useEffect(() => {
@@ -35,15 +35,19 @@ function AdminLayout() {
     }
   }, [checkAuth, navigate])
 
-  // 初始化主题 - 从 themeStore 同步
+  // 初始化后台主题（独立于博客主题）
   useEffect(() => {
-    const dark = darkMode
-    if (dark) {
+    initAdminTheme()
+  }, [])
+
+  // 监听后台主题变化
+  useEffect(() => {
+    if (adminDarkMode) {
       document.documentElement.classList.add('dark')
     } else {
       document.documentElement.classList.remove('dark')
     }
-  }, [darkMode])
+  }, [adminDarkMode])
 
   if (loading || !token) {
     return (
@@ -59,9 +63,8 @@ function AdminLayout() {
   }
 
   const handleThemeToggle = (checked) => {
-    // 直接使用 themeStore 的 setDarkMode
-    setDarkMode(checked)
-    localStorage.setItem('darkMode', checked.toString())
+    setAdminDarkMode(checked)
+    localStorage.setItem('adminDarkMode', checked.toString())
   }
 
   const handleLogout = () => {
@@ -76,11 +79,11 @@ function AdminLayout() {
       <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 14, color: '#666' }}>
-            {darkMode ? <MoonOutlined /> : <SunOutlined />} 主题
+            {adminDarkMode ? <MoonOutlined /> : <SunOutlined />} 主题
           </span>
           <Switch
             size="small"
-            checked={darkMode}
+            checked={adminDarkMode}
             onChange={handleThemeToggle}
             checkedChildren="🌙"
             unCheckedChildren="☀️"
