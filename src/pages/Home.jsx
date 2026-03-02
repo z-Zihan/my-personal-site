@@ -4,6 +4,7 @@ import axios from 'axios';
 import ThemeToggle from '../components/common/ThemeToggle';
 import SearchBar from '../components/common/SearchBar';
 import ReadingTime from '../components/common/ReadingTime';
+import { getArticleCover } from '../utils/defaultCovers';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -56,12 +57,10 @@ export default function Home() {
             探索技术 · 记录生活 · 分享思考
           </p>
           
-          {/* Search */}
           <div className="max-w-md mx-auto mb-8">
             <SearchBar />
           </div>
           
-          {/* Stats */}
           {stats && (
             <div className="flex justify-center gap-8 text-white animate-fade-in-up">
               <div className="text-center">
@@ -94,14 +93,15 @@ export default function Home() {
               className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2 animate-fade-in-up"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              {article.cover && (
-                <img
-                  src={article.cover}
-                  alt={article.title}
-                  className="w-full h-48 object-cover"
-                  loading="lazy"
-                />
-              )}
+              <img
+                src={getArticleCover(article)}
+                alt={article.title}
+                className="w-full h-48 object-cover"
+                loading="lazy"
+                onError={(e) => {
+                  e.target.src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop'
+                }}
+              />
               <div className="p-6">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
                   {article.title}

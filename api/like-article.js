@@ -9,10 +9,6 @@ export default async function handler(req) {
     return optionsResponse()
   }
 
-  if (req.method !== 'POST') {
-    return errorResponse('Method not allowed', 405)
-  }
-
   try {
     const body = await req.json()
     const { article_id, visitor_id } = body
@@ -21,26 +17,48 @@ export default async function handler(req) {
       return errorResponse('Missing required fields', 400)
     }
 
-    // 插入点赞记录（会触发 trigger 自动增加文章点赞数）
-    const { error } = await supabase
-      .from('likes')
-      .insert({ article_id, visitor_id })
+    if (req.method === 'POST') {
+      // 点赞
+      const { error } = await supabase
+        .from('likes')
+        .insert({ article_id, visitor_id })
 
-    if (error) {
-      if (error.code === '23505') { // Unique violation
-        return errorResponse('Already liked', 400)
+      if (error) {
+        if (error.code === '23505') {
+          return errorResponse('Already liked', 400)
+        }
+        throw error
       }
-      throw error
+
+      const { data: article } = await supabase
+        .from('articles')
+        .select('likes')
+        .eq('id', article_id)
+        .single()
+
+      return jsonResponse({ success: true, likes: article?.likes || 0 })
+    }
+    
+    if (req.method === 'DELETE') {
+      // 取消点赞
+      const { error } = await supabase
+        .from('likes')
+        .delete()
+        .eq('article_id', article_id)
+        .eq('visitor_id', visitor_id)
+
+      if (error) throw error
+
+      const { data: article } = await supabase
+        .from('articles')
+        .select('likes')
+        .eq('id', article_id)
+        .single()
+
+      return jsonResponse({ success: true, likes: article?.likes || 0 })
     }
 
-    // 获取最新点赞数
-    const { data: article } = await supabase
-      .from('articles')
-      .select('likes')
-      .eq('id', article_id)
-      .single()
-
-    return jsonResponse({ success: true, likes: article?.likes || 0 })
+    return errorResponse('Method not allowed', 405)
   } catch (error) {
     console.error('Like article error:', error)
     return errorResponse('Failed to like article', 500)
