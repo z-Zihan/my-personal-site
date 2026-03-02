@@ -88,64 +88,64 @@ CREATE INDEX IF NOT EXISTS idx_sessions_session ON sessions(session_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_start ON sessions(start_time);
 
 -- ============================================
--- 统计视图
+-- 统计视图（修复歧义列引用）
 -- ============================================
 
 -- 每日访客统计
 CREATE OR REPLACE VIEW daily_visitors AS
 SELECT 
-  DATE(created_at) as date,
-  COUNT(DISTINCT visitor_id) as unique_visitors,
+  DATE(pv.created_at) as date,
+  COUNT(DISTINCT pv.visitor_id) as unique_visitors,
   COUNT(*) as total_visits,
-  COUNT(DISTINCT session_id) as sessions
-FROM page_views
-GROUP BY DATE(created_at)
+  COUNT(DISTINCT pv.session_id) as sessions
+FROM page_views pv
+GROUP BY DATE(pv.created_at)
 ORDER BY date DESC;
 
 -- 热门页面统计
 CREATE OR REPLACE VIEW popular_pages AS
 SELECT 
-  page_path,
-  page_title,
+  pv.page_path,
+  pv.page_title,
   COUNT(*) as views,
-  COUNT(DISTINCT visitor_id) as unique_visitors,
-  AVG(time_on_page) as avg_time_on_page
-FROM page_views
-GROUP BY page_path, page_title
+  COUNT(DISTINCT pv.visitor_id) as unique_visitors,
+  AVG(pv.time_on_page) as avg_time_on_page
+FROM page_views pv
+GROUP BY pv.page_path, pv.page_title
 ORDER BY views DESC;
 
 -- 地域统计
 CREATE OR REPLACE VIEW visitor_countries AS
 SELECT 
-  country,
-  COUNT(DISTINCT visitor_id) as visitors,
+  v.country,
+  COUNT(DISTINCT pv.visitor_id) as visitors,
   COUNT(*) as page_views
 FROM page_views pv
 LEFT JOIN visitors v ON pv.visitor_id = v.visitor_id
-GROUP BY country
+GROUP BY v.country
 ORDER BY visitors DESC;
 
 -- 设备统计
 CREATE OR REPLACE VIEW device_stats AS
 SELECT 
-  device_type,
-  COUNT(DISTINCT visitor_id) as visitors,
+  pv.device_type,
+  COUNT(DISTINCT pv.visitor_id) as visitors,
   COUNT(*) as page_views
-FROM page_views
-GROUP BY device_type;
+FROM page_views pv
+GROUP BY pv.device_type;
 
 -- 浏览器统计
 CREATE OR REPLACE VIEW browser_stats AS
 SELECT 
-  browser,
-  COUNT(DISTINCT visitor_id) as visitors
-FROM page_views
-GROUP BY browser
+  pv.browser,
+  COUNT(DISTINCT pv.visitor_id) as visitors
+FROM page_views pv
+GROUP BY pv.browser
 ORDER BY visitors DESC
 LIMIT 10;
 
 -- ============================================
--- 初始数据 - 中国省份映射
+-- 初始数据
 -- ============================================
 INSERT INTO visitors (visitor_id, country, created_at) 
 SELECT 'init_cn', 'China', NOW()
