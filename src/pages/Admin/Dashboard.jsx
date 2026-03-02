@@ -47,12 +47,13 @@ function Dashboard() {
         axios.get('/api/analytics?type=browsers&days=7'),
       ])
 
+      // 确保数据是数组
       setAnalytics(prev => ({
         ...prev,
-        daily: daily.data.data || daily.data,
-        pages: pages.data.data || pages.data,
-        devices: devices.data.data || devices.data,
-        browsers: browsers.data.data || browsers.data,
+        daily: Array.isArray(daily.data?.data) ? daily.data.data : [],
+        pages: Array.isArray(pages.data?.data) ? pages.data.data : [],
+        devices: Array.isArray(devices.data?.data) ? devices.data.data : [],
+        browsers: Array.isArray(browsers.data?.data) ? browsers.data.data : [],
       }))
     } catch (error) {
       console.error('Fetch data error:', error)
@@ -182,7 +183,7 @@ function Dashboard() {
         {/* 设备分布 */}
         <Col xs={24} lg={12}>
           <Card title="📱 设备分布" style={{ marginBottom: 24 }}>
-            {analytics?.devices analytics?.devices && analytics.devices.lengthanalytics?.devices && analytics.devices.length Array.isArray(analytics.devices) && analytics.devices.length > 0 ? (
+            {analytics?.devices && Array.isArray(analytics.devices) && analytics.devices.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -249,7 +250,7 @@ function Dashboard() {
         {/* 浏览器分布 */}
         <Col xs={24} lg={12}>
           <Card title="🌐 浏览器分布" style={{ marginBottom: 24 }}>
-            {analytics?.browsers && analytics.browsers.length > 0 ? (
+            {analytics?.browsers && Array.isArray(analytics.browsers) && analytics.browsers.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={analytics.browsers}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#333" />
@@ -270,7 +271,7 @@ function Dashboard() {
             )}
           </Card>
         </Col>
-        </Row>
+      </Row>
 
       {/* 世界地图 */}
       <Row gutter={[16, 16]}>

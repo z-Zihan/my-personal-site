@@ -2,18 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '../utils/toast';
 import { getLanguage, setLanguage, t } from '../utils/i18n';
+import { useThemeStore } from '../store/themeStore';
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { darkMode, setDarkMode } = useThemeStore();
   const [visitorId, setVisitorId] = useState('');
   const [language, setLang] = useState('zh');
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [userName, setUserName] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [stats, setStats] = useState({ comments: 0, likes: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 初始化主题
+    useThemeStore.getState().initTheme();
+    
     // 获取访客 ID
     let vid = localStorage.getItem('visitor_id');
     if (!vid) {
@@ -25,10 +29,6 @@ export default function Profile() {
     // 获取语言设置
     const lang = getLanguage();
     setLang(lang);
-
-    // 获取主题设置
-    const darkMode = localStorage.getItem('darkMode') === 'true';
-    setIsDarkMode(darkMode);
 
     // 获取用户名
     const name = localStorage.getItem('userName') || '';
@@ -47,12 +47,10 @@ export default function Profile() {
     toast.success(lang === 'zh' ? '语言已切换为中文' : 'Language switched to English');
   };
 
-  const handleThemeChange = (dark) => {
-    localStorage.setItem('darkMode', dark.toString());
-    setIsDarkMode(dark);
-    // 触发主题切换事件
-    window.dispatchEvent(new CustomEvent('themeChange', { detail: { isDark: dark } }));
-    toast.success(dark ? '已切换到暗黑模式' : '已切换到浅色模式');
+  const handleThemeChange = (isDark) => {
+    setDarkMode(isDark);
+    localStorage.setItem('darkMode', isDark.toString());
+    toast.success(isDark ? '已切换到暗黑模式' : '已切换到浅色模式');
   };
 
   const handleSaveName = () => {
@@ -202,7 +200,7 @@ export default function Profile() {
               <button
                 onClick={() => handleThemeChange(false)}
                 className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
-                  !isDarkMode
+                  !darkMode
                     ? 'bg-purple-500 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
@@ -212,7 +210,7 @@ export default function Profile() {
               <button
                 onClick={() => handleThemeChange(true)}
                 className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
-                  isDarkMode
+                  darkMode
                     ? 'bg-purple-500 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
