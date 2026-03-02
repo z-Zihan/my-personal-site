@@ -7,7 +7,7 @@ import {
   FireOutlined,
   UserOutlined,
   GlobalOutlined,
-  DeviceOutlined,
+  LaptopOutlined,
 } from '@ant-design/icons'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -100,7 +100,7 @@ function Dashboard() {
             <Statistic
               title="总会话数"
               value={analytics?.totalSessions || 0}
-              prefix={<DeviceOutlined />}
+              prefix={<LaptopOutlined />}
               valueStyle={{ color: '#00ff88' }}
             />
           </Card>
