@@ -31,8 +31,6 @@ function Navbar() {
             <Link to="/message" className="hover:text-primary transition-colors text-sm lg:text-base">
               留言
             </Link>
-            <Link
-            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -88,8 +86,6 @@ function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 留言
-              </Link>
-              <Link
               </Link>
             </div>
           </motion.div>
