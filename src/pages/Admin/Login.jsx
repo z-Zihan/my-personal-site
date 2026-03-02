@@ -148,17 +148,6 @@ function AdminLogin() {
             </Button>
           </Form.Item>
         </Form>
-
-        <div style={{ textAlign: 'center', marginTop: 20 }}>
-          <p style={{ color: '#999', fontSize: 13 }}>
-            默认账号：admin / Admin@2026Secure
-          </p>
-          {isDev && (
-            <p style={{ color: '#52c41a', fontSize: 13, marginTop: 8 }}>
-              🟢 开发模式
-            </p>
-          )}
-        </div>
       </Card>
     </div>
   )
