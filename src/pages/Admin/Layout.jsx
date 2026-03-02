@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { Layout as AntLayout, Menu, Switch, Popover } from 'antd'
+import { Layout as AntLayout, Menu, Switch, Popover, Button } from 'antd'
 import {
   DashboardOutlined,
   FileTextOutlined,
@@ -13,17 +13,16 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
-import { useAdminThemeStore } from '../../store/adminThemeStore'
 
 const { Sider, Content, Header } = AntLayout
 
 function AdminLayout() {
   const [loading, setLoading] = useState(true)
+  const [isDark, setIsDark] = useState(false)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { token, logout, checkAuth } = useAuthStore()
-  const { adminDarkMode, setAdminDarkMode, initAdminTheme } = useAdminThemeStore()
 
   // 检查认证状态
   useEffect(() => {
@@ -35,19 +34,25 @@ function AdminLayout() {
     }
   }, [checkAuth, navigate])
 
-  // 初始化后台主题（独立于博客主题）
+  // 初始化主题 - 从 localStorage 读取
   useEffect(() => {
-    initAdminTheme()
+    const stored = localStorage.getItem('adminDarkMode')
+    const dark = stored === 'true'
+    setIsDark(dark)
+    if (dark) {
+      document.documentElement.classList.add('dark')
+    }
   }, [])
 
-  // 监听后台主题变化
+  // 监听主题变化，更新 DOM
   useEffect(() => {
-    if (adminDarkMode) {
+    if (isDark) {
       document.documentElement.classList.add('dark')
     } else {
       document.documentElement.classList.remove('dark')
     }
-  }, [adminDarkMode])
+    localStorage.setItem('adminDarkMode', isDark.toString())
+  }, [isDark])
 
   if (loading || !token) {
     return (
@@ -62,11 +67,6 @@ function AdminLayout() {
     )
   }
 
-  const handleThemeToggle = (checked) => {
-    setAdminDarkMode(checked)
-    localStorage.setItem('adminDarkMode', checked.toString())
-  }
-
   const handleLogout = () => {
     logout()
     setPopoverOpen(false)
@@ -79,36 +79,29 @@ function AdminLayout() {
       <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 14, color: '#666' }}>
-            {adminDarkMode ? <MoonOutlined /> : <SunOutlined />} 主题
+            {isDark ? <MoonOutlined /> : <SunOutlined />} 主题
           </span>
           <Switch
             size="small"
-            checked={adminDarkMode}
-            onChange={handleThemeToggle}
+            checked={isDark}
+            onChange={(checked) => {
+              console.log('Theme toggle:', checked)
+              setIsDark(checked)
+            }}
             checkedChildren="🌙"
             unCheckedChildren="☀️"
           />
         </div>
       </div>
-      <div
+      <Button
+        danger
+        block
+        icon={<LogoutOutlined />}
         onClick={handleLogout}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '10px 12px',
-          borderRadius: 6,
-          cursor: 'pointer',
-          color: '#ff4d4f',
-          transition: 'background 0.3s',
-          fontWeight: 500,
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.background = '#fff1f0'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+        style={{ marginTop: 8 }}
       >
-        <LogoutOutlined />
-        <span>退出登录</span>
-      </div>
+        退出登录
+      </Button>
     </div>
   )
 
@@ -131,7 +124,7 @@ function AdminLayout() {
     {
       type: 'divider',
     },
-    // Menu Footer - 设置（弹出卡片）- 始终在最下方
+    // Menu Footer - 设置（弹出卡片）
     {
       key: 'settings',
       icon: <SettingOutlined style={{ fontSize: 18 }} />,
@@ -153,6 +146,7 @@ function AdminLayout() {
               alignItems: 'center',
               justifyContent: 'space-between',
               width: '100%',
+              cursor: 'pointer',
             }}
             onClick={(e) => {
               e.stopPropagation()
@@ -169,7 +163,7 @@ function AdminLayout() {
 
   const handleMenuClick = (e) => {
     if (e.key === 'settings') {
-      // 不跳转，由 Popover 处理
+      // 不跳转
     } else {
       setPopoverOpen(false)
       navigate(e.key)
