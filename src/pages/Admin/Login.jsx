@@ -10,34 +10,43 @@ const { Title } = Typography
 function AdminLogin() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login } = useAuthStore()
+  const { login, isAuthenticated } = useAuthStore()
 
   // 检查是否是开发模式
   const isDev = new URLSearchParams(location.search).get('dev') === '1'
 
-  // 如果已经是开发模式，直接跳转到 dashboard
+  // 如果已经登录，跳转到 dashboard
   useEffect(() => {
-    if (isDev) {
-      // 开发模式：自动"登录"，跳转到 dashboard
-      login('dev_token', { username: 'admin (dev)' })
-      message.success('开发模式 - 已自动登录')
-      navigate('/admin/dashboard?dev=1', { replace: true })
+    if (isAuthenticated()) {
+      navigate('/admin/dashboard', { replace: true })
     }
-  }, [isDev, navigate, login])
+  }, [isAuthenticated, navigate])
+
+  // 开发模式自动登录
+  useEffect(() => {
+    if (isDev && !isAuthenticated()) {
+      // 开发模式：自动"登录"，有效期 1 天
+      const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString()
+      login('dev_token', { username: 'admin (dev)' }, expiresAt)
+      message.success('🟢 开发模式 - 已自动登录（有效期 1 天）')
+      navigate('/admin/dashboard', { replace: true })
+    }
+  }, [isDev, isAuthenticated, login, navigate])
 
   const handleSubmit = async (values) => {
     try {
       const { data } = await authApi.login(values)
-      login(data.data.token, data.data.user)
-      message.success('登录成功')
+      const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString()
+      login(data.data.token, data.data.user, expiresAt)
+      message.success('登录成功（有效期 1 天）')
       navigate('/admin/dashboard')
     } catch (err) {
       message.error(err.response?.data?.error || '登录失败')
     }
   }
 
-  // 如果是开发模式，显示提示信息并等待跳转
-  if (isDev) {
+  // 如果已认证，显示加载提示
+  if (isAuthenticated()) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -46,15 +55,15 @@ function AdminLogin() {
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%)'
       }}>
-        <Card style={{ textAlign: 'center', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
+        <Card style={{ textAlign: 'center', background: 'rgba(255,255,255,0.05)' }}>
           <div className="animate-spin text-4xl mb-4">⏳</div>
-          <p style={{ color: '#00ff88' }}>🟢 开发模式 - 自动登录中...</p>
+          <p style={{ color: '#00ff88' }}>已登录，跳转中...</p>
         </Card>
       </div>
     )
   }
 
-  // 正常登录模式
+  // 登录页面（独立，无侧边栏）
   return (
     <div style={{
       minHeight: '100vh',
@@ -75,7 +84,7 @@ function AdminLogin() {
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <Title level={2} style={{ color: '#00f0ff', marginBottom: 8 }}>
-            后台管理
+            后台管理登录
           </Title>
           <p style={{ color: 'rgba(255, 255, 255, 0.6)' }}>请输入管理员账号</p>
         </div>
@@ -137,9 +146,11 @@ function AdminLogin() {
           <p style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: 12 }}>
             默认账号：admin / Admin@2026Secure
           </p>
-          <p style={{ color: 'rgba(0, 255, 136, 0.6)', fontSize: 12, marginTop: 8 }}>
-            💡 开发模式访问：添加 ?dev=1 参数
-          </p>
+          {isDev && (
+            <p style={{ color: '#00ff88', fontSize: 12, marginTop: 8 }}>
+              🟢 开发模式
+            </p>
+          )}
         </div>
       </Card>
     </div>

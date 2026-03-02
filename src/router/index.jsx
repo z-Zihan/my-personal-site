@@ -12,40 +12,30 @@ import ArticleManager from '../pages/Admin/ArticleManager'
 import MessageManager from '../pages/Admin/MessageManager'
 
 const router = createBrowserRouter([
+  // 前台路由
   {
     path: '/',
     element: <App />,
     children: [
-      {
-        index: true,
-        element: <Home />,
-      },
-      {
-        path: 'blog',
-        element: <BlogList />,
-      },
-      {
-        path: 'blog/:id',
-        element: <BlogDetail />,
-      },
-      {
-        path: 'hot-news',
-        element: <HotNews />,
-      },
-      {
-        path: 'message',
-        element: <MessageBoard />,
-      },
+      { index: true, element: <Home /> },
+      { path: 'blog', element: <BlogList /> },
+      { path: 'blog/:id', element: <BlogDetail /> },
+      { path: 'hot-news', element: <HotNews /> },
+      { path: 'message', element: <MessageBoard /> },
     ],
   },
+  
+  // 后台登录页面（独立，不在 Layout 内）
+  {
+    path: '/admin/login',
+    element: <AdminLogin />,
+  },
+  
+  // 后台管理路由（需要认证）
   {
     path: '/admin',
     element: <AdminLayout />,
     children: [
-      {
-        path: 'login',
-        element: <AdminLogin />,
-      },
       {
         index: true,
         element: <Navigate to="/admin/dashboard" replace />,

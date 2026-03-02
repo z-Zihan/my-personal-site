@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { Layout as AntLayout, Menu } from 'antd'
+import { Layout as AntLayout, Menu, Spin } from 'antd'
 import {
   DashboardOutlined,
   FileTextOutlined,
@@ -16,24 +16,31 @@ const { Sider, Content, Header } = AntLayout
 
 function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false)
+  const [loading, setLoading] = useState(true)
   const location = useLocation()
   const navigate = useNavigate()
-  const { token, logout } = useAuthStore()
+  const { token, logout, checkAuth } = useAuthStore()
 
-  // 检查是否是开发模式（URL 有 ?dev=1 参数）
-  const isDev = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('dev') === '1'
-  
-  // 开发模式 OR 有 token = 已认证
-  const isAuthenticated = isDev || !!token
+  // 检查认证状态
+  useEffect(() => {
+    const isAuth = checkAuth()
+    setLoading(false)
+    
+    // 未认证，跳转到登录页
+    if (!isAuth) {
+      navigate('/admin/login', { replace: true })
+    }
+  }, [checkAuth, navigate])
 
-  // 如果未认证，重定向到登录页
-  if (!isAuthenticated) {
-    return <Navigate to="/admin/login" replace />
-  }
-
-  // 如果已认证且在登录页，重定向到 dashboard
-  if (isAuthenticated && location.pathname === '/admin/login') {
-    return <Navigate to="/admin/dashboard" replace />
+  // 如果正在检查或 token 无效，显示加载
+  if (loading || !token) {
+    return (
+      <AntLayout style={{ minHeight: '100vh', background: '#0a0a0f' }}>
+        <Content style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Spin size="large" />
+        </Content>
+      </AntLayout>
+    )
   }
 
   const menuItems = [
@@ -70,12 +77,7 @@ function AdminLayout() {
   const handleMenuClick = (e) => {
     if (e.key === 'logout') {
       logout()
-      // 开发模式下，退出后回到登录页并带上 dev=1
-      if (isDev) {
-        navigate('/admin/login?dev=1', { replace: true })
-      } else {
-        navigate('/admin/login', { replace: true })
-      }
+      navigate('/admin/login', { replace: true })
     } else {
       navigate(e.key)
     }
@@ -85,7 +87,6 @@ function AdminLayout() {
     const path = location.pathname
     if (path.includes('articles')) return '/admin/articles'
     if (path.includes('messages')) return '/admin/messages'
-    if (path.includes('login')) return '/admin/login'
     return '/admin/dashboard'
   }
 
@@ -150,9 +151,6 @@ function AdminLayout() {
           >
             {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           </button>
-          {isDev && (
-            <span style={{ color: '#00ff88', fontSize: 12 }}>🟢 开发模式</span>
-          )}
         </Header>
         <Content
           style={{

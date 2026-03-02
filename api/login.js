@@ -4,7 +4,6 @@ export const config = {
   runtime: 'edge',
 }
 
-// 简单内存存储用于速率限制
 const loginAttempts = new Map()
 const MAX_ATTEMPTS = 5
 const LOCKOUT_TIME = 15 * 60 * 1000
@@ -39,7 +38,6 @@ export default async function handler(req) {
       return errorResponse('请输入用户名和密码', 400)
     }
 
-    // 从环境变量读取（Vercel 会自动注入）
     const adminUsername = process.env.ADMIN_USERNAME || 'admin'
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@2026Secure'
 
@@ -52,11 +50,11 @@ export default async function handler(req) {
 
     loginAttempts.delete(ip)
 
-    // 生成安全 token
+    // 生成 token（有效期 1 天）
     const randomBytes = new Uint8Array(32)
     crypto.getRandomValues(randomBytes)
     const token = `admin_${Date.now()}_${Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 天后过期
 
     return jsonResponse({
       data: {
