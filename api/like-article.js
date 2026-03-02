@@ -1,39 +1,48 @@
-import { querySupabase } from './_lib.js';
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+export const config = {
+  runtime: 'edge',
+}
+
+export default async function handler(req) {
+  if (req.method === 'OPTIONS') {
+    return optionsResponse()
   }
 
-  const { article_id, visitor_id } = req.body;
-  if (!article_id || !visitor_id) {
-    return res.status(400).json({ error: 'Missing required fields' });
+  if (req.method !== 'POST') {
+    return errorResponse('Method not allowed', 405)
   }
 
   try {
-    // 插入点赞记录（会触发 trigger 自动增加文章点赞数）
-    const { data, error } = await querySupabase(
-      `INSERT INTO likes (article_id, visitor_id)
-       VALUES ($1, $2)
-       ON CONFLICT (article_id, visitor_id) DO NOTHING
-       RETURNING *`,
-      [article_id, visitor_id]
-    );
+    const body = await req.json()
+    const { article_id, visitor_id } = body
 
-    if (error) throw error;
+    if (!article_id || !visitor_id) {
+      return errorResponse('Missing required fields', 400)
+    }
+
+    // 插入点赞记录（会触发 trigger 自动增加文章点赞数）
+    const { error } = await supabase
+      .from('likes')
+      .insert({ article_id, visitor_id })
+
+    if (error) {
+      if (error.code === '23505') { // Unique violation
+        return errorResponse('Already liked', 400)
+      }
+      throw error
+    }
 
     // 获取最新点赞数
-    const { data: article } = await querySupabase(
-      'SELECT likes FROM articles WHERE id = $1',
-      [article_id]
-    );
+    const { data: article } = await supabase
+      .from('articles')
+      .select('likes')
+      .eq('id', article_id)
+      .single()
 
-    res.status(200).json({ 
-      success: true, 
-      likes: article?.[0]?.likes || 0 
-    });
+    return jsonResponse({ success: true, likes: article?.likes || 0 })
   } catch (error) {
-    console.error('Like article error:', error);
-    res.status(500).json({ error: 'Failed to like article' });
+    console.error('Like article error:', error)
+    return errorResponse('Failed to like article', 500)
   }
 }

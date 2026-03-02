@@ -1,28 +1,37 @@
-import { querySupabase } from './_lib.js';
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+export const config = {
+  runtime: 'edge',
+}
+
+export default async function handler(req) {
+  if (req.method === 'OPTIONS') {
+    return optionsResponse()
   }
 
-  const { article_id, visitor_id, content } = req.body;
-  if (!article_id || !visitor_id || !content) {
-    return res.status(400).json({ error: 'Missing required fields' });
+  if (req.method !== 'POST') {
+    return errorResponse('Method not allowed', 405)
   }
 
   try {
-    const { data, error } = await querySupabase(
-      `INSERT INTO comments (article_id, visitor_id, content)
-       VALUES ($1, $2, $3)
-       RETURNING *`,
-      [article_id, visitor_id, content]
-    );
+    const body = await req.json()
+    const { article_id, visitor_id, content } = body
 
-    if (error) throw error;
+    if (!article_id || !visitor_id || !content) {
+      return errorResponse('Missing required fields', 400)
+    }
 
-    res.status(201).json({ success: true, data: data[0] });
+    const { data, error } = await supabase
+      .from('comments')
+      .insert({ article_id, visitor_id, content })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return jsonResponse({ success: true, data }, 201)
   } catch (error) {
-    console.error('Create comment error:', error);
-    res.status(500).json({ error: 'Failed to create comment' });
+    console.error('Create comment error:', error)
+    return errorResponse('Failed to create comment', 500)
   }
 }

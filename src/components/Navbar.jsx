@@ -32,10 +32,6 @@ function Navbar() {
               留言
             </Link>
             <Link
-              to="/admin/login"
-              className="px-3 lg:px-4 py-2 border border-primary text-primary rounded text-sm lg:text-base hover:bg-primary hover:text-dark transition-all"
-            >
-              管理
             </Link>
           </div>
 
@@ -94,11 +90,6 @@ function Navbar() {
                 留言
               </Link>
               <Link
-                to="/admin/login"
-                className="px-4 py-2 border border-primary text-primary rounded text-center hover:bg-primary hover:text-dark transition-all"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                管理
               </Link>
             </div>
           </motion.div>
