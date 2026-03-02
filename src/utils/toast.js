@@ -1,4 +1,4 @@
-// 全局 Toast 通知系统
+// 全局 Toast 通知系统 - 页面中间上边展示
 
 let toastContainer = null
 
@@ -6,7 +6,7 @@ let toastContainer = null
 const initContainer = () => {
   if (!toastContainer) {
     toastContainer = document.createElement('div')
-    toastContainer.className = 'fixed top-4 right-4 z-[9999] space-y-2'
+    toastContainer.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-[9999] space-y-2'
     document.body.appendChild(toastContainer)
   }
 }
@@ -18,11 +18,11 @@ const createToast = (message, type = 'info', duration = 3000) => {
   const toast = document.createElement('div')
   toast.className = `
     px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300
-    flex items-center gap-2 min-w-[200px] max-w-md
-    ${type === 'success' ? 'bg-green-500 text-white' : ''}
-    ${type === 'error' ? 'bg-red-500 text-white' : ''}
-    ${type === 'warning' ? 'bg-yellow-500 text-white' : ''}
-    ${type === 'info' ? 'bg-blue-500 text-white' : ''}
+    flex items-center gap-2 min-w-[200px] max-w-md backdrop-blur-sm
+    ${type === 'success' ? 'bg-green-500/90 text-white' : ''}
+    ${type === 'error' ? 'bg-red-500/90 text-white' : ''}
+    ${type === 'warning' ? 'bg-yellow-500/90 text-white' : ''}
+    ${type === 'info' ? 'bg-blue-500/90 text-white' : ''}
   `
   
   const icons = {
@@ -42,13 +42,13 @@ const createToast = (message, type = 'info', duration = 3000) => {
   // 动画进入
   requestAnimationFrame(() => {
     toast.style.opacity = '1'
-    toast.style.transform = 'translateX(0)'
+    toast.style.transform = 'translate(-50%, 0)'
   })
   
   // 自动移除
   setTimeout(() => {
     toast.style.opacity = '0'
-    toast.style.transform = 'translateX(100%)'
+    toast.style.transform = 'translate(-50%, -20px)'
     setTimeout(() => {
       toastContainer?.removeChild(toast)
       if (toastContainer?.children.length === 0) {

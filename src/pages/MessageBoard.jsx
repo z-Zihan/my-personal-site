@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { messagesApi } from '../utils/api'
+import { toast } from '../utils/toast'
 import useVisitorStore from '../store/visitorStore'
 import ParticleBackground from '../components/ParticleBackground'
 import { formatDate } from '../utils/helpers'
@@ -37,8 +38,9 @@ function MessageBoard() {
       await messagesApi.create({ visitor_id: visitorId, content })
       setContent('')
       fetchMessages()
+      toast.success('留言成功')
     } catch (error) {
-      alert('留言失败，请重试')
+      toast.error('留言失败，请重试')
     } finally {
       setSubmitting(false)
     }

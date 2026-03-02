@@ -182,7 +182,7 @@ function Dashboard() {
         {/* 设备分布 */}
         <Col xs={24} lg={12}>
           <Card title="📱 设备分布" style={{ marginBottom: 24 }}>
-            {analytics?.devices && analytics.devices.length > 0 ? (
+            {analytics?.devices analytics?.devices && analytics.devices.lengthanalytics?.devices && analytics.devices.length Array.isArray(analytics.devices) && analytics.devices.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -270,6 +270,7 @@ function Dashboard() {
             )}
           </Card>
         </Col>
+        </Row>
 
       {/* 世界地图 */}
       <Row gutter={[16, 16]}>

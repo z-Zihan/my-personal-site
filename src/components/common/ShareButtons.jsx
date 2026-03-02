@@ -1,42 +1,43 @@
 import React from 'react';
+import { toast } from '../../utils/toast';
 
 export default function ShareButtons({ title, url }) {
-  const shareUrl = encodeURIComponent(url);
-  const shareTitle = encodeURIComponent(title);
-
-  const shareLinks = {
-    wechat: `https://qr.aiwei.ai/?text=${shareTitle}%0A${shareUrl}`,
-    weibo: `https://service.weibo.com/share/share.php?title=${shareTitle}&url=${shareUrl}`,
-    twitter: `https://twitter.com/intent/tweet?text=${shareTitle}&url=${shareUrl}`,
-    copy: () => {
-      navigator.clipboard.writeText(url);
-      alert('链接已复制到剪贴板！');
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('链接已复制');
+    } catch (err) {
+      toast.error('复制失败');
     }
   };
 
+  const handleShare = (platform) => {
+    const urls = {
+      weibo: `https://service.weibo.com/share/share.php?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
+    };
+    window.open(urls[platform], '_blank');
+  };
+
   return (
-    <div className="flex gap-3 mt-6">
-      <span className="text-sm text-gray-500 dark:text-gray-400 self-center">分享：</span>
+    <div className="flex items-center gap-4">
       <button
-        onClick={() => window.open(shareLinks.weibo, '_blank')}
-        className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors"
-        title="分享到微博"
+        onClick={() => handleShare('weibo')}
+        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
       >
-        微
+        微博
       </button>
       <button
-        onClick={() => window.open(shareLinks.twitter, '_blank')}
-        className="p-2 rounded-full bg-sky-500 hover:bg-sky-600 text-white transition-colors"
-        title="分享到 Twitter"
+        onClick={() => handleShare('twitter')}
+        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
       >
-        🐦
+        Twitter
       </button>
       <button
-        onClick={shareLinks.copy}
-        className="p-2 rounded-full bg-gray-500 hover:bg-gray-600 text-white transition-colors"
-        title="复制链接"
+        onClick={handleCopy}
+        className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
       >
-        🔗
+        复制链接
       </button>
     </div>
   );

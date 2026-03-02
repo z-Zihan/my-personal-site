@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from '../../utils/toast';
 
 export default function CommentSection({ articleId }) {
   const [comments, setComments] = useState([]);
@@ -8,7 +9,6 @@ export default function CommentSection({ articleId }) {
   const [visitorId, setVisitorId] = useState('');
 
   useEffect(() => {
-    // 获取或创建访客 ID
     let vid = localStorage.getItem('visitor_id');
     if (!vid) {
       vid = 'visitor_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
@@ -40,8 +40,9 @@ export default function CommentSection({ articleId }) {
       });
       setNewComment('');
       fetchComments();
+      toast.success('评论成功');
     } catch (error) {
-      alert('评论失败，请重试');
+      toast.error('评论失败，请重试');
     } finally {
       setLoading(false);
     }
@@ -61,7 +62,6 @@ export default function CommentSection({ articleId }) {
     <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
       <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">评论 ({comments.length})</h3>
       
-      {/* 评论表单 */}
       <form onSubmit={handleSubmit} className="mb-8">
         <textarea
           value={newComment}
@@ -79,27 +79,25 @@ export default function CommentSection({ articleId }) {
         </button>
       </form>
 
-      {/* 评论列表 */}
-      <div className="space-y-6">
-        {comments.map((comment) => (
-          <div key={comment.id} className="flex gap-4">
-            <span className="text-4xl">{getAvatar(comment.visitor_id)}</span>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {comment.visitor_name || '访客'}
-                </span>
-                <span className="text-sm text-gray-500">
-                  {new Date(comment.created_at).toLocaleDateString('zh-CN')}
-                </span>
+      <div className="space-y-4">
+        {comments.map((comment, index) => (
+          <div
+            key={comment.id}
+            className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+          >
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">{getAvatar(comment.visitor_id)}</span>
+              <div className="flex-1">
+                <p className="text-gray-900 dark:text-white">{comment.content}</p>
+                <div className="mt-2 text-sm text-gray-500">
+                  <span>访客 {comment.visitor_id?.slice(-6)}</span>
+                  <span className="mx-2">•</span>
+                  <span>{new Date(comment.created_at).toLocaleDateString('zh-CN')}</span>
+                </div>
               </div>
-              <p className="text-gray-700 dark:text-gray-300">{comment.content}</p>
             </div>
           </div>
         ))}
-        {comments.length === 0 && (
-          <p className="text-center text-gray-500 py-8">暂无评论，快来抢沙发吧！</p>
-        )}
       </div>
     </div>
   );

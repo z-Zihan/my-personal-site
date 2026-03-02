@@ -33,9 +33,10 @@ function Navbar() {
             </Link>
             <Link
               to="/profile"
-              className="px-3 lg:px-4 py-2 border border-primary text-primary rounded text-sm lg:text-base hover:bg-primary hover:text-dark transition-all"
+              className="text-2xl hover:text-primary transition-colors"
+              title="个人中心"
             >
-              个人中心
+              👤
             </Link>
           </div>
 
@@ -78,7 +79,7 @@ function Navbar() {
                 留言
               </Link>
               <Link to="/profile" className="hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>
-                个人中心
+                👤 个人中心
               </Link>
             </div>
           </motion.div>

@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '../utils/toast';
 import { getLanguage, setLanguage, t } from '../utils/i18n';
-import ThemeToggle from '../components/common/ThemeToggle';
 
 export default function Profile() {
   const navigate = useNavigate();
   const [visitorId, setVisitorId] = useState('');
   const [language, setLang] = useState('zh');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [editingName, setEditingName] = useState(false);
   const [stats, setStats] = useState({ comments: 0, likes: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -24,6 +26,14 @@ export default function Profile() {
     const lang = getLanguage();
     setLang(lang);
 
+    // 获取主题设置
+    const darkMode = localStorage.getItem('darkMode') === 'true';
+    setIsDarkMode(darkMode);
+
+    // 获取用户名
+    const name = localStorage.getItem('userName') || '';
+    setUserName(name);
+
     // 获取统计数据
     const comments = JSON.parse(localStorage.getItem('my_comments') || '[]').length;
     const likes = JSON.parse(localStorage.getItem('my_likes') || '[]').length;
@@ -37,13 +47,18 @@ export default function Profile() {
     toast.success(lang === 'zh' ? '语言已切换为中文' : 'Language switched to English');
   };
 
-  const handleClearData = () => {
-    if (confirm('确定要清除本地数据吗？')) {
-      localStorage.removeItem('my_comments');
-      localStorage.removeItem('my_likes');
-      toast.success('数据已清除');
-      setStats({ comments: 0, likes: 0 });
-    }
+  const handleThemeChange = (dark) => {
+    localStorage.setItem('darkMode', dark.toString());
+    setIsDarkMode(dark);
+    // 触发主题切换事件
+    window.dispatchEvent(new CustomEvent('themeChange', { detail: { isDark: dark } }));
+    toast.success(dark ? '已切换到暗黑模式' : '已切换到浅色模式');
+  };
+
+  const handleSaveName = () => {
+    localStorage.setItem('userName', userName);
+    setEditingName(false);
+    toast.success('昵称已保存');
   };
 
   if (loading) {
@@ -56,24 +71,69 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <ThemeToggle />
-      
       <div className="max-w-4xl mx-auto px-4 py-16">
         <h1 className="text-4xl font-bold text-center mb-12 text-gray-900 dark:text-white">
           {t('profile')}
         </h1>
 
-        {/* 访客信息卡片 */}
+        {/* 用户信息卡片 */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
             👤 {t('visitorInfo')}
           </h2>
+          
+          {/* 用户名编辑 */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+              昵称
+            </label>
+            {editingName ? (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="输入昵称"
+                  autoFocus
+                />
+                <button
+                  onClick={handleSaveName}
+                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+                >
+                  保存
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingName(false);
+                    setUserName(localStorage.getItem('userName') || '');
+                  }}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                >
+                  取消
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <span className="text-lg text-gray-900 dark:text-white">
+                  {userName || '未设置昵称'}
+                </span>
+                <button
+                  onClick={() => setEditingName(true)}
+                  className="text-purple-500 hover:text-purple-600 text-sm"
+                >
+                  编辑
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="space-y-4">
             <div>
               <label className="text-sm text-gray-500 dark:text-gray-400">
                 {t('visitorId')}
               </label>
-              <div className="mt-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg font-mono text-sm break-all">
+              <div className="mt-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg font-mono text-sm break-all text-gray-700 dark:text-gray-300">
                 {visitorId}
               </div>
             </div>
@@ -133,24 +193,33 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* 主题切换提示 */}
+          {/* 主题切换 */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               🎨 {t('theme')}
             </label>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              点击右上角的 🌙/☀️ 按钮切换主题
-            </p>
-          </div>
-
-          {/* 清除数据 */}
-          <div>
-            <button
-              onClick={handleClearData}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-            >
-              🗑️ 清除本地数据
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleThemeChange(false)}
+                className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
+                  !isDarkMode
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+              >
+                ☀️ 浅色
+              </button>
+              <button
+                onClick={() => handleThemeChange(true)}
+                className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
+                  isDarkMode
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+              >
+                🌙 暗黑
+              </button>
+            </div>
           </div>
         </div>
 
