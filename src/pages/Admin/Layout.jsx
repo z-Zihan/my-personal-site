@@ -19,12 +19,11 @@ const { Sider, Content, Header } = AntLayout
 
 function AdminLayout() {
   const [loading, setLoading] = useState(true)
-  const [isDark, setIsDark] = useState(false)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { token, logout, checkAuth } = useAuthStore()
-  const { setDarkMode } = useThemeStore()
+  const { darkMode, setDarkMode } = useThemeStore()
 
   // 检查认证状态
   useEffect(() => {
@@ -36,14 +35,15 @@ function AdminLayout() {
     }
   }, [checkAuth, navigate])
 
-  // 初始化主题
+  // 初始化主题 - 从 themeStore 同步
   useEffect(() => {
-    const dark = localStorage.getItem('darkMode') === 'true'
-    setIsDark(dark)
+    const dark = darkMode
     if (dark) {
       document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
     }
-  }, [])
+  }, [darkMode])
 
   if (loading || !token) {
     return (
@@ -59,14 +59,9 @@ function AdminLayout() {
   }
 
   const handleThemeToggle = (checked) => {
-    setIsDark(checked)
+    // 直接使用 themeStore 的 setDarkMode
     setDarkMode(checked)
     localStorage.setItem('darkMode', checked.toString())
-    if (checked) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
   }
 
   const handleLogout = () => {
@@ -81,11 +76,11 @@ function AdminLayout() {
       <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 14, color: '#666' }}>
-            {isDark ? <MoonOutlined /> : <SunOutlined />} 主题
+            {darkMode ? <MoonOutlined /> : <SunOutlined />} 主题
           </span>
           <Switch
             size="small"
-            checked={isDark}
+            checked={darkMode}
             onChange={handleThemeToggle}
             checkedChildren="🌙"
             unCheckedChildren="☀️"
