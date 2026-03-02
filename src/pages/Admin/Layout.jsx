@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Layout, Menu, theme } from 'antd'
 import {
@@ -16,6 +16,8 @@ const { Sider, Content, Header } = Layout
 
 function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [checking, setChecking] = useState(true)
   const location = useLocation()
   const navigate = useNavigate()
   const { token, logout } = useAuthStore()
@@ -23,8 +25,28 @@ function AdminLayout() {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken()
 
-  // 检查是否登录或有 dev=1 参数
-  const isAuthenticated = token || new URLSearchParams(location.search).get('dev') === '1' || (import.meta.env.DEV && new URLSearchParams(window.location.search).get('dev') === '1')
+  useEffect(() => {
+    // 检查是否登录或有 dev=1 参数
+    const isDev = new URLSearchParams(location.search).get('dev') === '1'
+    const hasToken = !!token
+    
+    if (isDev || hasToken) {
+      setIsAuthenticated(true)
+    } else {
+      setIsAuthenticated(false)
+    }
+    setChecking(false)
+  }, [location.search, token])
+
+  if (checking) {
+    return (
+      <Layout style={{ minHeight: '100vh' }}>
+        <Content style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="animate-spin text-4xl">⏳</div>
+        </Content>
+      </Layout>
+    )
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />

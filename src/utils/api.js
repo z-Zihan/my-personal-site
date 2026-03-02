@@ -3,25 +3,65 @@ import axios from 'axios'
 const API_BASE = '/api'
 const isDev = import.meta.env.DEV
 
-// 开发模式 Mock API
+// 开发模式 Mock API（连接真实数据库）
 const mockApi = {
-  login: async (data) => {
-    // 模拟延迟
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // 简单的验证
-    if (data.username === 'admin' && data.password === 'Admin@2026Secure') {
-      return {
-        data: {
-          data: {
-            token: 'dev_token_' + Date.now(),
-            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-            user: { username: 'admin' }
-          }
-        }
-      }
+  // 搜索 API
+  search: async (q) => {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`)
+    return await res.json()
+  },
+  
+  // 文章列表
+  articles: {
+    getList: async (params) => {
+      const query = new URLSearchParams(params).toString()
+      const res = await fetch(`/api/articles?${query}`)
+      return await res.json()
     }
-    throw { response: { data: { error: 'Invalid credentials' } } }
+  },
+  
+  // 留言
+  messages: {
+    getList: async () => {
+      const res = await fetch('/api/messages')
+      return await res.json()
+    },
+    create: async (data) => {
+      const res = await fetch('/api/create-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      return await res.json()
+    }
+  },
+  
+  // 热点资讯 - 调用真实 API
+  hotNews: {
+    getList: async () => {
+      const res = await fetch('/api/hot-news')
+      return await res.json()
+    }
+  },
+  
+  // 统计
+  stats: {
+    getStats: async () => {
+      const res = await fetch('/api/stats')
+      return await res.json()
+    }
+  },
+  
+  // 登录
+  login: async (data) => {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    const json = await res.json()
+    if (!res.ok) throw json
+    return { data: json }
   }
 }
 
@@ -43,7 +83,7 @@ api.interceptors.request.use((config) => {
 
 // 文章相关 API
 export const articlesApi = {
-  getList: (params) => isDev ? Promise.resolve({ data: { data: [] } }) : api.get('/articles', { params }),
+  getList: (params) => isDev ? mockApi.articles.getList(params) : api.get('/articles', { params }),
   getDetail: (id) => isDev ? Promise.resolve({ data: { data: {} } }) : api.get('/article-detail', { params: { id } }),
   create: (data) => isDev ? Promise.resolve({ data: { success: true } }) : api.post('/create-article', data),
   update: (data) => isDev ? Promise.resolve({ data: { success: true } }) : api.put('/update-article', data),
@@ -53,19 +93,24 @@ export const articlesApi = {
 
 // 留言相关 API
 export const messagesApi = {
-  getList: () => isDev ? Promise.resolve({ data: { data: [] } }) : api.get('/messages'),
-  create: (data) => isDev ? Promise.resolve({ data: { success: true } }) : api.post('/create-message', data),
+  getList: () => isDev ? mockApi.messages.getList() : api.get('/messages'),
+  create: (data) => isDev ? mockApi.messages.create(data) : api.post('/create-message', data),
   delete: (id) => isDev ? Promise.resolve({ data: { success: true } }) : api.delete('/delete-message', { params: { id } }),
 }
 
 // 热点资讯 API
 export const hotNewsApi = {
-  getList: () => isDev ? Promise.resolve({ data: { data: [] } }) : api.get('/hot-news'),
+  getList: () => isDev ? mockApi.hotNews.getList() : api.get('/hot-news'),
 }
 
 // 统计 API
 export const statsApi = {
-  getStats: () => isDev ? Promise.resolve({ data: { data: { views: 0, articles: 0 } } }) : api.get('/stats'),
+  getStats: () => isDev ? mockApi.stats.getStats() : api.get('/stats'),
+}
+
+// 搜索 API
+export const searchApi = {
+  search: (q) => isDev ? mockApi.search(q) : api.get('/search', { params: { q } }),
 }
 
 // 登录 API

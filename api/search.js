@@ -1,31 +1,43 @@
-import { querySupabase } from './_lib.js';
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
 
-export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+export const config = {
+  runtime: 'edge',
+}
+
+export default async function handler(req) {
+  if (req.method === 'OPTIONS') {
+    return optionsResponse()
   }
 
-  const { q } = req.query;
-  if (!q || q.length < 2) {
-    return res.status(400).json({ error: 'Query too short' });
+  if (req.method !== 'GET') {
+    return errorResponse('Method not allowed', 405)
   }
 
   try {
-    const { data, error } = await querySupabase(
-      `SELECT id, title, summary, cover, created_at 
-       FROM articles 
-       WHERE status = 'published' 
-       AND (title ILIKE $1 OR summary ILIKE $1 OR content ILIKE $1)
-       ORDER BY created_at DESC
-       LIMIT 10`,
-      [`%${q}%`]
-    );
+    const url = new URL(req.url)
+    const q = url.searchParams.get('q')
 
-    if (error) throw error;
+    if (!q || q.length < 1) {
+      return jsonResponse({ data: [] })
+    }
 
-    res.status(200).json({ success: true, data });
+    // 搜索标题和内容
+    const { data, error } = await supabase
+      .from('articles')
+      .select('id, title, summary, cover, views, created_at')
+      .eq('status', 'published')
+      .or(`title.ilike.%${q}%,content.ilike.%${q}%`)
+      .order('created_at', { ascending: false })
+      .limit(10)
+
+    if (error) {
+      console.error('Search error:', error)
+      return errorResponse(error.message, 500)
+    }
+
+    return jsonResponse({ data: data || [] })
   } catch (error) {
-    console.error('Search error:', error);
-    res.status(500).json({ error: 'Search failed' });
+    console.error('Error searching:', error)
+    return errorResponse('Internal server error', 500)
   }
 }

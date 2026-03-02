@@ -15,21 +15,35 @@ export default function BlogDetail() {
   const navigate = useNavigate();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const contentRef = useRef(null);
 
   useEffect(() => {
+    if (!id) {
+      setError('文章 ID 不存在');
+      setLoading(false);
+      return;
+    }
     fetchArticle();
   }, [id]);
 
   const fetchArticle = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const res = await axios.get(`/api/article-detail?id=${id}`);
-      setArticle(res.data.data);
-      
-      // 增加阅读量
-      axios.post('/api/increment-views', { id }).catch(() => {});
-    } catch (error) {
-      console.error('Fetch article error:', error);
+      if (res.data && res.data.data) {
+        setArticle(res.data.data);
+      } else {
+        setError('文章不存在');
+      }
+    } catch (err) {
+      console.error('Fetch article error:', err);
+      if (err.response?.status === 404) {
+        setError('文章不存在');
+      } else {
+        setError('加载失败，请稍后重试');
+      }
     } finally {
       setLoading(false);
     }
@@ -37,23 +51,39 @@ export default function BlogDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin text-4xl">⏳</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin text-4xl mb-4">⏳</div>
+          <p className="text-gray-600 dark:text-gray-400">加载中...</p>
+        </div>
       </div>
     );
   }
 
-  if (!article) {
+  if (error || !article) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">文章未找到</h1>
-          <button
-            onClick={() => navigate('/')}
-            className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
-          >
-            返回首页
-          </button>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            {error || '文章未找到'}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-8">
+            可能的原因：文章已被删除、未发布或链接不正确
+          </p>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={() => navigate('/')}
+              className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+            >
+              返回首页
+            </button>
+            <button
+              onClick={() => navigate('/blog')}
+              className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            >
+              查看文章列表
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -70,7 +100,7 @@ export default function BlogDetail() {
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
             {article.title}
           </h1>
-          <div className="flex items-center justify-center gap-6 text-white/80">
+          <div className="flex items-center justify-center gap-6 text-white/80 flex-wrap">
             <span>📅 {new Date(article.created_at).toLocaleDateString('zh-CN')}</span>
             <ReadingTime content={article.content} />
             <span>👁️ {article.views || 0} 次阅读</span>

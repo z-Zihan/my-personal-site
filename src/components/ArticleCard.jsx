@@ -1,49 +1,40 @@
-import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
-import { formatDate, truncateText } from '../utils/helpers'
+import { useNavigate } from 'react-router-dom'
+import ReadingTime from './common/ReadingTime'
 
 function ArticleCard({ article }) {
+  const navigate = useNavigate()
+
+  if (!article) return null
+
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      whileHover={{ y: -5, scale: 1.02 }}
-      className="glass rounded-xl overflow-hidden neon-border"
+    <article
+      onClick={() => navigate(`/blog/${article.id}`)}
+      className="glass rounded-xl overflow-hidden cursor-pointer transform hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl"
     >
       {article.cover && (
-        <div className="relative h-48 overflow-hidden">
-          <img
-            src={article.cover}
-            alt={article.title}
-            className="w-full h-full object-cover"
-          />
-        </div>
+        <img
+          src={article.cover}
+          alt={article.title}
+          className="w-full h-48 object-cover"
+          loading="lazy"
+          onError={(e) => {
+            e.target.style.display = 'none'
+          }}
+        />
       )}
       <div className="p-6">
         <h3 className="text-xl font-bold mb-2 line-clamp-2">
-          <Link
-            to={`/blog/${article.id}`}
-            className="hover:text-primary transition-colors"
-          >
-            {article.title}
-          </Link>
+          {article.title}
         </h3>
-        <p className="text-gray-400 text-sm mb-4 line-clamp-3">
-          {truncateText(article.summary || article.content, 120)}
+        <p className="text-gray-400 mb-4 line-clamp-2">
+          {article.summary}
         </p>
         <div className="flex items-center justify-between text-sm text-gray-500">
-          <span>{formatDate(article.created_at)}</span>
-          <span className="flex items-center">
-            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-            </svg>
-            {article.views || 0}
-          </span>
+          <ReadingTime content={article.content} />
+          <span>👁️ {article.views || 0}</span>
         </div>
       </div>
-    </motion.article>
+    </article>
   )
 }
 

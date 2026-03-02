@@ -57,34 +57,8 @@ function MessageBoard() {
           留言板
         </motion.h1>
 
-        {/* 留言表单 */}
-        <motion.form
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          onSubmit={handleSubmit}
-          className="glass p-6 rounded-2xl mb-12 neon-border"
-        >
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="写下你的留言..."
-            rows={4}
-            className="w-full bg-transparent border border-gray-700 rounded-lg p-4 focus:border-primary focus:outline-none resize-none"
-            disabled={submitting}
-          />
-          <div className="flex justify-end mt-4">
-            <button
-              type="submit"
-              disabled={submitting || !content.trim()}
-              className="px-8 py-3 bg-primary text-dark font-bold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary hover:text-white transition-all"
-            >
-              {submitting ? '提交中...' : '提交留言'}
-            </button>
-          </div>
-        </motion.form>
-
-        {/* 留言列表 */}
-        <div className="space-y-4">
+        {/* 留言列表 - 移到上方 */}
+        <div className="space-y-4 mb-12">
           <h2 className="text-2xl font-bold mb-6">所有留言</h2>
 
           {loading ? (
@@ -115,6 +89,32 @@ function MessageBoard() {
             ))
           )}
         </div>
+
+        {/* 留言表单 - 移到下方 */}
+        <motion.form
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          onSubmit={handleSubmit}
+          className="glass p-6 rounded-2xl neon-border"
+        >
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="写下你的留言..."
+            rows={4}
+            className="w-full bg-transparent border border-gray-700 rounded-lg p-4 focus:border-primary focus:outline-none resize-none"
+            disabled={submitting}
+          />
+          <div className="flex justify-end mt-4">
+            <button
+              type="submit"
+              disabled={submitting || !content.trim()}
+              className="px-8 py-3 bg-primary text-dark font-bold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary hover:text-white transition-all"
+            >
+              {submitting ? '提交中...' : '提交留言'}
+            </button>
+          </div>
+        </motion.form>
       </div>
     </div>
   )

@@ -19,7 +19,7 @@ export default function Home() {
   const fetchData = async () => {
     try {
       const [articlesRes, newsRes, statsRes] = await Promise.all([
-        axios.get('/api/articles?page=1&limit=6'),
+        axios.get('/api/articles?page=1&limit=6&status=published'),
         axios.get('/api/hot-news'),
         axios.get('/api/stats')
       ]);
@@ -65,15 +65,15 @@ export default function Home() {
           {stats && (
             <div className="flex justify-center gap-8 text-white animate-fade-in-up">
               <div className="text-center">
-                <div className="text-3xl font-bold">{stats.total_articles || 0}</div>
+                <div className="text-3xl font-bold">{stats.totalArticles || 0}</div>
                 <div className="text-white/70">文章</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold">{stats.total_views || 0}</div>
+                <div className="text-3xl font-bold">{stats.totalViews || 0}</div>
                 <div className="text-white/70">阅读</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold">{stats.total_messages || 0}</div>
+                <div className="text-3xl font-bold">{stats.totalMessages || 0}</div>
                 <div className="text-white/70">留言</div>
               </div>
             </div>
