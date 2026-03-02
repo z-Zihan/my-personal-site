@@ -1,7 +1,7 @@
 {
   "name": "my-personal-site",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.1.0",
   "type": "module",
   "description": "Zihan's Personal Blog - 张子涵的个人博客系统",
   "author": "张子涵 (Zihan)",
