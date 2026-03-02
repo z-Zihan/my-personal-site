@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { Layout as AntLayout, Menu, Spin } from 'antd'
+import { Layout as AntLayout, Menu } from 'antd'
 import {
   DashboardOutlined,
   FileTextOutlined,
@@ -20,17 +20,19 @@ function AdminLayout() {
   const navigate = useNavigate()
   const { token, logout } = useAuthStore()
 
-  // 检查是否登录或有 dev=1 参数
+  // 检查是否是开发模式（URL 有 ?dev=1 参数）
   const isDev = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('dev') === '1'
+  
+  // 开发模式 OR 有 token = 已认证
   const isAuthenticated = isDev || !!token
 
-  // 如果未认证且不在登录页，重定向到登录页
-  if (!isAuthenticated && !location.pathname.includes('/admin/login')) {
+  // 如果未认证，重定向到登录页
+  if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />
   }
 
   // 如果已认证且在登录页，重定向到 dashboard
-  if (isAuthenticated && location.pathname.includes('/admin/login')) {
+  if (isAuthenticated && location.pathname === '/admin/login') {
     return <Navigate to="/admin/dashboard" replace />
   }
 
@@ -68,7 +70,12 @@ function AdminLayout() {
   const handleMenuClick = (e) => {
     if (e.key === 'logout') {
       logout()
-      navigate('/admin/login', { replace: true })
+      // 开发模式下，退出后回到登录页并带上 dev=1
+      if (isDev) {
+        navigate('/admin/login?dev=1', { replace: true })
+      } else {
+        navigate('/admin/login', { replace: true })
+      }
     } else {
       navigate(e.key)
     }
