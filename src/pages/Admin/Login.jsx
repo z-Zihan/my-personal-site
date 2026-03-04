@@ -37,7 +37,7 @@ function AdminLogin() {
     if (isDev && !isAuthenticated()) {
       const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString()
       login('dev_token', { username: 'admin (dev)' }, expiresAt)
-      message.success('🟢 开发模式 - 已自动登录（有效期 1 天）')
+      message.success('🟢 开发模式 -  已自动登录（有效期 1 天）')
       navigate('/admin/dashboard', { replace: true })
     }
   }, [isDev, isAuthenticated, login, navigate])
