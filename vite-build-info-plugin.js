@@ -1,9 +1,11 @@
 import { execSync } from 'child_process'
+import fs from 'fs'
+import path from 'path'
 
 export default function buildInfoPlugin() {
   return {
     name: 'vite-build-info-plugin',
-    config: () => {
+    closeBundle: async () => {
       const now = new Date()
       const buildTime = now.toISOString().replace('T', ' ').substring(0, 19)
 
@@ -16,16 +18,27 @@ export default function buildInfoPlugin() {
         console.log('Not a git repository, using default values')
       }
 
-      return {
-        define: {
-          __BUILD_INFO__: JSON.stringify({
-            buildTime,
-            commitHash,
-            branch,
-            nodeVersion: process.version,
-          })
-        }
-      }
+      const nodeVersion = process.version
+
+      // 构建信息注释
+      const comment = `<!--
+================================================================================
+  Zihan's Blog - Build Information
+================================================================================
+  Build Time:    ${buildTime}
+  Branch:        ${branch}
+  Commit:        ${commitHash}
+  Node Version:  ${nodeVersion}
+================================================================================
+-->
+`
+
+      // 读取 dist/index.html 并在开头添加注释
+      const distPath = path.resolve('dist', 'index.html')
+      const content = fs.readFileSync(distPath, 'utf-8')
+      fs.writeFileSync(distPath, comment + content, 'utf-8')
+
+      console.log('Build info injected into index.html')
     }
   }
 }
