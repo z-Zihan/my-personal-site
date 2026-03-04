@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import buildInfoPlugin from './vite-build-info-plugin'
 
 export default defineConfig({
   plugins: [
+    buildInfoPlugin(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
