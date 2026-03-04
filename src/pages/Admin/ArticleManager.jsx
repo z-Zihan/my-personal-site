@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table, Button, Card, Space, Tag, Popconfirm, message } from 'antd';
+import { Table, Button, Card, Space, Tag, Popconfirm, message, Switch } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
@@ -27,13 +27,39 @@ function ArticleManager() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/delete-article?id=${id}`);
-      message.success('删除成功');
-      fetchArticles();
+      const token = localStorage.getItem('admin_token')
+      await axios.delete(`/api/delete-article?id=${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      message.success('删除成功')
+      fetchArticles()
     } catch (error) {
-      message.error('删除失败');
+      message.error(error.response?.data?.error || '删除失败')
     }
   };
+
+  const handleToggleStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'published' ? 'draft' : 'published'
+    try {
+      const token = localStorage.getItem('admin_token')
+      await axios.patch(
+        '/api/toggle-article-status',
+        { id, status: currentStatus },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      message.success(`文章已${newStatus === 'published' ? '发布' : '设为草稿'}`)
+      fetchArticles()
+    } catch (error) {
+      message.error(error.response?.data?.error || '状态更新失败')
+    }
+  }
 
   const columns = [
     {
@@ -46,10 +72,14 @@ function ArticleManager() {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (status) => (
-        <Tag color={status === 'published' ? 'green' : 'gray'}>
-          {status === 'published' ? '已发布' : '草稿'}
-        </Tag>
+      width: 100,
+      render: (status, record) => (
+        <Switch
+          checked={status === 'published'}
+          checkedChildren="发布"
+          unCheckedChildren="草稿"
+          onChange={() => handleToggleStatus(record.id, status)}
+        />
       ),
     },
     {

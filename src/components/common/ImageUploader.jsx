@@ -29,8 +29,12 @@ export default function ImageUploader({ onChange, value, accept = "image/*" }) {
       const formData = new FormData()
       formData.append('image', file)
 
+      const token = localStorage.getItem('admin_token')
       const { data } = await axios.post('/api/upload-image', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        }
       })
 
       if (data.success) {

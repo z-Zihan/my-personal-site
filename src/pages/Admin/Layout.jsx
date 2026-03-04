@@ -13,46 +13,32 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
+import { useAdminThemeStore } from '../../store/adminThemeStore'
 
 const { Sider, Content, Header } = AntLayout
 
 function AdminLayout() {
   const [loading, setLoading] = useState(true)
-  const [isDark, setIsDark] = useState(false)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { token, logout, checkAuth } = useAuthStore()
+  const { adminDarkMode, setAdminDarkMode } = useAdminThemeStore()
 
   // 检查认证状态
   useEffect(() => {
     const isAuth = checkAuth()
     setLoading(false)
-    
+
     if (!isAuth) {
       navigate('/admin/login', { replace: true })
     }
   }, [checkAuth, navigate])
 
-  // 初始化主题 - 从 localStorage 读取
+  // 初始化主题 - 从 Zustand store 读取
   useEffect(() => {
-    const stored = localStorage.getItem('adminDarkMode')
-    const dark = stored === 'true'
-    setIsDark(dark)
-    if (dark) {
-      document.documentElement.classList.add('dark')
-    }
+    useAdminThemeStore.getState().initAdminTheme()
   }, [])
-
-  // 监听主题变化，更新 DOM
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-    localStorage.setItem('adminDarkMode', isDark.toString())
-  }, [isDark])
 
   if (loading || !token) {
     return (
@@ -79,14 +65,13 @@ function AdminLayout() {
       <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 14, color: '#666' }}>
-            {isDark ? <MoonOutlined /> : <SunOutlined />} 主题
+            {adminDarkMode ? <MoonOutlined /> : <SunOutlined />} 主题
           </span>
           <Switch
             size="small"
-            checked={isDark}
+            checked={adminDarkMode}
             onChange={(checked) => {
-              console.log('Theme toggle:', checked)
-              setIsDark(checked)
+              setAdminDarkMode(checked)
             }}
             checkedChildren="🌙"
             unCheckedChildren="☀️"
