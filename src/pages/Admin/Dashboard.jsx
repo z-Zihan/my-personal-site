@@ -87,6 +87,15 @@ function Dashboard() {
     <div style={{ padding: '24px 0' }}>
       <Title level={3} style={{ marginBottom: 24 }}>📊 数据仪表盘</Title>
 
+      {/* 世界地图 - 移到最顶部 */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24}>
+          <Card title="🌍 访客地域分布">
+            <VisitorMap />
+          </Card>
+        </Col>
+      </Row>
+
       {/* 核心指标 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={6}>
@@ -288,15 +297,6 @@ function Dashboard() {
             ) : (
               <Empty description="暂无浏览器数据" style={{ padding: 40 }} />
             )}
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 世界地图 */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24}>
-          <Card title="🌍 访客地域分布" style={{ marginBottom: 24 }}>
-            <VisitorMap />
           </Card>
         </Col>
       </Row>

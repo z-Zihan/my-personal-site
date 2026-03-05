@@ -4,23 +4,13 @@ export const config = {
   runtime: 'edge',
 }
 
-// 简单的 token 验证函数（不查数据库）
+// 简单的 token 验证函数 - 只验证时间戳格式
 function validateToken(token) {
-  // 检查 token 格式：admin_时间戳_随机字符串
   if (!token || !token.startsWith('admin_')) {
     return false
   }
-  const parts = token.split('_')
-  if (parts.length < 3) {
-    return false
-  }
-  // 简单验证时间戳（7 天有效期）
-  const timestamp = parseInt(parts[1])
-  if (isNaN(timestamp)) {
-    return false
-  }
-  const expiresAt = timestamp + 7 * 24 * 60 * 60 * 1000
-  return Date.now() < expiresAt
+  const timestamp = token.split('_')[1]
+  return timestamp && !isNaN(parseInt(timestamp))
 }
 
 export default async function handler(req) {
@@ -63,6 +53,7 @@ export default async function handler(req) {
         cover: cover || '',
         status,
         views: 0,
+        likes: 0,
       }])
       .select()
       .single()

@@ -38,10 +38,13 @@ export default async function handler(req) {
         .from('blog-images')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true
         })
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase storage error:', error)
+        return errorResponse('Upload failed: ' + error.message, 500)
+      }
 
       // 获取公开 URL
       const { data: { publicUrl } } = supabase.storage
