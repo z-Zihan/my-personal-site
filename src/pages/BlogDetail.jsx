@@ -147,11 +147,6 @@ export default function BlogDetail() {
         {/* Comments */}
         <CommentSection articleId={id} />
       </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 dark:bg-black py-8 text-center text-gray-400">
-        <p>© 2026 Zihan's Blog. All rights reserved.</p>
-      </footer>
     </div>
   );
 }

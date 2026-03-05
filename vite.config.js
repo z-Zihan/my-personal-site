@@ -11,7 +11,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'pwa-512x512.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'],
       manifest: {
-        name: "Zihan's Blog - 张子涵的个人博客",
+        name: "zZihan'sBlog - 张子涵的个人博客",
         short_name: 'ZihanBlog',
         description: '探索技术 · 记录生活 · 分享思考',
         theme_color: '#8b5cf6',

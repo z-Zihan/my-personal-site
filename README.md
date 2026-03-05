@@ -1,4 +1,4 @@
-# 📝 Zihan's Blog - 张子涵的个人博客系统
+# 📝 zZihan'sBlog - 张子涵的个人博客系统
 
 > **Version**: 2.1.0 Complete Edition
 > **Status**: Production Ready ✅

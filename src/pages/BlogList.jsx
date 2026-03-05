@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useArticles } from '../hooks/useArticles'
 import ArticleCard from '../components/ArticleCard'
-import ParticleBackground from '../components/ParticleBackground'
 
 function BlogList() {
   const [page, setPage] = useState(1)
@@ -16,8 +15,6 @@ function BlogList() {
 
   return (
     <div className="min-h-screen pt-20 pb-20">
-      <ParticleBackground />
-
       <div className="max-w-7xl mx-auto px-4">
         <h1 className="text-5xl font-bold text-center mb-12 neon-text">
           全部文章

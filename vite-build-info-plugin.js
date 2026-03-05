@@ -35,7 +35,7 @@ export default function buildInfoPlugin() {
 
       const comment = `<!--
 ================================================================================
-  Zihan's Blog - Build Information
+  zZihan'sBlog - Build Information
 ================================================================================
   Build Time: ${buildTime} (Beijing Time)
   Commit:     ${commitHash}

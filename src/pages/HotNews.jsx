@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion as Motion } from 'framer-motion'
 import { hotNewsApi } from '../utils/api'
-import ParticleBackground from '../components/ParticleBackground'
 
 // 前端本地缓存时间：5 分钟
 const CLIENT_CACHE_DURATION = 5 * 60 * 1000
@@ -51,8 +50,6 @@ function HotNews() {
 
   return (
     <div className="min-h-screen pt-20 pb-20">
-      <ParticleBackground />
-
       <div className="max-w-4xl mx-auto px-4">
         <Motion.h1
           initial={{ opacity: 0, y: 20 }}

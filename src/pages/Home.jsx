@@ -1,10 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 import SearchBar from '../components/common/SearchBar';
 import ReadingTime from '../components/common/ReadingTime';
 import { getArticleCover } from '../utils/defaultCovers';
 import { API_BASE } from '../constants/apiConstants';
+import ParticleBackground from '../components/ParticleBackground';
+import GradientBackground from '../components/effects/GradientBackground';
+import Sparkles from '../components/effects/Sparkles';
+import SpotlightCard from '../components/effects/SpotlightCard';
+import BlurText from '../components/effects/BlurText';
+import Magnet from '../components/effects/Magnet';
+import Aurora from '../components/effects/Aurora';
+import LoadingSpinner from '../components/effects/LoadingSpinner';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -35,95 +44,147 @@ export default function Home() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin text-4xl">⏳</div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors" suppressHydrationWarning>
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-600 to-cyan-600 py-32">
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="relative max-w-6xl mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 animate-fade-in">
-            Zihan's Blog
-          </h1>
-          <p className="text-xl md:text-2xl text-white/80 mb-8 animate-fade-in-up">
-            探索技术 · 记录生活 · 分享思考
-          </p>
-          
+      <section className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-600 to-cyan-600 py-32" suppressHydrationWarning>
+        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+        <Aurora colors={['#8b5cf6', '#ec4899', '#06b6d4']} opacity={0.4} />
+        <Sparkles count={80} />
+        <div className="relative max-w-6xl mx-auto px-4 text-center z-10" suppressHydrationWarning>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+          >
+            {/* 模糊渐显效果标题 */}
+            <BlurText
+              text="zZihan's Blog"
+              delay={100}
+              className="text-5xl md:text-7xl font-bold mb-6 text-white"
+            />
+          </motion.div>
+          <motion.p
+            className="text-xl md:text-2xl text-white/80 mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
+          >
+            <span className="bg-gradient-to-r from-purple-200 via-pink-200 to-cyan-200 bg-clip-text text-transparent">
+              探索技术 · 记录生活 · 分享思考
+            </span>
+          </motion.p>
+
           <div className="max-w-md mx-auto mb-8">
             <SearchBar />
           </div>
-          
+
           {stats && (
-            <div className="flex justify-center gap-8 text-white animate-fade-in-up">
-              <div className="text-center">
-                <div className="text-3xl font-bold">{stats.totalArticles || 0}</div>
+            <motion.div
+              className="flex justify-center gap-8 text-white"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
+            >
+              <div className="text-center group">
+                <motion.div
+                  className="text-3xl font-bold group-hover:scale-110 transition-transform"
+                  whileHover={{ scale: 1.1 }}
+                >
+                  {stats.totalArticles || 0}
+                </motion.div>
                 <div className="text-white/70">文章</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold">{stats.totalViews || 0}</div>
+              <div className="text-center group">
+                <motion.div
+                  className="text-3xl font-bold group-hover:scale-110 transition-transform"
+                  whileHover={{ scale: 1.1 }}
+                >
+                  {stats.totalViews || 0}
+                </motion.div>
                 <div className="text-white/70">阅读</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold">{stats.totalMessages || 0}</div>
+              <div className="text-center group">
+                <motion.div
+                  className="text-3xl font-bold group-hover:scale-110 transition-transform"
+                  whileHover={{ scale: 1.1 }}
+                >
+                  {stats.totalMessages || 0}
+                </motion.div>
                 <div className="text-white/70">留言</div>
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </section>
 
       {/* Articles */}
       <section className="max-w-6xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+        <motion.h2
+          className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
           ✨ 最新文章
-        </h2>
+        </motion.h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {articles.map((article, index) => (
-            <article
+            <motion.div
               key={article.id}
-              onClick={() => navigate(`/blog/${article.id}`)}
-              className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2 animate-fade-in-up"
-              style={{ animationDelay: `${index * 100}ms` }}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <img
-                src={getArticleCover(article)}
-                alt={article.title}
-                className="w-full h-48 object-cover"
-                loading="lazy"
-                onError={(e) => {
-                  e.target.src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop'
-                }}
-              />
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                  {article.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                  {article.summary}
-                </p>
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <ReadingTime content={article.content} />
-                  <span>👁️ {article.views || 0}</span>
+              <SpotlightCard
+                className="h-full cursor-pointer"
+                spotlightColor="rgba(139, 92, 246, 0.2)"
+              >
+                <div onClick={() => navigate(`/blog/${article.id}`)}>
+                  <img
+                    src={getArticleCover(article)}
+                    alt={article.title}
+                    className="w-full h-48 object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop'
+                    }}
+                  />
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                      {article.title}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                      {article.summary}
+                    </p>
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <ReadingTime content={article.content} />
+                      <span>👁️ {article.views || 0}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </article>
+              </SpotlightCard>
+            </motion.div>
           ))}
         </div>
         {articles.length > 0 && (
           <div className="text-center mt-12">
-            <button
-              onClick={() => navigate('/blog')}
-              className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:opacity-90 transition-opacity"
-            >
-              查看全部文章 →
-            </button>
+            <Magnet padding={150} strength={0.3}>
+              <motion.button
+                onClick={() => navigate('/blog')}
+                className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:opacity-90 transition-opacity"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                查看全部文章 →
+              </motion.button>
+            </Magnet>
           </div>
         )}
       </section>
@@ -132,39 +193,49 @@ export default function Home() {
       {hotNews.length > 0 && (
         <section className="bg-gray-100 dark:bg-gray-800 py-16">
           <div className="max-w-6xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+            <motion.h2
+              className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
               🔥 热点资讯
-            </h2>
+            </motion.h2>
             <div className="grid md:grid-cols-2 gap-4">
               {hotNews.slice(0, 6).map((news, index) => (
-                <a
+                <motion.a
                   key={news.id}
                   href={news.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-white dark:bg-gray-700 p-4 rounded-lg hover:shadow-lg transition-shadow flex items-center gap-4"
+                  className="bg-white dark:bg-gray-700 p-4 rounded-lg hover:shadow-lg transition-all flex items-center gap-4 group"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  whileHover={{ x: 10, backgroundColor: 'rgba(139, 92, 246, 0.1)' }}
                 >
-                  <span className="text-2xl">📰</span>
+                  <motion.span
+                    className="text-2xl"
+                    whileHover={{ rotate: 360, scale: 1.2 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    📰
+                  </motion.span>
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white line-clamp-2">
+                    <h4 className="font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-purple-500 transition-colors">
                       {news.title}
                     </h4>
                     <span className="text-sm text-gray-500">{news.source}</span>
                   </div>
-                </a>
+                </motion.a>
               ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* Footer */}
-      <footer className="bg-gray-900 dark:bg-black py-12">
-        <div className="max-w-6xl mx-auto px-4 text-center text-gray-400">
-          <p className="mb-4">Made with ❤️ by Zihan</p>
-          <p>© 2026 Zihan's Blog. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 }
