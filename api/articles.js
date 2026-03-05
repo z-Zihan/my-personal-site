@@ -38,8 +38,23 @@ export default async function handler(req) {
       return errorResponse(error.message, 500)
     }
 
+    // 为每篇文章添加点赞数统计
+    const articlesWithLikes = await Promise.all(
+      data.map(async (article) => {
+        const { count: likeCount } = await supabase
+          .from('likes')
+          .select('*', { count: 'exact', head: true })
+          .eq('article_id', article.id)
+
+        return {
+          ...article,
+          likes: likeCount || 0
+        }
+      })
+    )
+
     return jsonResponse({
-      data,
+      data: articlesWithLikes,
       pagination: {
         page,
         limit,
