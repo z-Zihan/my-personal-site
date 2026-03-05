@@ -30,13 +30,13 @@ export default async function handler(req) {
         throw error
       }
 
-      const { data: article } = await supabase
-        .from('articles')
-        .select('likes')
-        .eq('id', article_id)
-        .single()
+      // 计算点赞数（从 likes 表统计）
+      const { count } = await supabase
+        .from('likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('article_id', article_id)
 
-      return jsonResponse({ success: true, likes: article?.likes || 0 })
+      return jsonResponse({ success: true, likes: count || 0 })
     }
     
     if (req.method === 'DELETE') {
@@ -49,13 +49,13 @@ export default async function handler(req) {
 
       if (error) throw error
 
-      const { data: article } = await supabase
-        .from('articles')
-        .select('likes')
-        .eq('id', article_id)
-        .single()
+      // 计算点赞数（从 likes 表统计）
+      const { count } = await supabase
+        .from('likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('article_id', article_id)
 
-      return jsonResponse({ success: true, likes: article?.likes || 0 })
+      return jsonResponse({ success: true, likes: count || 0 })
     }
 
     return errorResponse('Method not allowed', 405)

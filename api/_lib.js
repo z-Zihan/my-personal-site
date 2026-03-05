@@ -2,8 +2,10 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_ANON_KEY
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+// 如果有 service role key，优先使用（用于创建 bucket 等管理操作）
+export const supabase = createClient(supabaseUrl, supabaseServiceKey || supabaseKey)
 
 export function corsHeaders() {
   return {

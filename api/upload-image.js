@@ -4,6 +4,40 @@ export const config = {
   runtime: 'edge',
 }
 
+// 检查并创建 bucket（如果不存在）- 需要 service role key
+async function ensureBucketExists() {
+  try {
+    const { data: buckets, error } = await supabase.storage.listBuckets()
+
+    if (error) {
+      console.error('Error listing buckets:', error.message)
+      return false
+    }
+
+    const bucketExists = buckets.some(b => b.name === 'image')
+
+    if (!bucketExists) {
+      console.log('Creating image bucket...')
+      const { error: createError } = await supabase.storage.createBucket('image', {
+        public: true,
+        fileSizeLimit: 5 * 1024 * 1024,
+      })
+
+      if (createError) {
+        console.error('Error creating bucket:', createError.message)
+        return false
+      }
+
+      console.log('image bucket created successfully')
+    }
+
+    return true
+  } catch (error) {
+    console.error('ensureBucketExists error:', error)
+    return false
+  }
+}
+
 export default async function handler(req) {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
@@ -13,7 +47,7 @@ export default async function handler(req) {
     try {
       const formData = await req.formData()
       const file = formData.get('image')
-      
+
       if (!file) {
         return errorResponse('No image provided', 400)
       }
@@ -32,10 +66,13 @@ export default async function handler(req) {
       // 生成文件名
       const ext = file.name.split('.').pop() || 'jpg'
       const fileName = `upload_${Date.now()}.${ext}`
-      
+
+      // 尝试确保 bucket 存在（如果有权限）
+      await ensureBucketExists()
+
       // 上传到 Supabase Storage
       const { data, error } = await supabase.storage
-        .from('blog-images')
+        .from('image')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: true
@@ -43,12 +80,21 @@ export default async function handler(req) {
 
       if (error) {
         console.error('Supabase storage error:', error)
+        // 检查是否是 bucket 不存在的错误
+        if (error.message.includes('Bucket not found') || error.message.includes('The bucket does not exist')) {
+          return errorResponse(
+            'Upload failed: Bucket "image" does not exist. ' +
+            'Please create it in Supabase Dashboard: Storage → New bucket → Name: "image", check "Public bucket". ' +
+            'See STORAGE_SETUP.md for details.',
+            500
+          )
+        }
         return errorResponse('Upload failed: ' + error.message, 500)
       }
 
       // 获取公开 URL
       const { data: { publicUrl } } = supabase.storage
-        .from('blog-images')
+        .from('image')
         .getPublicUrl(fileName)
 
       return jsonResponse({

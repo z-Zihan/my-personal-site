@@ -4,6 +4,7 @@ import { Form, Input, Button, Card, message, Select, Space } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import RichEditor from '../../components/common/RichEditor';
 import ImageUploader from '../../components/common/ImageUploader';
+import api from '../../utils/api';
 import axios from 'axios';
 
 // API 基础地址
@@ -30,7 +31,7 @@ function ArticleEditor() {
 
   const fetchArticle = async () => {
     try {
-      const { data } = await axios.get(`${API_BASE}/api/article-detail?id=${id}`);
+      const { data } = await api.get(`${API_BASE}/api/article-detail?id=${id}`);
       const article = data.data;
       form.setFieldsValue({
         title: article.title,
@@ -66,11 +67,11 @@ function ArticleEditor() {
 
       if (id) {
         // 更新
-        await axios.put(`${API_BASE}/api/update-article`, { id, ...articleData });
+        await api.put(`${API_BASE}/api/update-article`, { id, ...articleData });
         message.success('文章更新成功');
       } else {
         // 创建
-        await axios.post(`${API_BASE}/api/create-article`, articleData);
+        await api.post(`${API_BASE}/api/create-article`, articleData);
         message.success('文章创建成功');
       }
 

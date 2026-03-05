@@ -48,7 +48,7 @@ http://localhost:3000/admin/login
 
 3. 使用默认账号登录：
 - 用户名：`admin`
-- 密码：`Admin@2026Secure`
+- 密码：`admin`
 
 ---
 
@@ -60,7 +60,7 @@ http://localhost:3000/admin/login
 VITE_SUPABASE_URL=https://lseantwsebvsmavqcjat.supabase.co
 VITE_SUPABASE_ANON_KEY=sb_publishable_FkAtim7rD1L2_5AWS9g-VQ_60b2Qbp9
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=Admin@2026Secure
+ADMIN_PASSWORD=admin
 ```
 
 **注意**: `.env.local` 不会被提交到 Git，每个开发者需要自己创建。

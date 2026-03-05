@@ -53,7 +53,6 @@ export default async function handler(req) {
         cover: cover || '',
         status,
         views: 0,
-        likes: 0,
       }])
       .select()
       .single()
