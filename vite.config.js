@@ -91,6 +91,10 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  json: {
+    stringify: false,
+    namedExports: true
+  },
   server: {
     port: 3000,
     host: true,

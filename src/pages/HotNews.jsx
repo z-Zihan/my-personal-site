@@ -3,17 +3,45 @@ import { motion as Motion } from 'framer-motion'
 import { hotNewsApi } from '../utils/api'
 import ParticleBackground from '../components/ParticleBackground'
 
+// 前端本地缓存时间：5 分钟
+const CLIENT_CACHE_DURATION = 5 * 60 * 1000
+const CACHE_KEY = 'hot_news_cache'
+
 function HotNews() {
   const [news, setNews] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchNews = async () => {
+      // 先尝试从本地缓存获取
+      const cached = localStorage.getItem(CACHE_KEY)
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached)
+        if (Date.now() - timestamp < CLIENT_CACHE_DURATION) {
+          setNews(data)
+          setLoading(false)
+          console.log('Using client-side cached news')
+          return
+        }
+      }
+
       try {
         const { data } = await hotNewsApi.getList()
-        setNews(data.data || [])
+        const newsData = data.data || []
+        setNews(newsData)
+
+        // 更新本地缓存
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          data: newsData,
+          timestamp: Date.now()
+        }))
       } catch (error) {
         console.error('Error fetching news:', error)
+        // 如果请求失败，使用旧缓存（如果有）
+        if (cached) {
+          const { data } = JSON.parse(cached)
+          setNews(data)
+        }
       } finally {
         setLoading(false)
       }

@@ -1,15 +1,16 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import ReadingProgress from '../components/common/ReadingProgress';
-import TableOfContents from '../components/common/TableOfContents';
-import ShareButtons from '../components/common/ShareButtons';
-import LikeButton from '../components/common/LikeButton';
-import ReadingTime from '../components/common/ReadingTime';
-import CommentSection from '../components/common/CommentSection';
-import { API_BASE } from '../constants/apiConstants';
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import ReadingProgress from "../components/common/ReadingProgress";
+import TableOfContents from "../components/common/TableOfContents";
+import ShareButtons from "../components/common/ShareButtons";
+import LikeButton from "../components/common/LikeButton";
+import ReadingTime from "../components/common/ReadingTime";
+import CommentSection from "../components/common/CommentSection";
+import { API_BASE } from "../constants/apiConstants";
 
 export default function BlogDetail() {
   const { id } = useParams();
@@ -21,7 +22,7 @@ export default function BlogDetail() {
 
   useEffect(() => {
     if (!id) {
-      setError('文章 ID 不存在');
+      setError("文章 ID 不存在");
       setLoading(false);
       return;
     }
@@ -36,14 +37,14 @@ export default function BlogDetail() {
       if (res.data && res.data.data) {
         setArticle(res.data.data);
       } else {
-        setError('文章不存在');
+        setError("文章不存在");
       }
     } catch (err) {
-      console.error('Fetch article error:', err);
+      console.error("Fetch article error:", err);
       if (err.response?.status === 404) {
-        setError('文章不存在');
+        setError("文章不存在");
       } else {
-        setError('加载失败，请稍后重试');
+        setError("加载失败，请稍后重试");
       }
     } finally {
       setLoading(false);
@@ -66,20 +67,20 @@ export default function BlogDetail() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            {error || '文章未找到'}
+            {error || "文章未找到"}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
             可能的原因：文章已被删除、未发布或链接不正确
           </p>
           <div className="flex gap-4 justify-center">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate("/")}
               className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
             >
               返回首页
             </button>
             <button
-              onClick={() => navigate('/blog')}
+              onClick={() => navigate("/blog")}
               className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
               查看文章列表
@@ -94,7 +95,7 @@ export default function BlogDetail() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <ReadingProgress />
       <TableOfContents contentRef={contentRef} />
-      
+
       {/* Header */}
       <header className="bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 py-20">
         <div className="max-w-4xl mx-auto px-4 text-center">
@@ -107,7 +108,9 @@ export default function BlogDetail() {
             </p>
           )}
           <div className="flex items-center justify-center gap-6 text-white/80 flex-wrap">
-            <span>📅 {new Date(article.created_at).toLocaleDateString('zh-CN')}</span>
+            <span>
+              📅 {new Date(article.created_at).toLocaleDateString("zh-CN")}
+            </span>
             <ReadingTime content={article.content} />
             <span>👁️ {article.views || 0} 次阅读</span>
           </div>
@@ -125,7 +128,10 @@ export default function BlogDetail() {
             prose-code:text-pink-500 dark:prose-code:text-pink-400
             prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700"
         >
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]}
+          >
             {article.content}
           </ReactMarkdown>
         </article>
@@ -134,10 +140,7 @@ export default function BlogDetail() {
         <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <LikeButton articleId={id} initialLikes={article.likes} />
-            <ShareButtons 
-              title={article.title} 
-              url={window.location.href}
-            />
+            <ShareButtons title={article.title} url={window.location.href} />
           </div>
         </div>
 

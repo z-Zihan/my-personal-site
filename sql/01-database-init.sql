@@ -112,6 +112,14 @@ CREATE TABLE IF NOT EXISTS hot_news (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 10b. 热点资讯缓存表（用于定时缓存，减少外部 API 请求）
+CREATE TABLE IF NOT EXISTS hot_news_cache (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  news_data JSONB NOT NULL,
+  is_valid BOOLEAN DEFAULT TRUE,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- 11. 留言板表
 CREATE TABLE IF NOT EXISTS messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -335,6 +343,9 @@ CREATE POLICY "Allow insert for all" ON bookmarks FOR INSERT TO anon WITH CHECK 
 CREATE POLICY "Allow delete for all" ON bookmarks FOR DELETE TO anon USING (true);
 CREATE POLICY "Allow public read access" ON daily_views FOR SELECT TO anon USING (true);
 CREATE POLICY "Allow public read access" ON hot_news FOR SELECT TO anon USING (true);
+CREATE POLICY "Allow public read access" ON hot_news_cache FOR SELECT TO anon USING (true);
+CREATE POLICY "Allow insert for all" ON hot_news_cache FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Allow update for all" ON hot_news_cache FOR UPDATE TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public read access" ON messages FOR SELECT TO anon USING (true);
 CREATE POLICY "Allow insert for all" ON messages FOR INSERT TO anon WITH CHECK (true);
 

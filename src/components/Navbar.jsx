@@ -1,9 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import Avatar from './common/Avatar'
 
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [visitorId, setVisitorId] = useState('')
+
+  useEffect(() => {
+    let vid = localStorage.getItem('visitor_id')
+    if (!vid) {
+      vid = 'visitor_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9)
+      localStorage.setItem('visitor_id', vid)
+    }
+    setVisitorId(vid)
+  }, [])
 
   return (
     <motion.nav
@@ -33,10 +44,10 @@ function Navbar() {
             </Link>
             <Link
               to="/profile"
-              className="text-2xl hover:text-primary transition-colors"
+              className="hover:opacity-80 transition-opacity"
               title="个人中心"
             >
-              👤
+              <Avatar userId={visitorId} size={32} />
             </Link>
           </div>
 
@@ -78,8 +89,9 @@ function Navbar() {
               <Link to="/message" className="hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>
                 留言
               </Link>
-              <Link to="/profile" className="hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>
-                👤 个人中心
+              <Link to="/profile" className="hover:text-primary transition-colors flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
+                <Avatar userId={visitorId} size={32} />
+                <span>个人中心</span>
               </Link>
             </div>
           </motion.div>

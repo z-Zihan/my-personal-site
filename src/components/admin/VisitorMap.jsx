@@ -3,12 +3,7 @@ import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
 import axios from 'axios';
 import { API_BASE } from '../../constants/apiConstants';
-
-// 使用更稳定的 GeoJSON 数据源
-const GEO_JSON_MIRRORS = [
-  'https://geo.datav.aliyun.com/areas_v3/bound/world_geo.json', // 阿里云 DataV
-  'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', // GitHub
-];
+import worldMapData from '../../data/maps/countries.geo.json';
 
 export default function VisitorMap() {
   const [countryData, setCountryData] = useState([]);
@@ -20,32 +15,29 @@ export default function VisitorMap() {
     registerWorldMap();
   }, []);
 
-  // 注册世界地图 - 尝试多个数据源
+  // 注册世界地图 - 使用本地数据
   const registerWorldMap = async () => {
-    for (const url of GEO_JSON_MIRRORS) {
-      try {
-        const response = await fetch(url, { timeout: 5000 });
-        if (!response.ok) continue;
-        const geoJson = await response.json();
-        if (!geoJson.features || geoJson.features.length === 0) continue;
-
-        echarts.registerMap('world', geoJson);
+    try {
+      if (worldMapData && worldMapData.features && worldMapData.features.length > 0) {
+        echarts.registerMap('world', worldMapData);
         setMapRegistered(true);
-        console.log('Map registered from:', url);
-        return;
-      } catch (error) {
-        console.warn('Map register failed, trying next source:', url, error);
-        continue;
+        console.log('Map registered from local file');
+      } else {
+        console.warn('Local map data invalid, using empty fallback');
+        echarts.registerMap('world', {
+          type: 'FeatureCollection',
+          features: []
+        });
+        setMapRegistered(true);
       }
+    } catch (error) {
+      console.error('Map register failed:', error);
+      echarts.registerMap('world', {
+        type: 'FeatureCollection',
+        features: []
+      });
+      setMapRegistered(true);
     }
-
-    // 所有数据源都失败，使用简化版世界地图
-    console.warn('All map sources failed, using fallback');
-    echarts.registerMap('world', {
-      type: 'FeatureCollection',
-      features: []
-    });
-    setMapRegistered(true);
   };
 
   const fetchCountryData = async () => {

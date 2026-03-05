@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from '../../utils/toast';
 import { API_BASE } from '../../constants/apiConstants';
+import Avatar from './Avatar';
 
 export default function CommentSection({ articleId }) {
   const [comments, setComments] = useState([]);
@@ -80,7 +81,7 @@ export default function CommentSection({ articleId }) {
   return (
     <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
       <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">评论 ({comments.length})</h3>
-      
+
       <form onSubmit={handleSubmit} className="mb-8">
         <textarea
           value={newComment}
@@ -105,7 +106,7 @@ export default function CommentSection({ articleId }) {
             className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
           >
             <div className="flex items-start gap-3">
-              <span className="text-2xl">{getAvatar(comment.visitor_id)}</span>
+              <Avatar userId={comment.visitor_id} size={40} />
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium text-gray-900 dark:text-white">

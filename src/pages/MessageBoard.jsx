@@ -5,6 +5,7 @@ import { toast } from '../utils/toast'
 import useVisitorStore from '../store/visitorStore'
 import ParticleBackground from '../components/ParticleBackground'
 import { formatDate } from '../utils/helpers'
+import Avatar from '../components/common/Avatar'
 
 function MessageBoard() {
   const [messages, setMessages] = useState([])
@@ -87,10 +88,16 @@ function MessageBoard() {
                 transition={{ delay: index * 0.05 }}
                 className="glass p-6 rounded-xl neon-border"
               >
-                <p className="text-gray-300 mb-4">{message.content}</p>
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <span>{message.visitor_name || `访客 ${message.visitor_id?.slice(-6)}`}</span>
-                  <span>{formatDate(message.created_at)}</span>
+                <div className="flex items-start gap-4">
+                  <Avatar userId={message.visitor_id} size={40} />
+                  <div className="flex-1">
+                    <p className="text-gray-300 mb-2">{message.content}</p>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <span className="font-medium text-gray-400">{message.visitor_name || `访客 ${message.visitor_id?.slice(-6)}`}</span>
+                      <span>•</span>
+                      <span>{formatDate(message.created_at)}</span>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             ))

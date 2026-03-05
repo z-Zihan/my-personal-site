@@ -4,45 +4,109 @@ export const config = {
   runtime: 'edge',
 }
 
-// 热门 API 源（模拟实时热点）
-const NEWS_SOURCES = [
-  { name: '36Kr', url: 'https://36kr.com' },
-  { name: 'Hacker News', url: 'https://news.ycombinator.com' },
-  { name: 'GitHub Trending', url: 'https://github.com/trending' },
-  { name: 'Product Hunt', url: 'https://www.producthunt.com' },
-  { name: 'TechCrunch', url: 'https://techcrunch.com' },
+// 缓存时间：6 小时（秒）
+const CACHE_DURATION = 6 * 60 * 60
+
+// 免费且稳定的新闻源
+const RSS_TO_JSON_API = 'https://api.rss2json.com/v1/api.json?rss_url='
+
+// 可用的 RSS 源（科技类）
+const RSS_FEEDS = [
+  'https://feeds.feedburner.com/Techcrunch',
+  'https://www.theverge.com/rss/index.xml',
+  'https://github.com/trending.atom',
 ]
 
-// 模拟热点标题（实际应该调用 API 获取）
-const generateDailyNews = () => {
-  const today = new Date().toLocaleDateString('zh-CN')
-  return [
-    {
-      title: `今日科技热点：AI 技术新突破 - ${today}`,
-      link: 'https://github.com/trending',
-      source: 'GitHub Trending',
-    },
-    {
-      title: `前端开发趋势报告 ${new Date().getFullYear()} 年 ${new Date().getMonth() + 1}月`,
-      link: 'https://36kr.com',
-      source: '36Kr',
-    },
-    {
-      title: '开源项目推荐：本周最值得关注的 10 个 GitHub 项目',
-      link: 'https://github.com/trending/weekly',
-      source: 'GitHub',
-    },
-    {
-      title: 'Vercel 发布新一代部署工具，性能提升 50%',
-      link: 'https://vercel.com',
-      source: 'Vercel',
-    },
-    {
-      title: 'React 19 新特性抢先看',
-      link: 'https://react.dev',
-      source: 'React Official',
-    },
-  ]
+// 模拟热点数据（作为 fallback）
+const FALLBACK_NEWS = [
+  {
+    title: 'GitHub 今日 trending 项目推荐',
+    link: 'https://github.com/trending',
+    source: 'GitHub',
+  },
+  {
+    title: 'AI 技术最新进展汇总',
+    link: 'https://github.com/topics/artificial-intelligence',
+    source: 'GitHub Topics',
+  },
+  {
+    title: '前端开发工具链演进',
+    link: 'https://github.com/topics/frontend',
+    source: 'Dev Community',
+  },
+  {
+    title: '开源项目最佳实践指南',
+    link: 'https://opensource.guide/',
+    source: 'Open Source',
+  },
+  {
+    title: '云原生技术趋势分析',
+    link: 'https://github.com/topics/cloud-native',
+    source: 'Cloud Native',
+  },
+]
+
+// 从 RSS 获取真实热点数据
+async function fetchFromRSS() {
+  // 随机选择一个 RSS 源
+  const feedUrl = RSS_FEEDS[Math.floor(Math.random() * RSS_FEEDS.length)]
+  const response = await fetch(`${RSS_TO_JSON_API}${encodeURIComponent(feedUrl)}`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error('RSS fetch failed')
+  }
+
+  const data = await response.json()
+
+  return data.items.slice(0, 10).map((item, index) => ({
+    title: item.title,
+    link: item.link,
+    source: data.feed?.title || 'Tech News',
+  }))
+}
+
+// 获取缓存的新闻数据
+async function getCachedNews() {
+  const { data, error } = await supabase
+    .from('hot_news_cache')
+    .select('*')
+    .eq('is_valid', true)
+    .single()
+
+  if (error || !data) {
+    return null
+  }
+
+  // 检查缓存是否过期
+  const cacheTime = new Date(data.updated_at).getTime()
+  const now = Date.now()
+
+  if (now - cacheTime < CACHE_DURATION * 1000) {
+    return JSON.parse(data.news_data)
+  }
+
+  return null
+}
+
+// 更新缓存
+async function updateCache(newsData) {
+  try {
+    // 先清空旧缓存
+    await supabase.from('hot_news_cache').update({ is_valid: false }).eq('is_valid', true)
+
+    // 插入新缓存
+    await supabase.from('hot_news_cache').insert({
+      news_data: JSON.stringify(newsData),
+      is_valid: true,
+      updated_at: new Date().toISOString()
+    })
+  } catch (e) {
+    console.error('Cache update failed:', e)
+  }
 }
 
 export default async function handler(req) {
@@ -55,41 +119,31 @@ export default async function handler(req) {
   }
 
   try {
-    // 先尝试从数据库获取
-    const { data: dbNews, error } = await supabase
-      .from('hot_news')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(20)
-
-    if (error) {
-      console.error('Fetch hot news error:', error)
+    // 1. 先尝试从缓存获取
+    const cachedNews = await getCachedNews()
+    if (cachedNews && cachedNews.length > 0) {
+      console.log('Returning cached news')
+      return jsonResponse({ data: cachedNews })
     }
 
-    // 如果数据库有数据，返回数据库的
-    if (dbNews && dbNews.length > 0) {
-      return jsonResponse({ data: dbNews })
-    }
+    // 2. 缓存失效，尝试获取真实数据
+    let newsData = FALLBACK_NEWS
 
-    // 否则返回每日生成的热点
-    const dailyNews = generateDailyNews()
-    
-    // 尝试插入数据库（可选）
     try {
-      await supabase.from('hot_news').insert(
-        dailyNews.map(news => ({
-          title: news.title,
-          link: news.link,
-          source: news.source,
-        }))
-      )
-    } catch (e) {
-      // 插入失败不影响返回
+      newsData = await fetchFromRSS()
+      console.log('Fetched fresh news from RSS')
+
+      // 更新缓存
+      await updateCache(newsData)
+    } catch (rssError) {
+      console.warn('RSS fetch failed, using fallback:', rssError.message)
+      // 使用 fallback 数据
     }
 
-    return jsonResponse({ data: dailyNews })
+    return jsonResponse({ data: newsData })
   } catch (error) {
     console.error('Error fetching hot news:', error)
-    return errorResponse('Internal server error', 500)
+    // 始终返回 fallback 数据作为保底
+    return jsonResponse({ data: FALLBACK_NEWS })
   }
 }

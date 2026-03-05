@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from '../utils/toast';
 import { getLanguage, setLanguage, t } from '../utils/i18n';
 import { useThemeStore } from '../store/themeStore';
+import Avatar from '../components/common/Avatar';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -79,51 +80,54 @@ export default function Profile() {
           <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
             👤 个人信息
           </h2>
-          
-          {/* 用户名编辑 */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-              昵称
-            </label>
-            {editingName ? (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="输入昵称"
-                  autoFocus
-                />
-                <button
-                  onClick={handleSaveName}
-                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
-                >
-                  保存
-                </button>
-                <button
-                  onClick={() => {
-                    setEditingName(false);
-                    setUserName(localStorage.getItem('userName') || '');
-                  }}
-                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
-                >
-                  取消
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                <span className="text-lg text-gray-900 dark:text-white">
-                  {userName || '未设置昵称'}
-                </span>
-                <button
-                  onClick={() => setEditingName(true)}
-                  className="text-purple-500 hover:text-purple-600 text-sm"
-                >
-                  编辑
-                </button>
-              </div>
-            )}
+
+          {/* 头像和用户名 */}
+          <div className="flex items-center gap-6 mb-6">
+            <Avatar userId={visitorId} size={80} className="shadow-lg" />
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                昵称
+              </label>
+              {editingName ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="输入昵称"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleSaveName}
+                    className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+                  >
+                    保存
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingName(false);
+                      setUserName(localStorage.getItem('userName') || '');
+                    }}
+                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                  >
+                    取消
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <span className="text-lg text-gray-900 dark:text-white">
+                    {userName || '未设置昵称'}
+                  </span>
+                  <button
+                    onClick={() => setEditingName(true)}
+                    className="text-purple-500 hover:text-purple-600 text-sm"
+                  >
+                    编辑
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-4">
