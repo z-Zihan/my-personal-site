@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
-// API 基础地址
-const API_BASE = 'https://zzihanaini.vercel.app';
+import { API_BASE } from '../../constants/apiConstants';
 
 export default function SearchBar({ onSearchResults }) {
   const navigate = useNavigate();

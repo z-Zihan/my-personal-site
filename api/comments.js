@@ -16,7 +16,33 @@ export default async function handler(req) {
   try {
     const url = new URL(req.url)
     const article_id = url.searchParams.get('article_id')
+    const all = url.searchParams.get('all')
 
+    if (all === 'true') {
+      // 获取所有评论，带文章标题
+      const { data, error } = await supabase
+        .from('comments')
+        .select(`
+          *,
+          articles!inner (
+            id,
+            title
+          )
+        `)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      // 格式化数据
+      const formattedData = data.map(item => ({
+        ...item,
+        article_title: item.articles.title
+      }))
+
+      return jsonResponse({ success: true, data: formattedData })
+    }
+
+    // 获取单篇文章的评论
     if (!article_id) {
       return errorResponse('Article ID required', 400)
     }

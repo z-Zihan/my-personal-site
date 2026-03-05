@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from '../../utils/toast';
-
-// API 基础地址
-const API_BASE = 'https://zzihanaini.vercel.app';
+import { API_BASE } from '../../constants/apiConstants';
 
 export default function CommentSection({ articleId }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [visitorId, setVisitorId] = useState('');
+  const [visitorName, setVisitorName] = useState('');
 
   useEffect(() => {
     let vid = localStorage.getItem('visitor_id');
@@ -18,6 +17,7 @@ export default function CommentSection({ articleId }) {
       localStorage.setItem('visitor_id', vid);
     }
     setVisitorId(vid);
+    setVisitorName(localStorage.getItem('userName') || '');
     fetchComments();
   }, [articleId]);
 
@@ -36,10 +36,26 @@ export default function CommentSection({ articleId }) {
 
     setLoading(true);
     try {
+      // 获取地理位置 - 使用 ip-api.com
+      const location = await Promise.race([
+        fetch('http://ip-api.com/json/?lang=zh-CN')
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === 'success') {
+              return `${data.city || ''} ${data.country || ''}`.trim() || '未知';
+            }
+            return '未知';
+          })
+          .catch(() => '未知'),
+        new Promise(resolve => setTimeout(() => resolve('未知'), 3000))
+      ]);
+
       await axios.post(`${API_BASE}/api/create-comment`, {
         article_id: articleId,
         visitor_id: visitorId,
-        content: newComment
+        content: newComment,
+        visitor_name: visitorName || undefined,
+        location: location || undefined
       });
       setNewComment('');
       fetchComments();
@@ -91,10 +107,16 @@ export default function CommentSection({ articleId }) {
             <div className="flex items-start gap-3">
               <span className="text-2xl">{getAvatar(comment.visitor_id)}</span>
               <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {comment.visitor_name || `访客 ${comment.visitor_id?.slice(-6)}`}
+                  </span>
+                  {comment.location && (
+                    <span className="text-xs text-gray-500">📍 {comment.location}</span>
+                  )}
+                </div>
                 <p className="text-gray-900 dark:text-white">{comment.content}</p>
                 <div className="mt-2 text-sm text-gray-500">
-                  <span>访客 {comment.visitor_id?.slice(-6)}</span>
-                  <span className="mx-2">•</span>
                   <span>{new Date(comment.created_at).toLocaleDateString('zh-CN')}</span>
                 </div>
               </div>

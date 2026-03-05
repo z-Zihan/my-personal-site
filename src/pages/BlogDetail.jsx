@@ -9,9 +9,7 @@ import ShareButtons from '../components/common/ShareButtons';
 import LikeButton from '../components/common/LikeButton';
 import ReadingTime from '../components/common/ReadingTime';
 import CommentSection from '../components/common/CommentSection';
-
-// API 基础地址
-const API_BASE = 'https://zzihanaini.vercel.app';
+import { API_BASE } from '../constants/apiConstants';
 
 export default function BlogDetail() {
   const { id } = useParams();
@@ -103,6 +101,11 @@ export default function BlogDetail() {
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
             {article.title}
           </h1>
+          {article.summary && (
+            <p className="text-white/90 text-lg mb-6 max-w-2xl mx-auto">
+              {article.summary}
+            </p>
+          )}
           <div className="flex items-center justify-center gap-6 text-white/80 flex-wrap">
             <span>📅 {new Date(article.created_at).toLocaleDateString('zh-CN')}</span>
             <ReadingTime content={article.content} />

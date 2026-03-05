@@ -1,9 +1,7 @@
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
 import { toast } from '../../utils/toast';
-
-// API 基础地址
-const API_BASE = 'https://zzihanaini.vercel.app';
+import { API_BASE } from '../../constants/apiConstants';
 
 export default function ImageUploader({ onChange, value, accept = "image/*" }) {
   const [uploading, setUploading] = useState(false);

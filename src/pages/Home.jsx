@@ -4,9 +4,7 @@ import axios from 'axios';
 import SearchBar from '../components/common/SearchBar';
 import ReadingTime from '../components/common/ReadingTime';
 import { getArticleCover } from '../utils/defaultCovers';
-
-// API 基础地址
-const API_BASE = 'https://zzihanaini.vercel.app';
+import { API_BASE } from '../constants/apiConstants';
 
 export default function Home() {
   const navigate = useNavigate();

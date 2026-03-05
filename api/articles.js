@@ -36,23 +36,31 @@ export default async function handler(req) {
       return errorResponse(error.message, 500)
     }
 
-    // 为每篇文章添加点赞数统计
-    const articlesWithLikes = await Promise.all(
+    // 为每篇文章添加点赞数和评论数统计
+    const articlesWithStats = await Promise.all(
       data.map(async (article) => {
-        const { count: likeCount } = await supabase
+        const { count: likeCount, error: likeError } = await supabase
           .from('likes')
           .select('*', { count: 'exact', head: true })
           .eq('article_id', article.id)
 
+        const { count: commentCount, error: commentError } = await supabase
+          .from('comments')
+          .select('*', { count: 'exact', head: true })
+          .eq('article_id', article.id)
+
+        console.log(`Article ${article.id}: likes=${likeCount}, comments=${commentCount}`)
+
         return {
           ...article,
-          likes: likeCount || 0
+          likes: likeCount || 0,
+          comment_count: commentCount || 0
         }
       })
     )
 
     return jsonResponse({
-      data: articlesWithLikes,
+      data: articlesWithStats,
       pagination: {
         page,
         limit,

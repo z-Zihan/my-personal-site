@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from '../../utils/toast';
-
-// API 基础地址
-const API_BASE = 'https://zzihanaini.vercel.app';
+import { API_BASE } from '../../constants/apiConstants';
 
 export default function LikeButton({ articleId, initialLikes }) {
   const [likes, setLikes] = useState(initialLikes || 0);

@@ -40,7 +40,7 @@ export default async function handler(req) {
     }
     
     if (req.method === 'DELETE') {
-      // 取消点赞
+      // 取消点赞 - 删除该用户对该文章的所有点赞记录
       const { error } = await supabase
         .from('likes')
         .delete()

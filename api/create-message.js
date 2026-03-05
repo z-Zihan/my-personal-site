@@ -15,7 +15,7 @@ export default async function handler(req) {
 
   try {
     const body = await req.json()
-    const { visitor_id, content } = body
+    const { visitor_id, content, visitor_name } = body
 
     if (!visitor_id || !content) {
       return errorResponse('Visitor ID and content are required', 400)
@@ -27,7 +27,7 @@ export default async function handler(req) {
 
     const { data: message, error } = await supabase
       .from('messages')
-      .insert([{ visitor_id, content: content.trim() }])
+      .insert([{ visitor_id, content: content.trim(), visitor_name: visitor_name || null }])
       .select()
       .single()
 

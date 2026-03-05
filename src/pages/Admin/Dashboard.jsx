@@ -15,13 +15,11 @@ import {
 } from 'recharts'
 import axios from 'axios'
 import VisitorMap from '../../components/admin/VisitorMap'
+import { API_BASE } from '../../constants/apiConstants'
 
 const { Title } = Typography
 
 const COLORS = ['#00f0ff', '#7000ff', '#00ff88', '#ff6600', '#ff0066', '#00ccff']
-
-// API 基础地址
-const API_BASE = 'https://zzihanaini.vercel.app'
 
 function Dashboard() {
   const [stats, setStats] = useState(null)

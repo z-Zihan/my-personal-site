@@ -53,4 +53,10 @@ export const authApi = {
   login: (data) => api.post('/login', data),
 }
 
+// 评论相关 API
+export const commentsApi = {
+  getList: (params) => api.get('/comments', { params }),
+  delete: (id) => api.delete('/delete-comment', { params: { id } }),
+}
+
 export default api

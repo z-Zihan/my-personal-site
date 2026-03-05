@@ -15,7 +15,7 @@ export default async function handler(req) {
 
   try {
     const body = await req.json()
-    const { article_id, visitor_id, content } = body
+    const { article_id, visitor_id, content, visitor_name, location } = body
 
     if (!article_id || !visitor_id || !content) {
       return errorResponse('Missing required fields', 400)
@@ -23,7 +23,7 @@ export default async function handler(req) {
 
     const { data, error } = await supabase
       .from('comments')
-      .insert({ article_id, visitor_id, content })
+      .insert({ article_id, visitor_id, content, visitor_name, location })
       .select()
       .single()
 

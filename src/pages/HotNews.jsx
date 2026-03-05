@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion as Motion } from 'framer-motion'
 import { hotNewsApi } from '../utils/api'
 import ParticleBackground from '../components/ParticleBackground'
 
@@ -26,13 +26,13 @@ function HotNews() {
       <ParticleBackground />
 
       <div className="max-w-4xl mx-auto px-4">
-        <motion.h1
+        <Motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-5xl font-bold text-center mb-12 neon-text"
         >
           热点资讯
-        </motion.h1>
+        </Motion.h1>
 
         {loading ? (
           <div className="space-y-4">
@@ -47,7 +47,7 @@ function HotNews() {
         ) : (
           <div className="space-y-4">
             {news.map((item, index) => (
-              <motion.a
+              <Motion.a
                 key={item.id}
                 href={item.link}
                 target="_blank"
@@ -85,7 +85,7 @@ function HotNews() {
                     />
                   </svg>
                 </div>
-              </motion.a>
+              </Motion.a>
             ))}
           </div>
         )}

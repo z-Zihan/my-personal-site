@@ -37,6 +37,17 @@ export default async function handler(req) {
       return errorResponse('Article not found', 404)
     }
 
+    // 计算点赞数
+    const { count: likeCount } = await supabase
+      .from('likes')
+      .select('*', { count: 'exact', head: true })
+      .eq('article_id', article.id)
+
+    const articleWithLikes = {
+      ...article,
+      likes: likeCount || 0
+    }
+
     // 增加阅读量（异步，不阻塞响应）
     supabase
       .from('articles')
@@ -46,16 +57,16 @@ export default async function handler(req) {
         // 增加每日访问量
         return supabase
           .from('daily_views')
-          .upsert({ 
-            date: new Date().toISOString().split('T')[0], 
-            count: 1 
-          }, { 
-            onConflict: 'date' 
+          .upsert({
+            date: new Date().toISOString().split('T')[0],
+            count: 1
+          }, {
+            onConflict: 'date'
           })
       })
       .catch(err => console.error('View increment error:', err))
 
-    return jsonResponse({ data: article })
+    return jsonResponse({ data: articleWithLikes })
   } catch (error) {
     console.error('Error fetching article:', error)
     return errorResponse('Internal server error: ' + error.message, 500)

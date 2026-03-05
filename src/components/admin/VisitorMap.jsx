@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
 import axios from 'axios';
+import { API_BASE } from '../../constants/apiConstants';
 
 // 使用更稳定的 GeoJSON 数据源
 const GEO_JSON_MIRRORS = [
   'https://geo.datav.aliyun.com/areas_v3/bound/world_geo.json', // 阿里云 DataV
   'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', // GitHub
 ];
-
-// API 基础地址
-const API_BASE = 'https://zzihanaini.vercel.app';
 
 export default function VisitorMap() {
   const [countryData, setCountryData] = useState([]);

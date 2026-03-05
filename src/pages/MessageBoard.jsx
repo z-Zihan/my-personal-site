@@ -11,7 +11,7 @@ function MessageBoard() {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const { visitorId, initVisitor } = useVisitorStore()
+  const { visitorId, initVisitor, getVisitorName } = useVisitorStore()
 
   useEffect(() => {
     initVisitor()
@@ -35,7 +35,12 @@ function MessageBoard() {
 
     setSubmitting(true)
     try {
-      await messagesApi.create({ visitor_id: visitorId, content })
+      const visitorName = getVisitorName()
+      await messagesApi.create({
+        visitor_id: visitorId,
+        content,
+        visitor_name: visitorName || undefined
+      })
       setContent('')
       fetchMessages()
       toast.success('留言成功')
@@ -84,7 +89,7 @@ function MessageBoard() {
               >
                 <p className="text-gray-300 mb-4">{message.content}</p>
                 <div className="flex items-center justify-between text-sm text-gray-500">
-                  <span>访客 {message.visitor_id?.slice(-6)}</span>
+                  <span>{message.visitor_name || `访客 ${message.visitor_id?.slice(-6)}`}</span>
                   <span>{formatDate(message.created_at)}</span>
                 </div>
               </motion.div>
