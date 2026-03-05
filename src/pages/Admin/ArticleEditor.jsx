@@ -4,11 +4,9 @@ import { Form, Input, Button, Card, message, Select, Space } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import RichEditor from '../../components/common/RichEditor';
 import ImageUploader from '../../components/common/ImageUploader';
-import api from '../../utils/api';
-import axios from 'axios';
+import { articlesApi } from '../../utils/api';
 
-// API 基础地址
-const API_BASE = 'https://zzihanaini.vercel.app';
+// 移除不必要的 API_BASE 常量
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -31,7 +29,7 @@ function ArticleEditor() {
 
   const fetchArticle = async () => {
     try {
-      const { data } = await api.get(`${API_BASE}/api/article-detail?id=${id}`);
+      const { data } = await articlesApi.getDetail(id);
       const article = data.data;
       form.setFieldsValue({
         title: article.title,
@@ -67,11 +65,11 @@ function ArticleEditor() {
 
       if (id) {
         // 更新
-        await api.put(`${API_BASE}/api/update-article`, { id, ...articleData });
+        await articlesApi.update({ id, ...articleData });
         message.success('文章更新成功');
       } else {
         // 创建
-        await api.post(`${API_BASE}/api/create-article`, articleData);
+        await articlesApi.create(articleData);
         message.success('文章创建成功');
       }
 

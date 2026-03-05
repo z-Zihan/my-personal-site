@@ -37,7 +37,7 @@ function AdminLogin() {
     if (isDev && !isAuthenticated()) {
       const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString()
       login('dev_token', { username: 'admin (dev)' }, expiresAt)
-      message.success('🟢 开发模式 -  已自动登录（有效期 1 天）')
+      message.success('🟢 开发模式 -  已自动登录')
       navigate('/admin/dashboard', { replace: true })
     }
   }, [isDev, isAuthenticated, login, navigate])
@@ -47,7 +47,7 @@ function AdminLogin() {
       const { data } = await authApi.login(values)
       const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString()
       login(data.data.token, data.data.user, expiresAt)
-      message.success('登录成功（有效期 1 天）')
+      message.success('登录成功')
       navigate('/admin/dashboard')
     } catch (err) {
       message.error(err.response?.data?.error || '登录失败')

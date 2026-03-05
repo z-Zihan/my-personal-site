@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, Button, Card, Space, Tag, Popconfirm, message, Switch } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import axios from 'axios';
-
-// API 基础地址
-const API_BASE = 'https://zzihanaini.vercel.app';
+import { articlesApi } from '../../utils/api';
 
 function ArticleManager() {
   const navigate = useNavigate();
@@ -19,7 +16,7 @@ function ArticleManager() {
   const fetchArticles = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API_BASE}/api/articles?limit=100`);
+      const { data } = await articlesApi.getList({ limit: 100 });
       setArticles(data.data || []);
     } catch (error) {
       message.error('加载文章失败');
@@ -30,12 +27,7 @@ function ArticleManager() {
 
   const handleDelete = async (id) => {
     try {
-      const token = localStorage.getItem('admin_token')
-      await axios.delete(`${API_BASE}/api/delete-article?id=${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      await articlesApi.delete(id)
       message.success('删除成功')
       fetchArticles()
     } catch (error) {
@@ -46,17 +38,7 @@ function ArticleManager() {
   const handleToggleStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'published' ? 'draft' : 'published'
     try {
-      const token = localStorage.getItem('admin_token')
-      await axios.patch(
-        `${API_BASE}/api/toggle-article-status`,
-        { id, status: currentStatus },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
+      await articlesApi.toggleStatus({ id, status: currentStatus })
       message.success(`文章已${newStatus === 'published' ? '发布' : '设为草稿'}`)
       fetchArticles()
     } catch (error) {

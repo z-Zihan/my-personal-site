@@ -27,10 +27,8 @@ export default async function handler(req) {
 
     if (status) {
       query = query.eq('status', status)
-    } else {
-      // 默认只显示已发布的文章
-      query = query.eq('status', 'published')
     }
+    // 默认显示所有状态的文章（包括草稿和已发布）
 
     const { data, error, count } = await query
 
