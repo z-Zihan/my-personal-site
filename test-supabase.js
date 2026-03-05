@@ -72,20 +72,28 @@ async function testConnection() {
   // 3. 测试 Storage
   console.log('\n📌 测试 Storage...\n')
 
-  const { data: buckets, error: bucketError } = await supabase.storage.listBuckets()
-  console.log(`   🔍 当前 Storage Buckets: ${buckets}`)
-  if (bucketError) {
-    console.error(`   ❌ Storage: ${bucketError.message}`)
+  // 测试直接访问 image bucket（不需要 listBuckets 权限）
+  const { data: fileData, error: fileError } = await supabase
+    .storage
+    .from('image')
+    .list('', { limit: 1 })
+
+  if (fileError) {
+    console.error(`   ❌ Storage image bucket: ${fileError.message}`)
     allPassed = false
   } else {
-    const blogImagesBucket = buckets.find(b => b.name === 'image')
-    if (blogImagesBucket) {
-      console.log(`   ✅ image bucket: 存在`)
-    } else {
-      console.warn(`   ⚠️  image bucket: 不存在`)
-      console.warn(`      请在 Supabase Dashboard → Storage → New bucket 创建`)
-      allPassed = false
-    }
+    console.log(`   ✅ image bucket: 可访问`)
+    console.log(`      当前文件数：${fileData?.length || 0}`)
+  }
+
+  // listBuckets 需要更高权限，anon key 可能没有权限
+  const { data: buckets, error: bucketError } = await supabase.storage.listBuckets()
+  if (bucketError) {
+    console.log(`   ⚠️  listBuckets: ${bucketError.message} (这是正常的，anon key 可能没有此权限)`)
+  } else if (buckets && buckets.length > 0) {
+    console.log(`   ✅ Buckets: ${buckets.map(b => b.name).join(', ')}`)
+  } else {
+    console.log(`   ℹ️  listBuckets 返回空 (这是正常的，bucket 可能存在但 anon key 无列出权限)`)
   }
 
   // 4. 测试数据
