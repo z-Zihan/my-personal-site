@@ -107,7 +107,7 @@ function ArticleManager() {
     {
       title: '操作',
       key: 'action',
-      width: 200,
+      width: 280,
       render: (_, record) => (
         <Space>
           <Button

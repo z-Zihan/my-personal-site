@@ -38,10 +38,12 @@ export default async function handler(req) {
       return errorResponse('请输入用户名和密码', 400)
     }
 
-    const adminUsername = process.env.ADMIN_USERNAME || 'admin'
-    const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@2026Secure'
+    // 简单的账号密码验证
+    // 默认账号：admin / admin
+    const validUsername = 'admin'
+    const validPassword = 'admin'
 
-    if (username !== adminUsername || password !== adminPassword) {
+    if (username !== validUsername || password !== validPassword) {
       attempts.count += 1
       attempts.lastAttempt = Date.now()
       loginAttempts.set(ip, attempts)
@@ -60,7 +62,7 @@ export default async function handler(req) {
       data: {
         token,
         expires_at: expiresAt.toISOString(),
-        user: { username: adminUsername },
+        user: { username: 'admin' },
       },
     })
   } catch (error) {

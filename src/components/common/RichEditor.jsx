@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { Editor, Toolbar } from '@wangeditor/editor-for-react'
+import '@wangeditor/editor/dist/css/style.css'
 
 // WangEditor 默认就是中文，不需要额外的 i18n 配置
 
