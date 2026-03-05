@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+// API 基础地址
+const API_BASE = 'https://zzihanaini.vercel.app';
+
 export default function SearchBar({ onSearchResults }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -14,7 +17,7 @@ export default function SearchBar({ onSearchResults }) {
       if (query.length >= 1) {
         setLoading(true);
         try {
-          const res = await axios.get('/api/search', { params: { q: query } });
+          const res = await axios.get(`${API_BASE}/api/search`, { params: { q: query } });
           setResults(res.data.data || []);
           setIsOpen(true);
           if (onSearchResults) {

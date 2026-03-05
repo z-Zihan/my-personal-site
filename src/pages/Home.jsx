@@ -5,6 +5,9 @@ import SearchBar from '../components/common/SearchBar';
 import ReadingTime from '../components/common/ReadingTime';
 import { getArticleCover } from '../utils/defaultCovers';
 
+// API 基础地址
+const API_BASE = 'https://zzihanaini.vercel.app';
+
 export default function Home() {
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
@@ -19,9 +22,9 @@ export default function Home() {
   const fetchData = async () => {
     try {
       const [articlesRes, newsRes, statsRes] = await Promise.all([
-        axios.get('/api/articles?page=1&limit=6&status=published'),
-        axios.get('/api/hot-news'),
-        axios.get('/api/stats')
+        axios.get(`${API_BASE}/api/articles?page=1&limit=6&status=published`),
+        axios.get(`${API_BASE}/api/hot-news`),
+        axios.get(`${API_BASE}/api/stats`)
       ]);
       setArticles(articlesRes.data.data || []);
       setHotNews(newsRes.data.data || []);

@@ -9,16 +9,23 @@ function validateToken(token) {
   if (!token || !token.startsWith('admin_')) {
     return false
   }
-  const parts = token.split('_')
-  if (parts.length < 3) {
+  // token 格式：admin_timestamp_randombytes
+  // 我们只需要验证时间戳部分（第二个下划线前的部分）
+  const match = token.match(/^admin_(\d+)_/)
+  if (!match) {
     return false
   }
-  const timestamp = parseInt(parts[1])
+  const timestamp = parseInt(match[1])
   if (isNaN(timestamp)) {
     return false
   }
-  const expiresAt = timestamp + 7 * 24 * 60 * 60 * 1000
-  return Date.now() < expiresAt
+  // 验证时间戳是否合理（不能是未来时间，且不能太旧）
+  const now = Date.now()
+  const minTimestamp = now - 24 * 60 * 60 * 1000 // 最多 24 小时前
+  if (timestamp > now || timestamp < minTimestamp) {
+    return false
+  }
+  return true
 }
 
 export default async function handler(req) {

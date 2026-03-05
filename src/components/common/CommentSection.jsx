@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from '../../utils/toast';
 
+// API 基础地址
+const API_BASE = 'https://zzihanaini.vercel.app';
+
 export default function CommentSection({ articleId }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -20,7 +23,7 @@ export default function CommentSection({ articleId }) {
 
   const fetchComments = async () => {
     try {
-      const res = await axios.get(`/api/comments?article_id=${articleId}`);
+      const res = await axios.get(`${API_BASE}/api/comments?article_id=${articleId}`);
       setComments(res.data.data || []);
     } catch (error) {
       console.error('Fetch comments error:', error);
@@ -33,7 +36,7 @@ export default function CommentSection({ articleId }) {
 
     setLoading(true);
     try {
-      await axios.post('/api/create-comment', {
+      await axios.post(`${API_BASE}/api/create-comment`, {
         article_id: articleId,
         visitor_id: visitorId,
         content: newComment

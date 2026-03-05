@@ -2,6 +2,9 @@ import React, { useRef, useState } from 'react';
 import axios from 'axios';
 import { toast } from '../../utils/toast';
 
+// API 基础地址
+const API_BASE = 'https://zzihanaini.vercel.app';
+
 export default function ImageUploader({ onChange, value, accept = "image/*" }) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState(value);
@@ -24,13 +27,13 @@ export default function ImageUploader({ onChange, value, accept = "image/*" }) {
     }
 
     setUploading(true)
-    
+
     try {
       const formData = new FormData()
       formData.append('image', file)
 
       const token = localStorage.getItem('admin_token')
-      const { data } = await axios.post('/api/upload-image', formData, {
+      const { data } = await axios.post(`${API_BASE}/api/upload-image`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from '../../utils/toast';
 
+// API 基础地址
+const API_BASE = 'https://zzihanaini.vercel.app';
+
 export default function LikeButton({ articleId, initialLikes }) {
   const [likes, setLikes] = useState(initialLikes || 0);
   const [liked, setLiked] = useState(false);
@@ -25,7 +28,7 @@ export default function LikeButton({ articleId, initialLikes }) {
       
       if (liked) {
         // 取消点赞
-        await axios.delete('/api/like-article', {
+        await axios.delete(`${API_BASE}/api/like-article`, {
           data: { article_id: articleId, visitor_id: visitorId }
         });
         setLikes(Math.max(0, likes - 1));
@@ -34,7 +37,7 @@ export default function LikeButton({ articleId, initialLikes }) {
         toast.success('已取消点赞');
       } else {
         // 点赞
-        await axios.post('/api/like-article', {
+        await axios.post(`${API_BASE}/api/like-article`, {
           article_id: articleId,
           visitor_id: visitorId
         });

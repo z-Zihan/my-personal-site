@@ -13,17 +13,16 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
-import { useAdminThemeStore } from '../../store/adminThemeStore'
 
 const { Sider, Content, Header } = AntLayout
 
 function AdminLayout() {
   const [loading, setLoading] = useState(true)
   const [popoverOpen, setPopoverOpen] = useState(false)
+  const [isDark, setIsDark] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { token, logout, checkAuth } = useAuthStore()
-  const { adminDarkMode, setAdminDarkMode } = useAdminThemeStore()
 
   // 检查认证状态
   useEffect(() => {
@@ -35,10 +34,40 @@ function AdminLayout() {
     }
   }, [checkAuth, navigate])
 
-  // 初始化主题 - 从 Zustand store 读取
+  // 初始化主题
   useEffect(() => {
-    useAdminThemeStore.getState().initAdminTheme()
+    const stored = localStorage.getItem('admin-theme-storage')
+    let darkMode = false
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        darkMode = parsed.state?.adminDarkMode || false
+      } catch (e) {
+        darkMode = false
+      }
+    }
+    setIsDark(darkMode)
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
   }, [])
+
+  // 切换主题处理
+  const handleToggleTheme = (checked) => {
+    setIsDark(checked)
+    if (checked) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    // 同步到 localStorage
+    localStorage.setItem('admin-theme-storage', JSON.stringify({
+      state: { adminDarkMode: checked },
+      version: 0
+    }))
+  }
 
   if (loading || !token) {
     return (
@@ -65,14 +94,12 @@ function AdminLayout() {
       <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 14, color: '#666' }}>
-            {adminDarkMode ? <MoonOutlined /> : <SunOutlined />} 主题
+            {isDark ? <MoonOutlined /> : <SunOutlined />} 主题
           </span>
           <Switch
             size="small"
-            checked={adminDarkMode}
-            onChange={(checked) => {
-              setAdminDarkMode(checked)
-            }}
+            checked={isDark}
+            onChange={handleToggleTheme}
             checkedChildren="🌙"
             unCheckedChildren="☀️"
           />
@@ -199,14 +226,13 @@ function AdminLayout() {
             onClick={handleMenuClick}
             theme="light"
             inlineIndent={16}
-            style={{ 
+            style={{
               borderRight: 0,
               flex: 1,
             }}
-            itemStyle={{
+            itemstyle={{
               height: 56,
               margin: '4px 8px',
-              borderRadius: 8,
             }}
           />
         </div>

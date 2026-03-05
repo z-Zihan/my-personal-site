@@ -6,6 +6,9 @@ import RichEditor from '../../components/common/RichEditor';
 import ImageUploader from '../../components/common/ImageUploader';
 import axios from 'axios';
 
+// API 基础地址
+const API_BASE = 'https://zzihanaini.vercel.app';
+
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -27,7 +30,7 @@ function ArticleEditor() {
 
   const fetchArticle = async () => {
     try {
-      const { data } = await axios.get(`/api/article-detail?id=${id}`);
+      const { data } = await axios.get(`${API_BASE}/api/article-detail?id=${id}`);
       const article = data.data;
       form.setFieldsValue({
         title: article.title,
@@ -63,14 +66,14 @@ function ArticleEditor() {
 
       if (id) {
         // 更新
-        await axios.put('/api/update-article', { id, ...articleData });
+        await axios.put(`${API_BASE}/api/update-article`, { id, ...articleData });
         message.success('文章更新成功');
       } else {
         // 创建
-        await axios.post('/api/create-article', articleData);
+        await axios.post(`${API_BASE}/api/create-article`, articleData);
         message.success('文章创建成功');
       }
-      
+
       navigate('/admin/articles');
     } catch (error) {
       message.error(error.response?.data?.error || '操作失败');

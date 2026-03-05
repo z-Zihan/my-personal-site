@@ -20,6 +20,9 @@ const { Title } = Typography
 
 const COLORS = ['#00f0ff', '#7000ff', '#00ff88', '#ff6600', '#ff0066', '#00ccff']
 
+// API 基础地址
+const API_BASE = 'https://zzihanaini.vercel.app'
+
 function Dashboard() {
   const [stats, setStats] = useState(null)
   const [analytics, setAnalytics] = useState(null)
@@ -32,18 +35,18 @@ function Dashboard() {
   const fetchAllData = async () => {
     try {
       const [statsRes, analyticsRes] = await Promise.all([
-        axios.get('/api/stats'),
-        axios.get('/api/analytics?type=overview')
+        axios.get(`${API_BASE}/api/stats`),
+        axios.get(`${API_BASE}/api/analytics?type=overview`)
       ])
       setStats(statsRes.data?.data || statsRes.data)
       setAnalytics(analyticsRes.data?.data || analyticsRes.data)
 
       // 获取详细统计数据
       const [daily, pages, devices, browsers] = await Promise.all([
-        axios.get('/api/analytics?type=daily&days=7'),
-        axios.get('/api/analytics?type=pages&days=7'),
-        axios.get('/api/analytics?type=devices&days=7'),
-        axios.get('/api/analytics?type=browsers&days=7'),
+        axios.get(`${API_BASE}/api/analytics?type=daily&days=7`),
+        axios.get(`${API_BASE}/api/analytics?type=pages&days=7`),
+        axios.get(`${API_BASE}/api/analytics?type=devices&days=7`),
+        axios.get(`${API_BASE}/api/analytics?type=browsers&days=7`),
       ])
 
       // 确保数据是数组
@@ -93,6 +96,7 @@ function Dashboard() {
               value={analytics.totalVisitors || 0}
               prefix={<UserOutlined />}
               valueStyle={{ color: '#00f0ff' }}
+              styles={{ content: { color: '#00f0ff' } }}
             />
           </Card>
         </Col>
@@ -103,6 +107,7 @@ function Dashboard() {
               value={analytics.totalPageViews || 0}
               prefix={<EyeOutlined />}
               valueStyle={{ color: '#7000ff' }}
+              styles={{ content: { color: '#7000ff' } }}
             />
           </Card>
         </Col>
@@ -113,6 +118,7 @@ function Dashboard() {
               value={analytics.totalSessions || 0}
               prefix={<LaptopOutlined />}
               valueStyle={{ color: '#00ff88' }}
+              styles={{ content: { color: '#00ff88' } }}
             />
           </Card>
         </Col>
@@ -123,6 +129,7 @@ function Dashboard() {
               value={analytics.totalEvents || 0}
               prefix={<FireOutlined />}
               valueStyle={{ color: '#ff6600' }}
+              styles={{ content: { color: '#ff6600' } }}
             />
           </Card>
         </Col>
@@ -137,6 +144,7 @@ function Dashboard() {
               value={stats.totalArticles || 0}
               prefix={<FileTextOutlined />}
               valueStyle={{ color: '#00f0ff' }}
+              styles={{ content: { color: '#00f0ff' } }}
             />
           </Card>
         </Col>
@@ -147,6 +155,7 @@ function Dashboard() {
               value={stats.totalMessages || 0}
               prefix={<MessageOutlined />}
               valueStyle={{ color: '#00ff88' }}
+              styles={{ content: { color: '#00ff88' } }}
             />
           </Card>
         </Col>
@@ -157,6 +166,7 @@ function Dashboard() {
               value={stats.totalNews || 0}
               prefix={<FireOutlined />}
               valueStyle={{ color: '#ff6600' }}
+              styles={{ content: { color: '#ff6600' } }}
             />
           </Card>
         </Col>

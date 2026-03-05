@@ -4,6 +4,9 @@ import { Table, Button, Card, Space, Tag, Popconfirm, message, Switch } from 'an
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
+// API 基础地址
+const API_BASE = 'https://zzihanaini.vercel.app';
+
 function ArticleManager() {
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
@@ -16,7 +19,7 @@ function ArticleManager() {
   const fetchArticles = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get('/api/articles?limit=100');
+      const { data } = await axios.get(`${API_BASE}/api/articles?limit=100`);
       setArticles(data.data || []);
     } catch (error) {
       message.error('加载文章失败');
@@ -28,7 +31,7 @@ function ArticleManager() {
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem('admin_token')
-      await axios.delete(`/api/delete-article?id=${id}`, {
+      await axios.delete(`${API_BASE}/api/delete-article?id=${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -45,7 +48,7 @@ function ArticleManager() {
     try {
       const token = localStorage.getItem('admin_token')
       await axios.patch(
-        '/api/toggle-article-status',
+        `${API_BASE}/api/toggle-article-status`,
         { id, status: currentStatus },
         {
           headers: {

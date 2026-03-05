@@ -2,7 +2,7 @@
 
 const ANALYTICS_CONFIG = {
   enabled: true,
-  apiEndpoint: '/api/analytics',
+  apiEndpoint: 'https://zzihanaini.vercel.app/api/analytics',
   flushInterval: 5000, // 5 秒上报一次
   maxQueueSize: 50,
 }

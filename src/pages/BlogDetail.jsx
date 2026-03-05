@@ -10,6 +10,9 @@ import LikeButton from '../components/common/LikeButton';
 import ReadingTime from '../components/common/ReadingTime';
 import CommentSection from '../components/common/CommentSection';
 
+// API 基础地址
+const API_BASE = 'https://zzihanaini.vercel.app';
+
 export default function BlogDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -31,7 +34,7 @@ export default function BlogDetail() {
     try {
       setLoading(true);
       setError(null);
-      const res = await axios.get(`/api/article-detail?id=${id}`);
+      const res = await axios.get(`${API_BASE}/api/article-detail?id=${id}`);
       if (res.data && res.data.data) {
         setArticle(res.data.data);
       } else {

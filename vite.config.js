@@ -52,7 +52,13 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,svg,png,jpg,jpeg,webp,woff,woff2}'],
+        // 不缓存 API 请求
         runtimeCaching: [
+          {
+            // API 请求始终使用网络（针对线上地址）
+            urlPattern: /^https:\/\/zzihanaini\.vercel\.app\/api\/.*/i,
+            handler: 'NetworkOnly',
+          },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
             handler: 'NetworkFirst',
@@ -86,7 +92,7 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    host: true
+    host: true,
   },
   build: {
     rollupOptions: {
