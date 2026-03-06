@@ -10,7 +10,6 @@ function App() {
       <main>
         <Outlet />
       </main>
-      <Footer />
       <Analytics />
     </div>
   )

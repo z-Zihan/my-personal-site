@@ -6,6 +6,7 @@ import PixelCard from "../components/effects/PixelCard";
 import axios from "axios";
 import { API_BASE } from "../constants/apiConstants";
 import { motion } from "framer-motion";
+import LightPillar from "../components/effects/LightPillar";
 
 function BlogList() {
   const navigate = useNavigate();
@@ -49,8 +50,22 @@ function BlogList() {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-20">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen pt-20 pb-20 relative overflow-hidden">
+      {/* <div className="absolute inset-0 z-0">
+        <LightPillar
+          topColor="#5227FF"
+          bottomColor="#FF9FFC"
+          intensity={1}
+          rotationSpeed={0.3}
+          interactive={false}
+          glowAmount={0.002}
+          pillarWidth={3}
+          pillarHeight={0.4}
+          noiseIntensity={0.5}
+          pillarRotation={25}
+        />
+      </div> */}
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
         <h1 className="text-5xl font-bold text-center mb-12 neon-text">
           全部文章
         </h1>

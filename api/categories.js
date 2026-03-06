@@ -37,10 +37,13 @@ export default async function handler(req) {
         return errorResponse('分类名称不能为空', 400)
       }
 
+      const slug = name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
+
       const { data, error } = await supabase
         .from('categories')
         .insert([{
-          name: name.trim()
+          name: name.trim(),
+          slug: slug
         }])
         .select()
         .single()

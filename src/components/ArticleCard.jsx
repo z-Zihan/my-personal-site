@@ -21,6 +21,8 @@ function ArticleCard({ article, isRecommended }) {
           ⭐ 推荐
         </div>
       )}
+      {/* 浅色背景层 */}
+      <div className="absolute inset-0 bg-gradient-to-t from-purple-500/10 to-transparent pointer-events-none" />
       <img
         src={coverUrl}
         alt={article.title}
@@ -30,7 +32,7 @@ function ArticleCard({ article, isRecommended }) {
           e.target.src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop'
         }}
       />
-      <div className="p-6">
+      <div className="p-6 relative z-10">
         {article.categories && article.categories.name && (
           <span className="inline-block bg-primary/20 text-primary px-2 py-1 rounded text-xs mb-2">
             {article.categories.name}

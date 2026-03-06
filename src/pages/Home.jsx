@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { motion } from 'framer-motion';
 import SearchBar from '../components/common/SearchBar';
 import ReadingTime from '../components/common/ReadingTime';
 import { getArticleCover } from '../utils/defaultCovers';
-import { API_BASE } from '../constants/apiConstants';
+import { articleApi, hotNewsApi, statsApi } from '../api';
 import ParticleBackground from '../components/ParticleBackground';
 import GradientBackground from '../components/effects/GradientBackground';
 import Sparkles from '../components/effects/Sparkles';
@@ -31,15 +30,15 @@ export default function Home() {
   const fetchData = async () => {
     try {
       const [articlesRes, recommendedRes, newsRes, statsRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/articles?page=1&limit=6&status=published`),
-        axios.get(`${API_BASE}/api/articles?page=1&limit=3&recommended=true`),
-        axios.get(`${API_BASE}/api/hot-news`),
-        axios.get(`${API_BASE}/api/stats`)
+        articleApi.getList({ page: 1, limit: 6, status: 'published' }),
+        articleApi.getList({ page: 1, limit: 6, recommended: true }),
+        hotNewsApi.getList(),
+        statsApi.getStats()
       ]);
-      setArticles(articlesRes.data.data || []);
-      setRecommendedArticles(recommendedRes.data.data || []);
-      setHotNews(newsRes.data.data || []);
-      setStats(statsRes.data.data);
+      setArticles(articlesRes.data || []);
+      setRecommendedArticles(recommendedRes.data || []);
+      setHotNews(newsRes.data || []);
+      setStats(statsRes.data);
     } catch (error) {
       console.error('Fetch data error:', error);
     } finally {
@@ -296,7 +295,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
     </div>
   );
 }

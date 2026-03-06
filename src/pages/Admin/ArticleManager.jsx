@@ -200,6 +200,13 @@ function ArticleManager() {
       ellipsis: true,
     },
     {
+      title: '分类',
+      dataIndex: ['categories', 'name'],
+      key: 'category',
+      width: 100,
+      render: (categoryName) => categoryName || '-',
+    },
+    {
       title: '推荐',
       dataIndex: 'is_recommended',
       key: 'is_recommended',
