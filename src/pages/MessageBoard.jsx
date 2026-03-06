@@ -62,7 +62,6 @@ function MessageBoard() {
         location: location || undefined,
       });
       setContent("");
-      setLocation("");
       fetchMessages();
       toast.success("留言成功");
     } catch (error) {
