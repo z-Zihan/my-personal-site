@@ -96,7 +96,6 @@
    VITE_SUPABASE_ANON_KEY=你的 anon key
    ADMIN_USERNAME=admin
    ADMIN_PASSWORD=admin
-   VITE_TINYMCE_API_KEY=你的 TinyMCE key（可选）
    ```
 6. 点击 **Deploy**
 7. 等待部署完成（约 3 分钟）
@@ -143,8 +142,6 @@ VITE_SUPABASE_ANON_KEY=sb_publishable_xxxxx
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=admin
 
-# TinyMCE API Key（可选，用于富文本编辑器）
-VITE_TINYMCE_API_KEY=uylisntm55otay1rhk2qrhoszglpxblixzaukerqqxhur7h5
 ```
 
 ### 启动开发服务器
@@ -274,15 +271,6 @@ npm run lint     # 代码检查
 ```env
 ADMIN_PASSWORD=你的新密码
 ```
-
-### 7. 如何获取 TinyMCE API Key？
-
-1. 访问 [TinyMCE](https://www.tiny.cloud/my-account/)
-2. 注册免费账号
-3. 创建新的 API Key
-4. 填入 `VITE_TINYMCE_API_KEY`
-
----
 
 ## 📚 更多文档
 

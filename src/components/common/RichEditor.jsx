@@ -44,7 +44,6 @@ export default function RichEditor({ value, onChange, height = 400 }) {
       style={{
         border: '1px solid #d9d9d9',
         borderRadius: 4,
-        overflow: 'hidden',
         position: fullscreen ? 'fixed' : 'relative',
         top: fullscreen ? 0 : 'auto',
         left: fullscreen ? 0 : 'auto',

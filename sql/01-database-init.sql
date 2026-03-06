@@ -335,6 +335,9 @@ ON articles FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 其他博客表策略
 CREATE POLICY "Allow public read access" ON categories FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow authenticated insert" ON categories FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow authenticated update" ON categories FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow authenticated delete" ON categories FOR DELETE TO authenticated USING (true);
 CREATE POLICY "Allow public read access" ON tags FOR SELECT TO anon, authenticated USING (true);
 CREATE POLICY "Allow public read access" ON comments FOR SELECT TO anon, authenticated USING (true);
 CREATE POLICY "Allow insert for all" ON comments FOR INSERT TO anon, authenticated WITH CHECK (true);

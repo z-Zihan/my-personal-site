@@ -48,16 +48,11 @@ function ArticleEditor() {
   const fetchCategories = async () => {
     try {
       const { data } = await categoryApi.getList()
-      setCategories(data.data || [])
+      setCategories(data || [])
     } catch (error) {
       console.error('Fetch categories error:', error)
-      // 降级处理：如果 API 不存在，使用默认分类
-      setCategories([
-        { id: '1', name: '技术' },
-        { id: '2', name: '生活' },
-        { id: '3', name: '随笔' },
-        { id: '4', name: '分享' },
-      ])
+      message.error('加载分类失败')
+      setCategories([])
     }
   }
 
@@ -68,6 +63,7 @@ function ArticleEditor() {
     }
     try {
       const { data } = await categoryApi.create({ name: newCategoryName.trim() })
+      console.log('子涵:', data)
       if (data.data) {
         setCategories([...categories, data.data])
         form.setFieldsValue({ category_id: data.data.id })
@@ -76,35 +72,30 @@ function ArticleEditor() {
         setAddCategoryVisible(false)
       }
     } catch (error) {
-      // 如果 API 不支持，本地添加
-      const newCategory = {
-        id: Date.now().toString(),
-        name: newCategoryName.trim()
-      }
-      setCategories([...categories, newCategory])
-      form.setFieldsValue({ category_id: newCategory.id })
-      message.success('分类添加成功')
-      setNewCategoryName('')
-      setAddCategoryVisible(false)
+      message.error(error.response?.data?.error || '添加失败')
     }
   }
 
-  const handleDeleteCategory = async (categoryId) => {
-    try {
-      await categoryApi.delete(categoryId)
-      setCategories(categories.filter(cat => cat.id !== categoryId))
-      if (form.getFieldValue('category_id') === categoryId) {
-        form.setFieldsValue({ category_id: undefined })
-      }
-      message.success('分类删除成功')
-    } catch (error) {
-      // 如果 API 不支持，本地删除
-      setCategories(categories.filter(cat => cat.id !== categoryId))
-      if (form.getFieldValue('category_id') === categoryId) {
-        form.setFieldsValue({ category_id: undefined })
-      }
-      message.success('分类已删除')
-    }
+  const handleDeleteCategory = async (categoryId, categoryName) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除分类"${categoryName}"吗？`,
+      okText: '确认',
+      cancelText: '取消',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          await categoryApi.delete(categoryId)
+          setCategories(categories.filter(cat => cat.id !== categoryId))
+          if (form.getFieldValue('category_id') === categoryId) {
+            form.setFieldsValue({ category_id: undefined })
+          }
+          message.success('分类删除成功')
+        } catch (error) {
+          message.error(error.response?.data?.error || '删除失败')
+        }
+      },
+    })
   }
 
   const handleEditCategory = (category) => {
@@ -128,14 +119,7 @@ function ArticleEditor() {
       setEditingCategory(null)
       setAddCategoryVisible(false)
     } catch (error) {
-      // 如果 API 不支持，本地更新
-      setCategories(categories.map(cat =>
-        cat.id === editingCategory.id ? { ...cat, name: newCategoryName.trim() } : cat
-      ))
-      message.success('分类已更新')
-      setNewCategoryName('')
-      setEditingCategory(null)
-      setAddCategoryVisible(false)
+      message.error(error.response?.data?.error || '更新失败')
     }
   }
 
@@ -208,13 +192,59 @@ function ArticleEditor() {
           <Form.Item
             name="category_id"
             label="分类"
+            rules={[{ required: true, message: '请选择分类' }]}
           >
-            <Space.Compact style={{ width: '100%' }}>
+            <Space>
               <Select
                 placeholder="请选择分类"
                 size="large"
                 allowClear
-                style={{ flex: 1 }}
+                style={{ width: 300 }}
+                optionRender={(option) => (
+                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                    <span>{option.label}</span>
+                    <Space>
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleEditCategory(categories.find(c => c.id === option.value))
+                        }}
+                      />
+                      <Button
+                        type="text"
+                        danger
+                        size="small"
+                        icon={<DeleteOutlined />}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteCategory(option.value, option.label)
+                        }}
+                      />
+                    </Space>
+                  </Space>
+                )}
+                popupRender={(menu) => (
+                  <>
+                    {menu}
+                    <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<PlusOutlined />}
+                        onClick={() => {
+                          setEditingCategory(null)
+                          setNewCategoryName('')
+                          setAddCategoryVisible(true)
+                        }}
+                      >
+                        添加分类
+                      </Button>
+                    </div>
+                  </>
+                )}
               >
                 {categories.map(cat => (
                   <Option key={cat.id} value={cat.id}>
@@ -222,44 +252,7 @@ function ArticleEditor() {
                   </Option>
                 ))}
               </Select>
-              <Button
-                type="primary"
-                size="large"
-                icon={<PlusOutlined />}
-                onClick={() => {
-                  setEditingCategory(null)
-                  setNewCategoryName('')
-                  setAddCategoryVisible(true)
-                }}
-              >
-                添加分类
-              </Button>
-              {editingCategory && (
-                <Button
-                  type="dashed"
-                  size="large"
-                  icon={<EditOutlined />}
-                  onClick={() => {
-                    handleEditCategory(editingCategory)
-                  }}
-                >
-                  编辑
-                </Button>
-              )}
-              {form.getFieldValue('category_id') && (
-                <Button
-                  danger
-                  type="primary"
-                  size="large"
-                  icon={<DeleteOutlined />}
-                  onClick={() => {
-                    handleDeleteCategory(form.getFieldValue('category_id'))
-                  }}
-                >
-                  删除
-                </Button>
-              )}
-            </Space.Compact>
+            </Space>
           </Form.Item>
 
           {/* 添加/编辑分类弹窗 */}
@@ -267,6 +260,8 @@ function ArticleEditor() {
             title={editingCategory ? '编辑分类' : '添加分类'}
             open={addCategoryVisible}
             onOk={editingCategory ? handleUpdateCategory : handleAddCategory}
+            okText={editingCategory ? '更新' : '添加'}
+            cancelText="取消"
             onCancel={() => {
               setAddCategoryVisible(false)
               setNewCategoryName('')
@@ -276,6 +271,7 @@ function ArticleEditor() {
             <Input
               placeholder="请输入分类名称"
               value={newCategoryName}
+              maxLength={10}
               onChange={(e) => setNewCategoryName(e.target.value)}
               onPressEnter={editingCategory ? handleUpdateCategory : handleAddCategory}
             />
