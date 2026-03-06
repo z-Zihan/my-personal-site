@@ -201,10 +201,9 @@ function ArticleManager() {
     },
     {
       title: '分类',
-      dataIndex: ['categories', 'name'],
       key: 'category',
       width: 100,
-      render: (categoryName) => categoryName || '-',
+      render: (_, record) => record.categories?.name || '-',
     },
     {
       title: '推荐',
@@ -325,9 +324,9 @@ function ArticleManager() {
     },
     {
       title: '分类',
-      dataIndex: ['categories', 'name'],
       key: 'category',
       width: 100,
+      render: (_, record) => record.categories?.name || '-',
     },
     {
       title: '浏览量',
@@ -475,7 +474,7 @@ function ArticleManager() {
       <Drawer
         title="推荐文章管理"
         placement="right"
-        width={600}
+        size="large"
         open={recommendDrawerVisible}
         onClose={() => setRecommendDrawerVisible(false)}
         footer={

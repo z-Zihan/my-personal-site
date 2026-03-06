@@ -82,18 +82,6 @@ function MessageBoard() {
   return (
     <div className="min-h-screen pt-20 pb-12">
       <div className="max-w-4xl mx-auto px-4">
-        {/* 标题 */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-            留言板
-          </h1>
-          <p className="text-gray-400">分享你的想法，留下你的足迹</p>
-        </motion.div>
-
         {/* 留言列表 - 固定高度，可滚动 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -111,7 +99,7 @@ function MessageBoard() {
 
           {/* 只有这个区域可以滚动 */}
 
-          <div className="h-[500px] overflow-y-auto overflow-x-hidden space-y-4 pr-2 custom-scrollbar">
+          <div className="h-[500px] overflow-y-auto overflow-x-hidden space-y-4 custom-scrollbar  px-8 py-4">
             <AnimatePresence>
               {loading ? (
                 <div className="space-y-4">
@@ -242,7 +230,7 @@ function MessageBoard() {
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="分享你的想法和建议..."
+                placeholder="分享你的想法，留下你的足迹..."
                 rows={5}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-700 placeholder-gray-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 focus:outline-none resize-none transition-all duration-300"
                 disabled={submitting}

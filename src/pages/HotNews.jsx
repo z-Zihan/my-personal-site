@@ -77,7 +77,7 @@ function HotNews() {
           <div className="space-y-4">
             {news.map((item, index) => (
               <Motion.a
-                key={item.id}
+                key={`hot_news_${item.id}${index}`}
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"

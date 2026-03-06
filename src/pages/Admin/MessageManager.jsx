@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { messagesApi } from '../../utils/api'
-import { Table, Button, Popconfirm, message, Typography } from 'antd'
+import { Table, Button, Popconfirm, message, Typography, Popover } from 'antd'
 import { DeleteOutlined } from '@ant-design/icons'
 import { formatDate } from '../../utils/helpers'
 
@@ -42,6 +42,18 @@ function MessageManager() {
       dataIndex: 'content',
       key: 'content',
       ellipsis: true,
+    },
+    {
+      title: '位置',
+      dataIndex: 'location',
+      key: 'location',
+      width: 150,
+      ellipsis: true,
+      render: (location) => location ? (
+        <Popover content={location} title="地理位置">
+          <span style={{ cursor: 'pointer', color: '#1890ff' }}>{location}</span>
+        </Popover>
+      ) : '-',
     },
     {
       title: '访客 ID',

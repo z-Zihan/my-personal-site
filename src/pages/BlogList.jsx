@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useArticles } from "../hooks/useArticles";
 import ArticleCard from "../components/ArticleCard";
 import GooeyNav from "../components/effects/GooeyNav";
+import Crosshair from "../components/effects/Crosshair";
 import { get } from "../utils/request";
 
 function BlogList() {
@@ -32,8 +33,8 @@ function BlogList() {
   const fetchCategories = async () => {
     try {
       const { data } = await get('/api/categories');
-      if (data.data && data.data.length > 0) {
-        setCategories([{ id: "all", name: "全部" }, ...data.data]);
+      if (data && data.length > 0) {
+        setCategories([{ id: "all", name: "全部" }, ...data]);
       }
     } catch (error) {
       console.error("Fetch categories error:", error);
@@ -52,6 +53,7 @@ function BlogList() {
       ref={containerRef}
       className="min-h-screen pt-20 pb-20 relative overflow-hidden"
     >
+      <Crosshair color="#00ffff" containerRef={containerRef} />
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <h1 className="text-5xl font-bold text-center mb-12 neon-text">
           全部文章

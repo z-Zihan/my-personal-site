@@ -42,10 +42,10 @@ function Dashboard() {
         get('/api/analytics', { type: 'overview' }),
         get('/api/articles', { page: 1, limit: 6, status: 'published' })
       ])
-      setStats(statsRes.data?.data || statsRes.data)
-      setAnalytics(analyticsRes.data?.data || analyticsRes.data)
-      setLatestArticles(latestRes.data?.data || [])
-      setRecommendedArticles(latestRes.data?.data?.filter(a => a.is_recommended).slice(0, 10) || [])
+      setStats(statsRes?.data || statsRes.data)
+      setAnalytics(analyticsRes?.data || analyticsRes.data)
+      setLatestArticles(latestRes?.data || [])
+      setRecommendedArticles(latestRes?.data?.filter(a => a.is_recommended).slice(0, 10) || [])
 
       // 获取详细统计数据
       const [daily, pages, devices, browsers] = await Promise.all([
@@ -110,7 +110,6 @@ function Dashboard() {
               title="总访客数"
               value={analytics.totalVisitors || 0}
               prefix={<UserOutlined />}
-              valueStyle={{ color: '#00f0ff' }}
               styles={{ content: { color: '#00f0ff' } }}
             />
           </Card>
@@ -121,7 +120,6 @@ function Dashboard() {
               title="总浏览量"
               value={analytics.totalPageViews || 0}
               prefix={<EyeOutlined />}
-              valueStyle={{ color: '#7000ff' }}
               styles={{ content: { color: '#7000ff' } }}
             />
           </Card>
@@ -132,7 +130,6 @@ function Dashboard() {
               title="总会话数"
               value={analytics.totalSessions || 0}
               prefix={<LaptopOutlined />}
-              valueStyle={{ color: '#00ff88' }}
               styles={{ content: { color: '#00ff88' } }}
             />
           </Card>
@@ -143,7 +140,6 @@ function Dashboard() {
               title="总事件数"
               value={analytics.totalEvents || 0}
               prefix={<FireOutlined />}
-              valueStyle={{ color: '#ff6600' }}
               styles={{ content: { color: '#ff6600' } }}
             />
           </Card>
@@ -158,7 +154,6 @@ function Dashboard() {
               title="总文章数"
               value={stats.totalArticles || 0}
               prefix={<FileTextOutlined />}
-              valueStyle={{ color: '#00f0ff' }}
               styles={{ content: { color: '#00f0ff' } }}
             />
           </Card>
@@ -169,7 +164,6 @@ function Dashboard() {
               title="总留言数"
               value={stats.totalMessages || 0}
               prefix={<MessageOutlined />}
-              valueStyle={{ color: '#00ff88' }}
               styles={{ content: { color: '#00ff88' } }}
             />
           </Card>
@@ -180,7 +174,6 @@ function Dashboard() {
               title="总热点数"
               value={stats.totalNews || 0}
               prefix={<FireOutlined />}
-              valueStyle={{ color: '#ff6600' }}
               styles={{ content: { color: '#ff6600' } }}
             />
           </Card>
@@ -376,6 +369,7 @@ function Dashboard() {
               <Table
                 dataSource={analytics.pages}
                 pagination={false}
+                rowKey={(record) => `page_${record.path}_`}
                 size="small"
                 columns={[
                   {
