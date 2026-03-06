@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useArticles } from "../hooks/useArticles";
 import ArticleCard from "../components/ArticleCard";
 import PixelCard from "../components/effects/PixelCard";
+import Crosshair from "../components/effects/Crosshair";
 import axios from "axios";
 import { API_BASE } from "../constants/apiConstants";
 import { motion } from "framer-motion";
@@ -10,6 +11,7 @@ import LightPillar from "../components/effects/LightPillar";
 
 function BlogList() {
   const navigate = useNavigate();
+  const containerRef = useRef(null);
   const [page, setPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [categories, setCategories] = useState([{ id: "all", name: "全部" }]);
@@ -50,7 +52,8 @@ function BlogList() {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-20 relative overflow-hidden">
+    <div ref={containerRef} className="min-h-screen pt-20 pb-20 relative overflow-hidden">
+      <Crosshair color="#a855f7" targeted containerRef={containerRef} />
       {/* <div className="absolute inset-0 z-0">
         <LightPillar
           topColor="#5227FF"

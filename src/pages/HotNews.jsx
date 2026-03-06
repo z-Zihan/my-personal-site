@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion as Motion } from 'framer-motion'
 import { hotNewsApi } from '../utils/api'
 import PixelCard from '../components/effects/PixelCard'
+import Crosshair from '../components/effects/Crosshair'
 
 // 前端本地缓存时间：5 分钟
 const CLIENT_CACHE_DURATION = 5 * 60 * 1000
 const CACHE_KEY = 'hot_news_cache'
 
 function HotNews() {
+  const containerRef = useRef(null)
   const [news, setNews] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -50,7 +52,8 @@ function HotNews() {
   }, [])
 
   return (
-    <div className="min-h-screen pt-20 pb-20">
+    <div ref={containerRef} className="min-h-screen pt-20 pb-20">
+      <Crosshair color="#f97316" containerRef={containerRef} />
       <div className="max-w-4xl mx-auto px-4">
         <Motion.h1
           initial={{ opacity: 0, y: 20 }}
