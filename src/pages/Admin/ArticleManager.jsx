@@ -53,6 +53,7 @@ function ArticleManager() {
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [recommendDrawerVisible, setRecommendDrawerVisible] = useState(false);
+  const [selectedCommentKeys, setSelectedCommentKeys] = useState([]);
 
   useEffect(() => {
     fetchArticles();
@@ -192,6 +193,21 @@ function ArticleManager() {
     }
   };
 
+  const handleBatchDeleteComments = async () => {
+    if (selectedCommentKeys.length === 0) {
+      message.warning('请选择要删除的评论');
+      return;
+    }
+    try {
+      await commentsApi.batchDelete(selectedCommentKeys);
+      message.success(`成功删除 ${selectedCommentKeys.length} 条评论`);
+      setSelectedCommentKeys([]);
+      handleShowComments(currentArticle); // 刷新评论列表
+    } catch (error) {
+      message.error(error.response?.data?.error || '批量删除失败');
+    }
+  };
+
   const columns = [
     {
       title: '标题',
@@ -278,6 +294,7 @@ function ArticleManager() {
       title: '操作',
       key: 'action',
       width: 280,
+      fixed: 'right',
       render: (_, record) => (
         <Space>
           <Button
@@ -382,7 +399,7 @@ function ArticleManager() {
           rowKey="id"
           loading={loading}
           pagination={{ pageSize: 10 }}
-          scroll={{ x: 1400 }}
+          scroll={{ x: 1600 }}
           rowSelection={{
             selectedRowKeys,
             onChange: setSelectedRowKeys,
@@ -418,12 +435,38 @@ function ArticleManager() {
         footer={null}
         width={800}
       >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <Space>
+            {selectedCommentKeys.length > 0 && (
+              <span style={{ color: '#666' }}>已选择 {selectedCommentKeys.length} 项</span>
+            )}
+          </Space>
+          <Popconfirm
+            title={`确定删除选中的 ${selectedCommentKeys.length} 条评论吗？`}
+            onConfirm={handleBatchDeleteComments}
+            okText="确定"
+            cancelText="取消"
+            disabled={selectedCommentKeys.length === 0}
+          >
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              disabled={selectedCommentKeys.length === 0}
+            >
+              批量删除
+            </Button>
+          </Popconfirm>
+        </div>
         <Table
           dataSource={comments}
           rowKey="id"
           loading={commentsLoading}
           pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => `共 ${total} 条` }}
           scroll={{ x: 600 }}
+          rowSelection={{
+            selectedRowKeys: selectedCommentKeys,
+            onChange: setSelectedCommentKeys,
+          }}
           columns={[
             {
               title: '评论内容',

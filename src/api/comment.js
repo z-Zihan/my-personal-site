@@ -21,4 +21,10 @@ export const commentApi = {
    * @param {number} id - 评论 ID
    */
   delete: (id) => del('/api/delete-comment', { id }),
+
+  /**
+   * 批量删除评论
+   * @param {array} ids - 评论 ID 数组
+   */
+  batchDelete: (ids) => post('/api/batch-delete-comment', { ids }),
 };

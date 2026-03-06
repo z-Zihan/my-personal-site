@@ -32,6 +32,7 @@ export const messagesApi = {
   getList: () => api.get('/messages'),
   create: (data) => api.post('/create-message', data),
   delete: (id) => api.delete('/delete-message', { params: { id } }),
+  batchDelete: (ids) => api.post('/batch-delete-message', { ids }),
 }
 
 // 热点资讯 API

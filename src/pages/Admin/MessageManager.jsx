@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { messagesApi } from '../../utils/api'
-import { Table, Button, Popconfirm, message, Typography, Popover } from 'antd'
+import { Table, Button, Popconfirm, message, Typography, Popover, Space } from 'antd'
 import { DeleteOutlined } from '@ant-design/icons'
 import { formatDate } from '../../utils/helpers'
 
@@ -9,6 +9,7 @@ const { Title } = Typography
 function MessageManager() {
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false)
+  const [selectedRowKeys, setSelectedRowKeys] = useState([])
 
   useEffect(() => {
     fetchMessages()
@@ -34,6 +35,28 @@ function MessageManager() {
     } catch (error) {
       message.error('删除失败')
     }
+  }
+
+  const handleBatchDelete = async () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请选择要删除的留言')
+      return
+    }
+    try {
+      await messagesApi.batchDelete(selectedRowKeys)
+      message.success(`成功删除 ${selectedRowKeys.length} 条留言`)
+      setSelectedRowKeys([])
+      fetchMessages()
+    } catch (error) {
+      message.error('批量删除失败')
+    }
+  }
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (newSelectedRowKeys) => {
+      setSelectedRowKeys(newSelectedRowKeys)
+    },
   }
 
   const columns = [
@@ -91,7 +114,29 @@ function MessageManager() {
 
   return (
     <div style={{ padding: '0 24px' }}>
-      <Title level={3} style={{ marginBottom: 24 }}>留言管理</Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <Title level={3} style={{ margin: 0 }}>留言管理</Title>
+        <Space>
+          {selectedRowKeys.length > 0 && (
+            <span style={{ color: '#666' }}>已选择 {selectedRowKeys.length} 项</span>
+          )}
+          <Popconfirm
+            title={`确定删除选中的 ${selectedRowKeys.length} 条留言吗？`}
+            onConfirm={handleBatchDelete}
+            okText="确定"
+            cancelText="取消"
+            disabled={selectedRowKeys.length === 0}
+          >
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              disabled={selectedRowKeys.length === 0}
+            >
+              批量删除
+            </Button>
+          </Popconfirm>
+        </Space>
+      </div>
 
       <Table
         columns={columns}
@@ -100,6 +145,7 @@ function MessageManager() {
         loading={loading}
         pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => `共 ${total} 条` }}
         scroll={{ x: 800 }}
+        rowSelection={rowSelection}
       />
     </div>
   )
