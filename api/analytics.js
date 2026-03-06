@@ -81,7 +81,7 @@ async function handleTrack(req) {
       }
     }
 
-    return jsonResponse({ success: true });
+    return jsonResponse({ data: { success: true } });
   } catch (error) {
     console.error("Analytics track error:", error);
     return errorResponse("Internal server error", 500);

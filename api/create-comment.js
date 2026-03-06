@@ -29,7 +29,7 @@ export default async function handler(req) {
 
     if (error) throw error
 
-    return jsonResponse({ success: true, data }, 201)
+    return jsonResponse({ data }, 201)
   } catch (error) {
     console.error('Create comment error:', error)
     return errorResponse('Failed to create comment', 500)

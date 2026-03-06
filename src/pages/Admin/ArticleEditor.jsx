@@ -49,7 +49,7 @@ function ArticleEditor() {
   const fetchCategories = async () => {
     try {
       const { data } = await categoryApi.getList()
-      setCategories(data || [])
+      setCategories(data.data || [])
     } catch (error) {
       console.error('Fetch categories error:', error)
       message.error('加载分类失败')
@@ -65,19 +65,19 @@ function ArticleEditor() {
     setCategoryLoading(true)
     try {
       const { data } = await categoryApi.create({ name: newCategoryName.trim() })
-      if (data.success) {
-        // 重新获取分类列表
-        await fetchCategories()
-        message.success('分类添加成功')
-        setNewCategoryName('')
-        setAddCategoryVisible(false)
-      }
+      console.log('Add category response:', data)
+      // 重新获取分类列表
+      await fetchCategories()
+      message.success('分类添加成功')
+      setNewCategoryName('')
+      setAddCategoryVisible(false)
     } catch (error) {
-      const errorCode = error.response?.data?.code
-      if (errorCode === 'DUPLICATE_CATEGORY') {
+      const errorMessage = error.response?.data?.error || error.message || '添加失败'
+      // 检查是否重复（通过错误消息判断）
+      if (errorMessage.includes('already exists') || errorMessage.includes('已存在')) {
         message.error('分类名称已存在')
       } else {
-        message.error(error.response?.data?.message || '添加失败')
+        message.error(errorMessage)
       }
     } finally {
       setCategoryLoading(false)
@@ -102,7 +102,7 @@ function ArticleEditor() {
           }
           message.success('分类删除成功')
         } catch (error) {
-          message.error(error.response?.data?.message || '删除失败')
+          message.error(error.response?.data?.error || '删除失败')
         } finally {
           setCategoryLoading(false)
         }
@@ -124,20 +124,19 @@ function ArticleEditor() {
     setCategoryLoading(true)
     try {
       const { data } = await categoryApi.update({ id: editingCategory.id, name: newCategoryName.trim() })
-      if (data.success) {
-        // 重新获取分类列表
-        await fetchCategories()
-        message.success('分类更新成功')
-        setNewCategoryName('')
-        setEditingCategory(null)
-        setAddCategoryVisible(false)
-      }
+      // 重新获取分类列表
+      await fetchCategories()
+      message.success('分类更新成功')
+      setNewCategoryName('')
+      setEditingCategory(null)
+      setAddCategoryVisible(false)
     } catch (error) {
-      const errorCode = error.response?.data?.code
-      if (errorCode === 'DUPLICATE_CATEGORY') {
+      const errorMessage = error.response?.data?.error || error.message || '更新失败'
+      // 检查是否重复（通过错误消息判断）
+      if (errorMessage.includes('already exists') || errorMessage.includes('已存在')) {
         message.error('分类名称已存在')
       } else {
-        message.error(error.response?.data?.message || '更新失败')
+        message.error(errorMessage)
       }
     } finally {
       setCategoryLoading(false)

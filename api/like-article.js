@@ -34,7 +34,7 @@ export default async function handler(req) {
         return errorResponse('Failed to check like status', 500)
       }
 
-      return jsonResponse({ liked: !!data })
+      return jsonResponse({ data: { liked: !!data } })
     }
 
     // 解析请求体
@@ -93,7 +93,7 @@ export default async function handler(req) {
         .select('*', { count: 'exact', head: true })
         .eq('article_id', finalArticleId)
 
-      return jsonResponse({ success: true, likes: count || 0 })
+      return jsonResponse({ data: { success: true, likes: count || 0 } })
     }
 
     // DELETE 请求：取消点赞
@@ -115,7 +115,7 @@ export default async function handler(req) {
         .select('*', { count: 'exact', head: true })
         .eq('article_id', finalArticleId)
 
-      return jsonResponse({ success: true, likes: count || 0 })
+      return jsonResponse({ data: { success: true, likes: count || 0 } })
     }
 
     return errorResponse('Method not allowed', 405)

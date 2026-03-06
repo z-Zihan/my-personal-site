@@ -53,7 +53,7 @@ export default async function handler(req) {
       return errorResponse(error.message, 500)
     }
 
-    return jsonResponse({ message: 'Article deleted successfully' })
+    return jsonResponse({ data: { deleted: true } })
   } catch (error) {
     console.error('Error deleting article:', error)
     return errorResponse('Internal server error', 500)

@@ -57,7 +57,7 @@ export default async function handler(req) {
       return errorResponse(error.message, 500)
     }
 
-    return jsonResponse({ data: article, message: `Article ${newStatus === 'published' ? 'published' : 'unpublished'} successfully` })
+    return jsonResponse({ data: article })
   } catch (error) {
     console.error('Error toggling article status:', error)
     return errorResponse('Internal server error', 500)

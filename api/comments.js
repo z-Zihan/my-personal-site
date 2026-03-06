@@ -39,7 +39,7 @@ export default async function handler(req) {
         article_title: item.articles.title
       }))
 
-      return jsonResponse({ success: true, data: formattedData })
+      return jsonResponse({ data: formattedData })
     }
 
     // 获取单篇文章的评论
@@ -55,7 +55,7 @@ export default async function handler(req) {
 
     if (error) throw error
 
-    return jsonResponse({ success: true, data })
+    return jsonResponse({ data })
   } catch (error) {
     console.error('Fetch comments error:', error)
     return errorResponse('Failed to fetch comments', 500)

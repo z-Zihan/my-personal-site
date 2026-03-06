@@ -28,7 +28,7 @@ export default async function handler(req) {
 
     if (error) throw error
 
-    return jsonResponse({ success: true })
+    return jsonResponse({ data: { deleted: true } })
   } catch (error) {
     console.error('Delete comment error:', error)
     return errorResponse('Failed to delete comment', 500)
