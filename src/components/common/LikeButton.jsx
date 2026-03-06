@@ -87,7 +87,9 @@ export default function LikeButton({ articleId, initialLikes }) {
         toast.success('点赞成功');
       } else {
         // 取消点赞
-        await del('/api/like-article', { article_id: articleId, visitor_id: visitorId });
+        await del('/api/like-article', { article_id: articleId, visitor_id: visitorId }, {
+          headers: { 'Content-Type': 'application/json' }
+        });
         removeLikeStatus(articleId);
         toast.success('已取消点赞');
       }
