@@ -11,7 +11,8 @@ export default async function handler(req) {
 
   try {
     // 统一从 query 中获取参数
-    const query = req.nextUrl.searchParams
+    const url = new URL(req.url)
+    const query = url.searchParams
     const articleId = query.get('article_id')
     const visitorId = query.get('visitor_id')
 
