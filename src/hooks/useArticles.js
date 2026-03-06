@@ -7,7 +7,7 @@ export function useArticles(initialParams = {}) {
   const [error, setError] = useState(null)
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 10,
+    limit: initialParams.limit || 18,
     total: 0,
     totalPages: 0,
   })
@@ -28,7 +28,7 @@ export function useArticles(initialParams = {}) {
 
   useEffect(() => {
     fetchArticles()
-  }, [initialParams.category_id])
+  }, [initialParams.category_id, initialParams.limit])
 
   return { articles, loading, error, pagination, refetch: fetchArticles }
 }

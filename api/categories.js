@@ -31,7 +31,7 @@ export default async function handler(req) {
   // POST - 创建新分类
   if (req.method === 'POST') {
     try {
-      const { name, description } = await req.json()
+      const { name } = await req.json()
 
       if (!name || !name.trim()) {
         return errorResponse('分类名称不能为空', 400)
@@ -40,8 +40,7 @@ export default async function handler(req) {
       const { data, error } = await supabase
         .from('categories')
         .insert([{
-          name: name.trim(),
-          description: description || null
+          name: name.trim()
         }])
         .select()
         .single()
@@ -60,7 +59,7 @@ export default async function handler(req) {
   // PUT - 更新分类
   if (req.method === 'PUT') {
     try {
-      const { id, name, description } = await req.json()
+      const { id, name } = await req.json()
 
       if (!id) {
         return errorResponse('分类 ID 不能为空', 400)
@@ -74,7 +73,6 @@ export default async function handler(req) {
         .from('categories')
         .update({
           name: name.trim(),
-          description: description || null,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)

@@ -211,57 +211,58 @@ function ArticleEditor() {
           <Form.Item
             name="category_id"
             label="分类"
-            extra={
-              <Space wrap>
+          >
+            <Space.Compact style={{ width: '100%' }}>
+              <Select
+                placeholder="请选择分类"
+                size="large"
+                allowClear
+                style={{ flex: 1 }}
+              >
+                {categories.map(cat => (
+                  <Option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </Option>
+                ))}
+              </Select>
+              <Button
+                type="primary"
+                size="large"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  setEditingCategory(null)
+                  setNewCategoryName('')
+                  setAddCategoryVisible(true)
+                }}
+              >
+                添加分类
+              </Button>
+              {editingCategory && (
                 <Button
                   type="dashed"
-                  size="small"
-                  icon={<PlusOutlined />}
+                  size="large"
+                  icon={<EditOutlined />}
                   onClick={() => {
-                    setEditingCategory(null)
-                    setNewCategoryName('')
-                    setAddCategoryVisible(true)
+                    handleEditCategory(editingCategory)
                   }}
                 >
-                  添加分类
+                  编辑
                 </Button>
-              </Space>
-            }
-          >
-            <Select
-              placeholder="请选择分类"
-              size="large"
-              allowClear
-            >
-              {categories.map(cat => (
-                <Option key={cat.id} value={cat.id}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ flex: 1 }}>{cat.name}</span>
-                    <Space size="small">
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<EditOutlined />}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleEditCategory(cat)
-                        }}
-                      />
-                      <Button
-                        type="text"
-                        size="small"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDeleteCategory(cat.id)
-                        }}
-                      />
-                    </Space>
-                  </div>
-                </Option>
-              ))}
-            </Select>
+              )}
+              {form.getFieldValue('category_id') && (
+                <Button
+                  danger
+                  type="primary"
+                  size="large"
+                  icon={<DeleteOutlined />}
+                  onClick={() => {
+                    handleDeleteCategory(form.getFieldValue('category_id'))
+                  }}
+                >
+                  删除
+                </Button>
+              )}
+            </Space.Compact>
           </Form.Item>
 
           {/* 添加/编辑分类弹窗 */}

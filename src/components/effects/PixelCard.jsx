@@ -43,6 +43,11 @@ const PixelCard = ({
       border: 'rgba(249, 115, 22, 0.5)',
       glow: 'rgba(249, 115, 22, 0.3)',
       pixel: 'rgba(249, 115, 22, 0.6)'
+    },
+    gold: {
+      border: 'rgba(251, 191, 36, 0.5)',
+      glow: 'rgba(251, 191, 36, 0.3)',
+      pixel: 'rgba(251, 191, 36, 0.6)'
     }
   };
 

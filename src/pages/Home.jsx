@@ -19,11 +19,10 @@ import PixelCard from '../components/effects/PixelCard';
 export default function Home() {
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
+  const [recommendedArticles, setRecommendedArticles] = useState([]);
   const [hotNews, setHotNews] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [categories, setCategories] = useState([{ id: 'all', name: '全部' }]);
 
   useEffect(() => {
     fetchData();
@@ -31,41 +30,21 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
-      const [articlesRes, newsRes, statsRes, categoriesRes] = await Promise.all([
+      const [articlesRes, recommendedRes, newsRes, statsRes] = await Promise.all([
         axios.get(`${API_BASE}/api/articles?page=1&limit=6&status=published`),
+        axios.get(`${API_BASE}/api/articles?page=1&limit=3&recommended=true`),
         axios.get(`${API_BASE}/api/hot-news`),
-        axios.get(`${API_BASE}/api/stats`),
-        axios.get(`${API_BASE}/api/categories`)
+        axios.get(`${API_BASE}/api/stats`)
       ]);
       setArticles(articlesRes.data.data || []);
+      setRecommendedArticles(recommendedRes.data.data || []);
       setHotNews(newsRes.data.data || []);
       setStats(statsRes.data.data);
-      if (categoriesRes.data.data && categoriesRes.data.data.length > 0) {
-        setCategories([{ id: 'all', name: '全部' }, ...categoriesRes.data.data]);
-      }
     } catch (error) {
       console.error('Fetch data error:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchArticlesByCategory = async (categoryId) => {
-    try {
-      const params = { page: 1, limit: 6, status: 'published' };
-      if (categoryId !== 'all') {
-        params.category_id = categoryId;
-      }
-      const { data } = await axios.get(`${API_BASE}/api/articles`, { params });
-      setArticles(data.data || []);
-    } catch (error) {
-      console.error('Fetch articles by category error:', error);
-    }
-  };
-
-  const handleCategoryChange = (categoryId) => {
-    setSelectedCategory(categoryId);
-    fetchArticlesByCategory(categoryId);
   };
 
   if (loading) {
@@ -147,6 +126,62 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 推荐文章 */}
+      {recommendedArticles.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 py-16">
+          <motion.h2
+            className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            ⭐ 推荐文章
+          </motion.h2>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recommendedArticles.map((article, index) => (
+              <motion.div
+                key={article.id}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <PixelCard
+                  className="h-full cursor-pointer"
+                  variant="gold"
+                >
+                  <div onClick={() => navigate(`/blog/${article.id}`)}>
+                    <img
+                      src={getArticleCover(article)}
+                      alt={article.title}
+                      className="w-full h-48 object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop'
+                      }}
+                    />
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                        {article.title}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                        {article.summary}
+                      </p>
+                      <div className="flex items-center justify-between text-sm text-gray-500">
+                        <ReadingTime content={article.content} />
+                        <span>👁️ {article.views || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                </PixelCard>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Articles */}
       <section className="max-w-6xl mx-auto px-4 py-16">
         <motion.h2
@@ -158,23 +193,6 @@ export default function Home() {
         >
           ✨ 最新文章
         </motion.h2>
-
-        {/* 分类 Tab */}
-        <div className="flex justify-center flex-wrap gap-3 mb-8">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => handleCategoryChange(cat.id)}
-              className={`px-6 py-2 rounded-full transition-all ${
-                selectedCategory === cat.id
-                  ? 'bg-primary text-dark font-bold'
-                  : 'border border-primary text-primary hover:bg-primary hover:text-dark'
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {articles.map((article, index) => (

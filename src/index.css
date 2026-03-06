@@ -402,3 +402,39 @@ a {
     margin-bottom: 0.25rem;
   }
 }
+
+/* ============================================
+   富文本编辑器样式
+   ============================================ */
+.rich-editor-container {
+  position: relative;
+  z-index: 1;
+}
+
+.rich-editor-container.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: #fff;
+}
+
+/* 编辑器工具栏 z-index 修复 */
+.wangeditor-toolbar {
+  z-index: 10 !important;
+}
+
+/* 编辑器弹窗和下拉菜单 z-index 修复 */
+.wangeditor-popup,
+.wangeditor-dropdown {
+  z-index: 9999 !important;
+}
+
+/* 防止编辑器内容被遮挡 */
+.wangeditor-editor-container {
+  overflow-y: auto;
+}

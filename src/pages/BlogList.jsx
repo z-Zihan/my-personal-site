@@ -1,58 +1,52 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useArticles } from '../hooks/useArticles'
-import ArticleCard from '../components/ArticleCard'
-import PixelCard from '../components/effects/PixelCard'
-import axios from 'axios'
-import { API_BASE } from '../constants/apiConstants'
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useArticles } from "../hooks/useArticles";
+import ArticleCard from "../components/ArticleCard";
+import PixelCard from "../components/effects/PixelCard";
+import axios from "axios";
+import { API_BASE } from "../constants/apiConstants";
+import { motion } from "framer-motion";
 
 function BlogList() {
-  const navigate = useNavigate()
-  const [page, setPage] = useState(1)
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [categories, setCategories] = useState([{ id: 'all', name: '全部' }])
-  const [recommendedArticles, setRecommendedArticles] = useState([])
-  const [recLoading, setRecLoading] = useState(true)
-  const { articles, loading, pagination, refetch } = useArticles({ status: 'published', category_id: selectedCategory !== 'all' ? selectedCategory : undefined })
+  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [categories, setCategories] = useState([{ id: "all", name: "全部" }]);
+  const { articles, loading, pagination, refetch } = useArticles({
+    status: "published",
+    limit: 18,
+    category_id: selectedCategory !== "all" ? selectedCategory : undefined,
+  });
 
   useEffect(() => {
-    fetchRecommended()
-    fetchCategories()
-  }, [])
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     // 当分类变化时，重置页码并重新获取文章
-    refetch({ page: 1, category_id: selectedCategory !== 'all' ? selectedCategory : undefined })
-  }, [selectedCategory])
+    refetch({
+      page: 1,
+      category_id: selectedCategory !== "all" ? selectedCategory : undefined,
+    });
+  }, [selectedCategory]);
 
   const fetchCategories = async () => {
     try {
-      const { data } = await axios.get(`${API_BASE}/api/categories`)
+      const { data } = await axios.get(`${API_BASE}/api/categories`);
       if (data.data && data.data.length > 0) {
-        setCategories([{ id: 'all', name: '全部' }, ...data.data])
+        setCategories([{ id: "all", name: "全部" }, ...data.data]);
       }
     } catch (error) {
-      console.error('Fetch categories error:', error)
+      console.error("Fetch categories error:", error);
     }
-  }
-
-  const fetchRecommended = async () => {
-    try {
-      const { data } = await axios.get(`${API_BASE}/api/articles?page=1&limit=10&recommended=true`)
-      setRecommendedArticles(data.data || [])
-    } catch (error) {
-      console.error('Fetch recommended error:', error)
-    } finally {
-      setRecLoading(false)
-    }
-  }
+  };
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
-      setPage(newPage)
-      refetch({ page: newPage })
+      setPage(newPage);
+      refetch({ page: newPage });
     }
-  }
+  };
 
   return (
     <div className="min-h-screen pt-20 pb-20">
@@ -61,50 +55,49 @@ function BlogList() {
           全部文章
         </h1>
 
-        {/* 推荐文章模块 */}
-        {!recLoading && recommendedArticles.length > 0 && (
-          <div className="mb-16">
-            <h2 className="text-3xl font-bold text-center mb-8 neon-text">
-              ⭐ 推荐文章
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {recommendedArticles.map((article) => (
-                <ArticleCard key={article.id} article={article} isRecommended />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 最新文章列表 */}
-        <div className="mt-16">
-          <h2 className="text-3xl font-bold text-center mb-8 neon-text">
-            📚 最新文章
-          </h2>
-
-          {/* 分类 Tab */}
-          <div className="flex justify-center flex-wrap gap-3 mb-8">
-            {categories.map((cat) => (
-              <button
+        {/* 分类 Tab - 炫酷切换效果 */}
+        <div className="mb-12">
+          <div className="flex justify-center flex-wrap gap-2">
+            {categories.map((cat, index) => (
+              <motion.button
                 key={cat.id}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.05 }}
                 onClick={() => {
-                  setSelectedCategory(cat.id)
-                  setPage(1)
+                  setSelectedCategory(cat.id);
+                  setPage(1);
                 }}
-                className={`px-6 py-2 rounded-full transition-all ${
+                className={`relative px-6 py-3 rounded-lg font-medium transition-all overflow-hidden ${
                   selectedCategory === cat.id
-                    ? 'bg-primary text-dark font-bold'
-                    : 'border border-primary text-primary hover:bg-primary hover:text-dark'
+                    ? "text-white"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                {cat.name}
-              </button>
+                {selectedCategory === cat.id && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10">{cat.name}</span>
+              </motion.button>
             ))}
           </div>
+        </div>
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[...Array(6)].map((_, i) => (
-              <PixelCard key={i} variant="purple" className="h-80 animate-pulse" />
+              <PixelCard
+                key={i}
+                variant="purple"
+                className="h-80 animate-pulse"
+              />
             ))}
           </div>
         ) : articles.length === 0 ? (
@@ -142,10 +135,9 @@ function BlogList() {
             )}
           </>
         )}
-        </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default BlogList
+export default BlogList;

@@ -7,6 +7,7 @@ import '@wangeditor/editor/dist/css/style.css'
 export default function RichEditor({ value, onChange, height = 400 }) {
   const editorRef = useRef(null)
   const [editorInstance, setEditorInstance] = useState(null)
+  const [fullscreen, setFullscreen] = useState(false)
 
   // 监听编辑器内容变化
   const handleChange = (editor) => {
@@ -20,16 +21,14 @@ export default function RichEditor({ value, onChange, height = 400 }) {
     placeholder: '请输入内容...',
     onChange: handleChange,
     MENU_CONF: {
-      image: {
-        // 自定义图片上传配置
-        uploadImage: {
-          server: 'https://zzihanaini.vercel.app/api/upload-image',
-          fieldName: 'image',
-          customInsert(res, insertFn) {
-            if (res.success && res.url) {
-              insertFn(res.url, res.fileName || 'image', res.url)
-            }
-          },
+      // 正确的图片上传配置 - 直接在 MENU_CONF 下配置 uploadImage
+      uploadImage: {
+        server: 'https://zzihanaini.vercel.app/api/upload-image',
+        fieldName: 'image',
+        customInsert(res, insertFn) {
+          if (res.success && res.url) {
+            insertFn(res.url, res.fileName || 'image', res.url)
+          }
         },
       },
     },
@@ -40,7 +39,23 @@ export default function RichEditor({ value, onChange, height = 400 }) {
   }
 
   return (
-    <div style={{ border: '1px solid #d9d9d9', borderRadius: 4, overflow: 'hidden' }}>
+    <div
+      className="rich-editor-container"
+      style={{
+        border: '1px solid #d9d9d9',
+        borderRadius: 4,
+        overflow: 'hidden',
+        position: fullscreen ? 'fixed' : 'relative',
+        top: fullscreen ? 0 : 'auto',
+        left: fullscreen ? 0 : 'auto',
+        right: fullscreen ? 0 : 'auto',
+        bottom: fullscreen ? 0 : 'auto',
+        width: fullscreen ? '100vw' : 'auto',
+        height: fullscreen ? '100vh' : 'auto',
+        zIndex: fullscreen ? 9999 : 1,
+        backgroundColor: fullscreen ? '#fff' : 'transparent',
+      }}
+    >
       <Toolbar
         editor={editorInstance}
         defaultConfig={toolbarConfig}
@@ -55,7 +70,7 @@ export default function RichEditor({ value, onChange, height = 400 }) {
           setEditorInstance(editor)
         }}
         mode="default"
-        style={{ height: height - 47 }}
+        style={{ height: fullscreen ? 'calc(100vh - 47px)' : height - 47 }}
       />
     </div>
   )
