@@ -4,7 +4,7 @@
 -- 项目：个人博客系统（含埋点分析）
 -- 数据库：Supabase (PostgreSQL)
 -- 执行方式：在 Supabase Dashboard → SQL Editor 中执行
--- 最后更新：2026-03-05
+-- 最后更新：2026-03-06
 -- ============================================
 
 -- 启用 UUID 扩展
@@ -125,6 +125,8 @@ CREATE TABLE IF NOT EXISTS messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   visitor_id TEXT NOT NULL,
   content TEXT NOT NULL,
+  visitor_name TEXT,
+  location TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -216,6 +218,7 @@ CREATE INDEX IF NOT EXISTS idx_user_preferences_visitor ON user_preferences(visi
 CREATE INDEX IF NOT EXISTS idx_hot_news_created_at ON hot_news(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_messages_visitor_id ON messages(visitor_id);
+CREATE INDEX IF NOT EXISTS idx_messages_location ON messages(location);
 
 -- 埋点分析表索引
 CREATE INDEX IF NOT EXISTS idx_visitors_visitor_id ON visitors(visitor_id);
@@ -325,7 +328,7 @@ ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 
 -- articles 表策略
 CREATE POLICY "Allow public read access for published articles"
-ON articles FOR SELECT TO anon USING (status = 'published');
+ON articles FOR SELECT TO anon USING (true);
 
 CREATE POLICY "Allow full access for authenticated users"
 ON articles FOR ALL TO authenticated USING (true) WITH CHECK (true);
@@ -336,8 +339,8 @@ CREATE POLICY "Allow public read access" ON tags FOR SELECT TO anon USING (true)
 CREATE POLICY "Allow public read access" ON comments FOR SELECT TO anon USING (true);
 CREATE POLICY "Allow insert for all" ON comments FOR INSERT TO anon WITH CHECK (true);
 CREATE POLICY "Allow public read access" ON likes FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow insert for all" ON likes FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "Allow delete for all" ON likes FOR DELETE TO anon USING (true);
+CREATE POLICY "Allow public insert access" ON likes FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Allow public delete access" ON likes FOR DELETE TO anon USING (true);
 CREATE POLICY "Allow public read access" ON bookmarks FOR SELECT TO anon USING (true);
 CREATE POLICY "Allow insert for all" ON bookmarks FOR INSERT TO anon WITH CHECK (true);
 CREATE POLICY "Allow delete for all" ON bookmarks FOR DELETE TO anon USING (true);
@@ -347,7 +350,7 @@ CREATE POLICY "Allow public read access" ON hot_news_cache FOR SELECT TO anon US
 CREATE POLICY "Allow insert for all" ON hot_news_cache FOR INSERT TO anon WITH CHECK (true);
 CREATE POLICY "Allow update for all" ON hot_news_cache FOR UPDATE TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public read access" ON messages FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow insert for all" ON messages FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Allow public insert access" ON messages FOR INSERT TO anon WITH CHECK (true);
 
 -- 用户偏好表策略
 CREATE POLICY "Allow public read access" ON user_preferences FOR SELECT TO anon USING (true);
