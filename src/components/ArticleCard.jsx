@@ -34,7 +34,8 @@ function ArticleCard({ article, isRecommended }) {
       />
       <div className="p-6 relative z-10">
         {article.categories && article.categories.name && (
-          <span className="inline-block bg-primary/20 text-primary px-2 py-1 rounded text-xs mb-2">
+          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1.5 rounded-full text-xs font-bold mb-3 shadow-lg shadow-purple-500/30">
+            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
             {article.categories.name}
           </span>
         )}

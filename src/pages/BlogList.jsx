@@ -5,6 +5,7 @@ import ArticleCard from "../components/ArticleCard";
 import GooeyNav from "../components/effects/GooeyNav";
 import Crosshair from "../components/effects/Crosshair";
 import { get } from "../utils/request";
+import LoadingSpinner from "../components/effects/LoadingSpinner";
 
 function BlogList() {
   const navigate = useNavigate();
@@ -81,8 +82,14 @@ function BlogList() {
         </div>
 
         {loading ? (
-          <div className="text-center py-20">
-            <p className="text-xl text-gray-400">加载中...</p>
+          <div className="flex items-center justify-center py-32">
+            <div className="relative">
+              {/* 脉冲光环 */}
+              <div className="w-16 h-16 border-4 border-cyan-500/30 rounded-full animate-ping" />
+              <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-cyan-400 rounded-full animate-spin" />
+              {/* 中心光点 */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-cyan-400 rounded-full shadow-lg shadow-cyan-500/50 animate-pulse" />
+            </div>
           </div>
         ) : articles.length === 0 ? (
           <div className="text-center py-20">
