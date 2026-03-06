@@ -1,13 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table, Button, Card, Space, Tag, Popconfirm, message, Switch, Modal, InputNumber } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CommentOutlined, StarOutlined } from '@ant-design/icons';
+import { Table, Button, Card, Space, Tag, Popconfirm, message, Switch, Modal, InputNumber, Drawer } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CommentOutlined, StarOutlined, DragOutlined } from '@ant-design/icons';
 import { articlesApi, commentsApi } from '../../utils/api';
 import { formatDate } from '../../utils/helpers';
+import { DndContext, closestCenter } from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// 可排序的行组件
+function SortableRow(props) {
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    style,
+  } = useSortable({
+    id: props['data-row-key'],
+  });
+
+  const sortableStyle = {
+    ...style,
+    transform: CSS.Translate.toString(transform),
+    transition,
+    cursor: 'move',
+  };
+
+  return (
+    <tr
+      {...props}
+      ref={setNodeRef}
+      style={sortableStyle}
+      {...attributes}
+      {...listeners}
+      className="sortable-row"
+    />
+  );
+}
 
 function ArticleManager() {
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
+  const [recommendedArticles, setRecommendedArticles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [statusChangingId, setStatusChangingId] = useState(null);
   const [recommendChangingId, setRecommendChangingId] = useState(null);
@@ -16,6 +52,7 @@ function ArticleManager() {
   const [currentArticle, setCurrentArticle] = useState(null);
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
+  const [recommendDrawerVisible, setRecommendDrawerVisible] = useState(false);
 
   useEffect(() => {
     fetchArticles();
@@ -31,6 +68,22 @@ function ArticleManager() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchRecommendedArticles = async () => {
+    try {
+      const { data } = await articlesApi.getList({ recommended: true, limit: 50 });
+      // 按 recommend_order 排序
+      const sorted = (data.data || []).sort((a, b) => (a.recommend_order ?? 0) - (b.recommend_order ?? 0));
+      setRecommendedArticles(sorted);
+    } catch (error) {
+      console.error('加载推荐文章失败:', error);
+    }
+  };
+
+  const handleOpenRecommendDrawer = () => {
+    fetchRecommendedArticles();
+    setRecommendDrawerVisible(true);
   };
 
   const handleDelete = async (id) => {
@@ -70,18 +123,36 @@ function ArticleManager() {
     }
   }
 
-  const handleUpdateRecommendOrder = async (id, order) => {
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = recommendedArticles.findIndex(item => item.id === active.id);
+    const newIndex = recommendedArticles.findIndex(item => item.id === over.id);
+
+    // 本地更新顺序
+    const newOrder = arrayMove(recommendedArticles, oldIndex, newIndex);
+    setRecommendedArticles(newOrder);
+
+    // 批量更新顺序到后端
     try {
-      await articlesApi.updateRecommend({ id, recommend_order: order })
-      message.success('排序已更新')
-      // 本地更新，不重新加载
-      setArticles(articles.map(art =>
-        art.id === id ? { ...art, recommend_order: order } : art
-      ))
+      const updates = newOrder.map((item, index) => ({
+        id: item.id,
+        recommend_order: index
+      }));
+
+      // 并行发送更新请求
+      await Promise.all(updates.map(update =>
+        articlesApi.updateRecommend({ id: update.id, recommend_order: update.recommend_order })
+      ));
+
+      message.success('排序已更新');
     } catch (error) {
-      message.error(error.response?.data?.error || '排序更新失败')
+      message.error('排序更新失败');
+      // 失败后重新加载
+      fetchRecommendedArticles();
     }
-  }
+  };
 
   const handleBatchRecommend = async (selectedRowKeys) => {
     try {
@@ -140,22 +211,6 @@ function ArticleManager() {
           unCheckedChildren=""
           loading={recommendChangingId === record.id}
           onChange={() => handleToggleRecommend(record.id, isRecommended)}
-        />
-      ),
-    },
-    {
-      title: '排序',
-      dataIndex: 'recommend_order',
-      key: 'recommend_order',
-      width: 100,
-      render: (order, record) => (
-        <InputNumber
-          size="small"
-          min={0}
-          value={order ?? 0}
-          disabled={!record.is_recommended}
-          onChange={(value) => handleUpdateRecommendOrder(record.id, value)}
-          placeholder="推荐顺序"
         />
       ),
     },
@@ -246,12 +301,61 @@ function ArticleManager() {
     },
   ];
 
+  const recommendedColumns = [
+    {
+      title: '排序',
+      key: 'drag',
+      width: 60,
+      render: (_, record) => (
+        <DragOutlined style={{ cursor: 'move', color: '#999' }} className="drag-handle" />
+      ),
+    },
+    {
+      title: '标题',
+      dataIndex: 'title',
+      key: 'title',
+      ellipsis: true,
+    },
+    {
+      title: '分类',
+      dataIndex: ['categories', 'name'],
+      key: 'category',
+      width: 100,
+    },
+    {
+      title: '浏览量',
+      dataIndex: 'views',
+      key: 'views',
+      width: 80,
+    },
+    {
+      title: '点赞数',
+      dataIndex: 'likes',
+      key: 'likes',
+      width: 80,
+    },
+    {
+      title: '推荐顺序',
+      dataIndex: 'recommend_order',
+      key: 'recommend_order',
+      width: 100,
+      render: (order) => order ?? 0,
+    },
+  ];
+
   return (
     <div>
       <Card
         title="文章管理"
         extra={
           <Space>
+            <Button
+              type="primary"
+              icon={<StarOutlined />}
+              onClick={handleOpenRecommendDrawer}
+            >
+              管理推荐
+            </Button>
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -359,6 +463,45 @@ function ArticleManager() {
           ]}
         />
       </Modal>
+
+      {/* 推荐管理抽屉 */}
+      <Drawer
+        title="推荐文章管理"
+        placement="right"
+        width={600}
+        open={recommendDrawerVisible}
+        onClose={() => setRecommendDrawerVisible(false)}
+        footer={
+          <Space>
+            <Button onClick={() => setRecommendDrawerVisible(false)}>关闭</Button>
+            <Button type="primary" onClick={() => { fetchRecommendedArticles(); message.success('列表已刷新'); }}>
+              刷新列表
+            </Button>
+          </Space>
+        }
+      >
+        <div style={{ marginBottom: 16 }}>
+          <p style={{ color: '#666' }}>
+            <DragOutlined style={{ color: '#999' }} /> 拖拽文章标题调整推荐顺序，释放后自动保存
+          </p>
+        </div>
+        <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={recommendedArticles.map(item => item.id)} strategy={verticalListSortingStrategy}>
+            <Table
+              components={{
+                body: {
+                  row: SortableRow,
+                },
+              }}
+              columns={recommendedColumns}
+              dataSource={recommendedArticles}
+              rowKey="id"
+              pagination={false}
+              scroll={{ x: 600 }}
+            />
+          </SortableContext>
+        </DndContext>
+      </Drawer>
     </div>
   );
 }

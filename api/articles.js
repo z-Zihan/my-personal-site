@@ -28,16 +28,11 @@ export default async function handler(req) {
     // 如果是获取推荐文章
     if (recommended === 'true') {
       query = query.eq('is_recommended', true)
-        // 综合评分排序：推荐顺序 + (点赞数 * 10) + (浏览量 * 0.1)
-        .order('recommend_order', { ascending: true })
-        .order('likes', { ascending: false })
-        .order('views', { ascending: false })
+        .order('recommend_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false })
     } else if (category_id) {
-      // 指定分类的文章列表，按分类内推荐顺序排序
+      // 指定分类的文章列表
       query = query.eq('category_id', category_id)
-        .order('is_recommended', { ascending: false })
-        .order('recommend_order', { ascending: true })
         .order('created_at', { ascending: false })
     } else {
       // 普通文章列表，按创建时间倒序

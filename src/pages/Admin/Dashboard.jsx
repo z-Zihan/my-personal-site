@@ -38,16 +38,15 @@ function Dashboard() {
 
   const fetchAllData = async () => {
     try {
-      const [statsRes, analyticsRes, latestRes, recommendedRes] = await Promise.all([
+      const [statsRes, analyticsRes, latestRes] = await Promise.all([
         axios.get(`${API_BASE}/api/stats`),
         axios.get(`${API_BASE}/api/analytics?type=overview`),
-        axios.get(`${API_BASE}/api/articles?page=1&limit=6&status=published`),
-        axios.get(`${API_BASE}/api/articles?page=1&limit=10&recommended=true`)
+        axios.get(`${API_BASE}/api/articles?page=1&limit=6&status=published`)
       ])
       setStats(statsRes.data?.data || statsRes.data)
       setAnalytics(analyticsRes.data?.data || analyticsRes.data)
       setLatestArticles(latestRes.data?.data || [])
-      setRecommendedArticles(recommendedRes.data?.data || [])
+      setRecommendedArticles(latestRes.data?.data?.filter(a => a.is_recommended).slice(0, 10) || [])
 
       // 获取详细统计数据
       const [daily, pages, devices, browsers] = await Promise.all([
