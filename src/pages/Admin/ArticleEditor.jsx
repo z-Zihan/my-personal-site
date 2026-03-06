@@ -8,7 +8,6 @@ import { articlesApi } from '../../utils/api';
 import { categoryApi } from '../../api/category';
 
 const { TextArea } = Input;
-const { Option } = Select;
 
 function ArticleEditor() {
   const { id } = useParams();
@@ -38,10 +37,14 @@ function ArticleEditor() {
         title: article.title,
         summary: article.summary,
         category_id: article.category_id,
+        content: article.content,
+        cover: article.cover,
       });
-      setContent(article.content);
-      setCover(article.cover);
+
+      setContent(article.content || '');
+      setCover(article.cover || '');
     } catch (error) {
+      console.error('加载文章失败:', error);
       message.error('加载文章失败');
     }
   };
@@ -269,9 +272,9 @@ function ArticleEditor() {
               )}
             >
               {categories.map(cat => (
-                <Option key={cat.id} value={cat.id}>
+                <Select.Option key={cat.id} value={cat.id}>
                   {cat.name}
-                </Option>
+                </Select.Option>
               ))}
             </Select>
           </Form.Item>
@@ -302,6 +305,7 @@ function ArticleEditor() {
           <Form.Item
             name="cover"
             label="封面图片"
+            initialValue=""
           >
             <ImageUploader
               value={cover}
@@ -312,6 +316,7 @@ function ArticleEditor() {
           <Form.Item
             name="content"
             label="正文"
+            initialValue=""
             rules={[{ required: true, message: '请输入正文' }]}
           >
             <RichEditor
@@ -327,8 +332,8 @@ function ArticleEditor() {
             initialValue="draft"
           >
             <Select size="large">
-              <Option value="draft">草稿</Option>
-              <Option value="published">已发布</Option>
+              <Select.Option value="draft">草稿</Select.Option>
+              <Select.Option value="published">已发布</Select.Option>
             </Select>
           </Form.Item>
 

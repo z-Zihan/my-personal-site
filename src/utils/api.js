@@ -69,4 +69,17 @@ export const categoriesApi = {
   delete: (id) => api.delete('/categories', { params: { id } }),
 }
 
+// 图片上传 API
+export const uploadApi = {
+  uploadImage: (file) => {
+    const formData = new FormData()
+    formData.append('image', file)
+    return api.post('/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+  },
+}
+
 export default api

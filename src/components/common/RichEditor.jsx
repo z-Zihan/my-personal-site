@@ -9,6 +9,18 @@ export default function RichEditor({ value, onChange, height = 400 }) {
   const [editorInstance, setEditorInstance] = useState(null)
   const [fullscreen, setFullscreen] = useState(false)
 
+
+  // 监听 value 变化，支持外部回填（编辑时回填正文）
+  useEffect(() => {
+    if (!editorInstance || value === undefined) return
+
+    // 只有当 value 真正变化时才调用 setHtml
+    const currentHtml = editorInstance.getHtml()
+    if (currentHtml !== value) {
+      editorInstance.setHtml(value)
+    }
+  }, [value, editorInstance])
+
   // 监听编辑器内容变化
   const handleChange = (editor) => {
     if (editor) {
@@ -63,10 +75,13 @@ export default function RichEditor({ value, onChange, height = 400 }) {
       />
       <Editor
         defaultConfig={editorConfig}
-        value={value}
         onCreated={(editor) => {
           editorRef.current = editor
           setEditorInstance(editor)
+          // 编辑器创建后，如果有 value 则立即设置
+          if (value) {
+            editor.setHtml(value)
+          }
         }}
         mode="default"
         style={{ height: fullscreen ? 'calc(100vh - 47px)' : height - 47 }}

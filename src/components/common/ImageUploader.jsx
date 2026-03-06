@@ -1,11 +1,16 @@
-import React, { useRef, useState } from 'react';
-import axios from 'axios';
+import React, { useRef, useState, useEffect } from 'react';
+import { uploadApi } from '../../utils/api';
 import { toast } from '../../utils/toast';
 
 export default function ImageUploader({ onChange, value, accept = "image/*" }) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState(value);
   const fileInputRef = useRef(null);
+
+  // 监听 value 变化，支持外部回填
+  useEffect(() => {
+    setPreview(value || '')
+  }, [value])
 
   const handleFileSelect = async (e) => {
     const file = e.target.files[0]
@@ -29,11 +34,7 @@ export default function ImageUploader({ onChange, value, accept = "image/*" }) {
       const formData = new FormData()
       formData.append('image', file)
 
-      const { data } = await axios.post('/api/upload-image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        }
-      })
+      const { data } = await uploadApi.uploadImage(file)
 
       if (data.success) {
         setPreview(data.url)
