@@ -13,7 +13,7 @@ export default function ReadingTime({ content }) {
   const minutes = getReadingTime();
 
   return (
-    <span className="flex items-center text-sm text-gray-500 dark:text-gray-900">
+    <span className="flex items-center text-sm">
       <span className="mr-1">📖</span>
       预计阅读 {minutes} 分钟
     </span>

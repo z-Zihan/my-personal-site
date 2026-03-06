@@ -27,15 +27,21 @@ export default async function handler(req) {
 
     if (req.method === 'POST') {
       // 点赞
-      const { error } = await supabase
+      const { data: likeData, error: insertError } = await supabase
         .from('likes')
         .insert({ article_id: finalArticleId, visitor_id: finalVisitorId })
+        .select()
+        .single()
 
-      if (error) {
-        if (error.code === '23505') {
+      if (insertError) {
+        console.error('Insert like error:', insertError)
+        if (insertError.code === '23505') {
           return errorResponse('Already liked', 400)
         }
-        throw error
+        if (insertError.code === '23503') {
+          return errorResponse('Invalid article_id: the article does not exist', 400)
+        }
+        return errorResponse('Insert failed: ' + insertError.message, 500)
       }
 
       // 计算点赞数（从 likes 表统计）
@@ -49,13 +55,16 @@ export default async function handler(req) {
 
     if (req.method === 'DELETE') {
       // 取消点赞 - 删除该用户对该文章的所有点赞记录
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('likes')
         .delete()
         .eq('article_id', finalArticleId)
         .eq('visitor_id', finalVisitorId)
 
-      if (error) throw error
+      if (deleteError) {
+        console.error('Delete like error:', deleteError)
+        return errorResponse('Delete failed: ' + deleteError.message, 500)
+      }
 
       // 计算点赞数（从 likes 表统计）
       const { count } = await supabase

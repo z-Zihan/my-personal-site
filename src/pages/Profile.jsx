@@ -211,7 +211,7 @@ export default function Profile() {
               >
                 ☀️ 浅色
               </button>
-              <button
+              {/* <button
                 onClick={() => handleThemeChange(true)}
                 className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
                   darkMode
@@ -220,7 +220,7 @@ export default function Profile() {
                 }`}
               >
                 🌙 暗黑
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
