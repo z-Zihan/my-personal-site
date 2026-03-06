@@ -48,9 +48,9 @@ function ArticleEditor() {
 
   const fetchCategories = async () => {
     try {
-      const { data } = await categoryApi.getList()
-      console.log('categories data', data)
-      setCategories(data || [])
+      const res = await categoryApi.getList()
+      const list = Array.isArray(res) ? res : (res.data || [])
+      setCategories(list)
     } catch (error) {
       console.error('Fetch categories error:', error)
       message.error('加载分类失败')
@@ -213,70 +213,67 @@ function ArticleEditor() {
           <Form.Item
             name="category_id"
             label="分类"
-            rules={[{ required: true, message: '请选择分类' }]}
           >
-            <Space>
-              <Select
-                placeholder="请选择分类"
-                size="large"
-                allowClear
-                style={{ width: 300 }}
-                optionRender={(option) => (
-                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                    <span>{option.label}</span>
-                    <Space>
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<EditOutlined />}
-                        disabled={categoryLoading}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleEditCategory(categories.find(c => c.id === option.value))
-                        }}
-                      />
-                      <Button
-                        type="text"
-                        danger
-                        size="small"
-                        icon={<DeleteOutlined />}
-                        disabled={categoryLoading}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDeleteCategory(option.value, option.label)
-                        }}
-                      />
-                    </Space>
+            <Select
+              placeholder="请选择分类"
+              size="large"
+              allowClear
+              style={{ width: 300 }}
+              optionRender={(option) => (
+                <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                  <span>{option.label}</span>
+                  <Space>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<EditOutlined />}
+                      disabled={categoryLoading}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleEditCategory(categories.find(c => c.id === option.value))
+                      }}
+                    />
+                    <Button
+                      type="text"
+                      danger
+                      size="small"
+                      icon={<DeleteOutlined />}
+                      disabled={categoryLoading}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteCategory(option.value, option.label)
+                      }}
+                    />
                   </Space>
-                )}
-                popupRender={(menu) => (
-                  <>
-                    {menu}
-                    <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
-                      <Button
-                        type="primary"
-                        size="small"
-                        icon={<PlusOutlined />}
-                        loading={categoryLoading}
-                        onClick={() => {
-                          setEditingCategory(null)
-                          setNewCategoryName('')
-                          setAddCategoryVisible(true)
-                        }}
-                      >
-                        添加分类
-                      </Button>
-                    </div>
-                  </>
-                )}
-              >
-                {categories.map(cat => (
-                  <Option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </Option>
-                ))}
-              </Select>
-            </Space>
+                </Space>
+              )}
+              popupRender={(menu) => (
+                <>
+                  {menu}
+                  <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
+                    <Button
+                      type="primary"
+                      size="small"
+                      icon={<PlusOutlined />}
+                      loading={categoryLoading}
+                      onClick={() => {
+                        setEditingCategory(null)
+                        setNewCategoryName('')
+                        setAddCategoryVisible(true)
+                      }}
+                    >
+                      添加分类
+                    </Button>
+                  </div>
+                </>
+              )}
+            >
+              {categories.map(cat => (
+                <Option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
 
           {/* 添加/编辑分类弹窗 */}

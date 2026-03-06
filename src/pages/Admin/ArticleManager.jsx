@@ -366,10 +366,6 @@ function ArticleManager() {
     },
   ];
 
-  console.log('articles', articles);
-  console.log('recommendedArticles', recommendedArticles);
-  console.log('recommendedArticles', recommendedArticles);
-
   return (
     <div>
       <Card
