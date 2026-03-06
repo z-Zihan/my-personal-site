@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import { post, del } from '../../utils/request';
 import { toast } from '../../utils/toast';
-import { API_BASE } from '../../constants/apiConstants';
 
 // 本地存储 key
 const STORAGE_KEY = 'article_likes';
@@ -80,7 +79,7 @@ export default function LikeButton({ articleId, initialLikes }) {
     try {
       if (newLikeStatus) {
         // 点赞
-        await axios.post(`${API_BASE}/api/like-article`, {
+        await post('/api/like-article', {
           article_id: articleId,
           visitor_id: visitorId
         });
@@ -88,9 +87,7 @@ export default function LikeButton({ articleId, initialLikes }) {
         toast.success('点赞成功');
       } else {
         // 取消点赞
-        await axios.delete(`${API_BASE}/api/like-article`, {
-          params: { article_id: articleId, visitor_id: visitorId }
-        });
+        await del('/api/like-article', { article_id: articleId, visitor_id: visitorId });
         removeLikeStatus(articleId);
         toast.success('已取消点赞');
       }

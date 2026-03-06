@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
-import axios from 'axios';
-import { API_BASE } from '../../constants/apiConstants';
+import { get } from '../../utils/request';
 import worldMapData from '../../data/maps/countries.geo.json';
 
 export default function VisitorMap() {
@@ -42,7 +41,7 @@ export default function VisitorMap() {
 
   const fetchCountryData = async () => {
     try {
-      const { data } = await axios.get(`${API_BASE}/api/analytics?type=countries&days=30`);
+      const { data } = await get('/api/analytics', { type: 'countries', days: 30 });
       const countries = data.data || data || [];
 
       // 转换为 ECharts 格式

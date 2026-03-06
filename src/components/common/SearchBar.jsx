@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE } from '../../constants/apiConstants';
+import { searchApi } from '../../api/search';
 
 export default function SearchBar({ onSearchResults }) {
   const navigate = useNavigate();
@@ -15,7 +14,7 @@ export default function SearchBar({ onSearchResults }) {
       if (query.length >= 1) {
         setLoading(true);
         try {
-          const res = await axios.get(`${API_BASE}/api/search`, { params: { q: query } });
+          const res = await searchApi.search(query);
           setResults(res.data.data || []);
           setIsOpen(true);
           if (onSearchResults) {

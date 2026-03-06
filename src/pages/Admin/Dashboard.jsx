@@ -15,9 +15,8 @@ import {
   PieChart, Pie, Cell, Legend,
   LineChart, Line,
 } from 'recharts'
-import axios from 'axios'
+import { get } from '../../utils/request'
 import VisitorMap from '../../components/admin/VisitorMap'
-import { API_BASE } from '../../constants/apiConstants'
 import { useNavigate } from 'react-router-dom'
 
 const { Title } = Typography
@@ -39,9 +38,9 @@ function Dashboard() {
   const fetchAllData = async () => {
     try {
       const [statsRes, analyticsRes, latestRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/stats`),
-        axios.get(`${API_BASE}/api/analytics?type=overview`),
-        axios.get(`${API_BASE}/api/articles?page=1&limit=6&status=published`)
+        get('/api/stats'),
+        get('/api/analytics', { type: 'overview' }),
+        get('/api/articles', { page: 1, limit: 6, status: 'published' })
       ])
       setStats(statsRes.data?.data || statsRes.data)
       setAnalytics(analyticsRes.data?.data || analyticsRes.data)
@@ -50,10 +49,10 @@ function Dashboard() {
 
       // 获取详细统计数据
       const [daily, pages, devices, browsers] = await Promise.all([
-        axios.get(`${API_BASE}/api/analytics?type=daily&days=7`),
-        axios.get(`${API_BASE}/api/analytics?type=pages&days=7`),
-        axios.get(`${API_BASE}/api/analytics?type=devices&days=7`),
-        axios.get(`${API_BASE}/api/analytics?type=browsers&days=7`),
+        get('/api/analytics', { type: 'daily', days: 7 }),
+        get('/api/analytics', { type: 'pages', days: 7 }),
+        get('/api/analytics', { type: 'devices', days: 7 }),
+        get('/api/analytics', { type: 'browsers', days: 7 }),
       ])
 
       // 确保数据是数组

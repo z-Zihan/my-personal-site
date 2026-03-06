@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { get, post } from "../../utils/request";
 import { toast } from "../../utils/toast";
-import { API_BASE } from "../../constants/apiConstants";
 import Avatar from "./Avatar";
 
 export default function CommentSection({ articleId }) {
@@ -28,9 +27,7 @@ export default function CommentSection({ articleId }) {
 
   const fetchComments = async () => {
     try {
-      const res = await axios.get(
-        `${API_BASE}/api/comments?article_id=${articleId}`,
-      );
+      const res = await get('/api/comments', { article_id: articleId });
       setComments(res.data.data || []);
     } catch (error) {
       console.error("Fetch comments error:", error);
@@ -60,7 +57,7 @@ export default function CommentSection({ articleId }) {
         new Promise((resolve) => setTimeout(() => resolve("未知"), 3000)),
       ]);
 
-      await axios.post(`${API_BASE}/api/create-comment`, {
+      await post('/api/create-comment', {
         article_id: articleId,
         visitor_id: visitorId,
         content: newComment,

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { get } from "../utils/request";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -9,7 +9,6 @@ import ShareButtons from "../components/common/ShareButtons";
 import LikeButton from "../components/common/LikeButton";
 import ReadingTime from "../components/common/ReadingTime";
 import CommentSection from "../components/common/CommentSection";
-import { API_BASE } from "../constants/apiConstants";
 
 export default function BlogDetail() {
   const { id } = useParams();
@@ -32,7 +31,7 @@ export default function BlogDetail() {
     try {
       setLoading(true);
       setError(null);
-      const res = await axios.get(`${API_BASE}/api/article-detail?id=${id}`);
+      const res = await get('/api/article-detail', { id });
       if (res.data && res.data.data) {
         setArticle(res.data.data);
       } else {

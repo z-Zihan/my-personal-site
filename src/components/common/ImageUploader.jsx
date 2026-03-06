@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
 import { toast } from '../../utils/toast';
-import { API_BASE } from '../../constants/apiConstants';
 
 export default function ImageUploader({ onChange, value, accept = "image/*" }) {
   const [uploading, setUploading] = useState(false);
@@ -30,11 +29,9 @@ export default function ImageUploader({ onChange, value, accept = "image/*" }) {
       const formData = new FormData()
       formData.append('image', file)
 
-      const token = localStorage.getItem('admin_token')
-      const { data } = await axios.post(`${API_BASE}/api/upload-image`, formData, {
+      const { data } = await axios.post('/api/upload-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`
         }
       })
 

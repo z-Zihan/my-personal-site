@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useArticles } from "../hooks/useArticles";
 import ArticleCard from "../components/ArticleCard";
 import GooeyNav from "../components/effects/GooeyNav";
-import axios from "axios";
-import { API_BASE } from "../constants/apiConstants";
+import { get } from "../utils/request";
 
 function BlogList() {
   const navigate = useNavigate();
@@ -32,7 +31,7 @@ function BlogList() {
 
   const fetchCategories = async () => {
     try {
-      const { data } = await axios.get(`${API_BASE}/api/categories`);
+      const { data } = await get('/api/categories');
       if (data.data && data.data.length > 0) {
         setCategories([{ id: "all", name: "全部" }, ...data.data]);
       }

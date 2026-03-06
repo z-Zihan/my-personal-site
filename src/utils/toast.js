@@ -1,70 +1,56 @@
-// 全局 Toast 通知系统 - 页面中间上边展示
+// 全局 Toast 通知系统 - 使用 antd message 组件
+import { message } from 'antd';
 
-let toastContainer = null
+// 配置全局 message 默认选项
+message.config({
+  top: 100,           // 距离顶部距离
+  duration: 3,        // 默认持续时间 (秒)
+  maxCount: 3,        // 最大显示数量
+  rtl: false,         // 从右到左
+  prefixCls: 'ant-message',
+});
 
-// 初始化 Toast 容器
-const initContainer = () => {
-  if (!toastContainer) {
-    toastContainer = document.createElement('div')
-    toastContainer.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-[9999] space-y-2'
-    document.body.appendChild(toastContainer)
-  }
-}
-
-// 创建 Toast 元素
-const createToast = (message, type = 'info', duration = 3000) => {
-  initContainer()
-  
-  const toast = document.createElement('div')
-  toast.className = `
-    px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300
-    flex items-center gap-2 min-w-[200px] max-w-md backdrop-blur-sm
-    ${type === 'success' ? 'bg-green-500/90 text-white' : ''}
-    ${type === 'error' ? 'bg-red-500/90 text-white' : ''}
-    ${type === 'warning' ? 'bg-yellow-500/90 text-white' : ''}
-    ${type === 'info' ? 'bg-blue-500/90 text-white' : ''}
-  `
-  
-  const icons = {
-    success: '✅',
-    error: '❌',
-    warning: '⚠️',
-    info: 'ℹ️',
-  }
-  
-  toast.innerHTML = `
-    <span>${icons[type] || icons.info}</span>
-    <span>${message}</span>
-  `
-  
-  toastContainer.appendChild(toast)
-  
-  // 动画进入
-  requestAnimationFrame(() => {
-    toast.style.opacity = '1'
-    toast.style.transform = 'translate(-50%, 0)'
-  })
-  
-  // 自动移除
-  setTimeout(() => {
-    toast.style.opacity = '0'
-    toast.style.transform = 'translate(-50%, -20px)'
-    setTimeout(() => {
-      toastContainer?.removeChild(toast)
-      if (toastContainer?.children.length === 0) {
-        document.body.removeChild(toastContainer)
-        toastContainer = null
-      }
-    }, 300)
-  }, duration)
-}
-
-// Toast API
+// Toast API - 封装 antd message
 export const toast = {
-  success: (message, duration) => createToast(message, 'success', duration),
-  error: (message, duration) => createToast(message, 'error', duration),
-  warning: (message, duration) => createToast(message, 'warning', duration),
-  info: (message, duration) => createToast(message, 'info', duration),
+  /**
+   * 成功提示
+   * @param {string} message - 提示内容
+   * @param {number} [duration] - 持续时间 (秒)
+   */
+  success: (msg, duration) => message.success(msg, duration),
+
+  /**
+   * 错误提示
+   * @param {string} message - 提示内容
+   * @param {number} [duration] - 持续时间 (秒)
+   */
+  error: (msg, duration) => message.error(msg, duration),
+
+  /**
+   * 警告提示
+   * @param {string} message - 提示内容
+   * @param {number} [duration] - 持续时间 (秒)
+   */
+  warning: (msg, duration) => message.warning(msg, duration),
+
+  /**
+   * 信息提示
+   * @param {string} message - 提示内容
+   * @param {number} [duration] - 持续时间 (秒)
+   */
+  info: (msg, duration) => message.info(msg, duration),
+
+  /**
+   * 加载提示
+   * @param {string} message - 提示内容
+   * @param {number} [duration] - 持续时间 (秒)
+   */
+  loading: (msg, duration) => message.loading(msg, duration),
+
+  /**
+   * 销毁所有提示
+   */
+  destroy: () => message.destroy(),
 }
 
 export default toast

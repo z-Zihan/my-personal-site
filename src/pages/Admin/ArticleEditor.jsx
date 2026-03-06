@@ -5,10 +5,7 @@ import { PlusOutlined, DeleteOutlined, EditOutlined,ArrowLeftOutlined } from '@a
 import RichEditor from '../../components/common/RichEditor';
 import ImageUploader from '../../components/common/ImageUploader';
 import { articlesApi } from '../../utils/api';
-import axios from 'axios';
-import { API_BASE } from '../../constants/apiConstants';
-
-// 移除不必要的 API_BASE 常量
+import { categoryApi } from '../../api/category';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -50,7 +47,7 @@ function ArticleEditor() {
 
   const fetchCategories = async () => {
     try {
-      const { data } = await axios.get(`${API_BASE}/api/categories`)
+      const { data } = await categoryApi.getList()
       setCategories(data.data || [])
     } catch (error) {
       console.error('Fetch categories error:', error)
@@ -70,7 +67,7 @@ function ArticleEditor() {
       return
     }
     try {
-      const { data } = await axios.post(`${API_BASE}/api/categories`, { name: newCategoryName.trim() })
+      const { data } = await categoryApi.create({ name: newCategoryName.trim() })
       if (data.data) {
         setCategories([...categories, data.data])
         form.setFieldsValue({ category_id: data.data.id })
@@ -94,7 +91,7 @@ function ArticleEditor() {
 
   const handleDeleteCategory = async (categoryId) => {
     try {
-      await axios.delete(`${API_BASE}/api/categories`, { params: { id: categoryId } })
+      await categoryApi.delete(categoryId)
       setCategories(categories.filter(cat => cat.id !== categoryId))
       if (form.getFieldValue('category_id') === categoryId) {
         form.setFieldsValue({ category_id: undefined })
@@ -122,7 +119,7 @@ function ArticleEditor() {
       return
     }
     try {
-      await axios.put(`${API_BASE}/api/categories`, { id: editingCategory.id, name: newCategoryName.trim() })
+      await categoryApi.update({ id: editingCategory.id, name: newCategoryName.trim() })
       setCategories(categories.map(cat =>
         cat.id === editingCategory.id ? { ...cat, name: newCategoryName.trim() } : cat
       ))

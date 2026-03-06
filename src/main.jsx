@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
+import { ConfigProvider } from 'antd'
 import './index.css'
 import router from './router/index.jsx'
 import { initAnalytics } from './utils/analytics'
@@ -10,6 +11,8 @@ initAnalytics()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <ConfigProvider>
+      <RouterProvider router={router} />
+    </ConfigProvider>
   </StrictMode>,
 )
