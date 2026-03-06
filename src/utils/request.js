@@ -85,12 +85,12 @@ export function put(url, data = {}, config = {}) {
 /**
  * DELETE 请求
  * @param {string} url - 请求地址
- * @param {object} params - 查询参数
+ * @param {object} data - 请求数据（作为 body 发送）
  * @param {object} config - 其他配置
  * @returns {Promise}
  */
-export function del(url, params = {}, config = {}) {
-  return request.delete(url, { params, ...config });
+export function del(url, data = {}, config = {}) {
+  return request.delete(url, { data, ...config });
 }
 
 /**

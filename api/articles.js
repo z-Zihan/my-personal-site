@@ -60,29 +60,18 @@ export default async function handler(req) {
     const articleIds = data.map(article => article.id)
 
     // 批量查询点赞数
-    let likeCounts = []
+    let likeCounts = {}
     if (articleIds.length > 0) {
-      const { data: likeData } = await supabase
+      const { data: fallbackData } = await supabase
         .from('likes')
         .select('article_id')
         .in('article_id', articleIds)
-        .rpc('count_by_article_id')
 
-      // 如果 RPC 不存在，使用普通查询
-      if (!likeData) {
-        const { data: fallbackData } = await supabase
-          .from('likes')
-          .select('article_id')
-          .in('article_id', articleIds)
-
-        // 统计每个文章的点赞数
-        likeCounts = fallbackData?.reduce((acc, like) => {
-          acc[like.article_id] = (acc[like.article_id] || 0) + 1
-          return acc
-        }, {}) || {}
-      } else {
-        likeCounts = likeData
-      }
+      // 统计每个文章的点赞数
+      likeCounts = fallbackData?.reduce((acc, like) => {
+        acc[like.article_id] = (acc[like.article_id] || 0) + 1
+        return acc
+      }, {}) || {}
     }
 
     // 批量查询评论数

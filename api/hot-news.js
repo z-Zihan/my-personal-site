@@ -136,7 +136,7 @@ export default async function handler(req) {
       // 更新缓存
       await updateCache(newsData)
     } catch (rssError) {
-      console.warn('RSS fetch failed, using fallback:', rssError.message)
+      console.log('Using fallback news data (RSS unavailable)')
       // 使用 fallback 数据
     }
 
