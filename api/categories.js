@@ -13,6 +13,16 @@ function validateToken(token) {
   return timestamp && !isNaN(parseInt(timestamp))
 }
 
+// 统一错误响应格式
+function apiError(code, message, status = 400) {
+  return jsonResponse({ code, message, success: false }, status)
+}
+
+// 统一成功响应格式
+function apiSuccess(data = null, message = '操作成功', status = 200) {
+  return jsonResponse({ code: 0, message, data, success: true }, status)
+}
+
 export default async function handler(req) {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
@@ -21,14 +31,14 @@ export default async function handler(req) {
   // 验证管理员 token
   const authHeader = req.headers.get('Authorization')
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return errorResponse('Unauthorized', 401)
+    return apiError('UNAUTHORIZED', '未授权访问', 401)
   }
 
   const token = authHeader.substring(7)
 
   // 验证 token
   if (!validateToken(token)) {
-    return errorResponse('Invalid or expired token', 401)
+    return apiError('INVALID_TOKEN', 'Token 无效或已过期', 401)
   }
 
   // GET - 获取分类列表
@@ -37,16 +47,16 @@ export default async function handler(req) {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: true })
 
       if (error) {
-        return errorResponse(error.message, 500)
+        return apiError('FETCH_ERROR', error.message, 500)
       }
 
-      return jsonResponse({ data: data || [] })
+      return apiSuccess(data || [])
     } catch (error) {
       console.error('Error fetching categories:', error)
-      return errorResponse('Internal server error', 500)
+      return apiError('SERVER_ERROR', '服务器错误', 500)
     }
   }
 
@@ -56,28 +66,45 @@ export default async function handler(req) {
       const { name } = await req.json()
 
       if (!name || !name.trim()) {
-        return errorResponse('分类名称不能为空', 400)
+        return apiError('INVALID_PARAMS', '分类名称不能为空', 400)
       }
 
-      const slug = name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
+      const trimName = name.trim()
+
+      // 检查是否已存在同名分类
+      const { data: existing } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('name', trimName)
+        .single()
+
+      if (existing) {
+        return apiError('DUPLICATE_CATEGORY', '分类名称已存在', 409)
+      }
+
+      const slug = trimName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
 
       const { data, error } = await supabase
         .from('categories')
         .insert([{
-          name: name.trim(),
+          name: trimName,
           slug: slug
         }])
         .select()
         .single()
 
       if (error) {
-        return errorResponse(error.message, 500)
+        // 处理唯一约束冲突
+        if (error.code === '23505') {
+          return apiError('DUPLICATE_CATEGORY', '分类名称已存在', 409)
+        }
+        return apiError('CREATE_ERROR', error.message, 500)
       }
 
-      return jsonResponse({ data }, 201)
+      return apiSuccess(null, '添加成功', 201)
     } catch (error) {
       console.error('Error creating category:', error)
-      return errorResponse('Internal server error', 500)
+      return apiError('SERVER_ERROR', '服务器错误', 500)
     }
   }
 
@@ -87,17 +114,31 @@ export default async function handler(req) {
       const { id, name } = await req.json()
 
       if (!id) {
-        return errorResponse('分类 ID 不能为空', 400)
+        return apiError('INVALID_PARAMS', '分类 ID 不能为空', 400)
       }
 
       if (!name || !name.trim()) {
-        return errorResponse('分类名称不能为空', 400)
+        return apiError('INVALID_PARAMS', '分类名称不能为空', 400)
+      }
+
+      const trimName = name.trim()
+
+      // 检查是否有其他分类使用了相同的名称
+      const { data: existing } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('name', trimName)
+        .neq('id', id)
+        .single()
+
+      if (existing) {
+        return apiError('DUPLICATE_CATEGORY', '分类名称已存在', 409)
       }
 
       const { data, error } = await supabase
         .from('categories')
         .update({
-          name: name.trim(),
+          name: trimName,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
@@ -105,13 +146,16 @@ export default async function handler(req) {
         .single()
 
       if (error) {
-        return errorResponse(error.message, 500)
+        if (error.code === '23505') {
+          return apiError('DUPLICATE_CATEGORY', '分类名称已存在', 409)
+        }
+        return apiError('UPDATE_ERROR', error.message, 500)
       }
 
-      return jsonResponse({ data })
+      return apiSuccess(null, '更新成功')
     } catch (error) {
       console.error('Error updating category:', error)
-      return errorResponse('Internal server error', 500)
+      return apiError('SERVER_ERROR', '服务器错误', 500)
     }
   }
 
@@ -122,7 +166,7 @@ export default async function handler(req) {
       const id = url.searchParams.get('id')
 
       if (!id) {
-        return errorResponse('分类 ID 不能为空', 400)
+        return apiError('INVALID_PARAMS', '分类 ID 不能为空', 400)
       }
 
       const { error } = await supabase
@@ -131,15 +175,15 @@ export default async function handler(req) {
         .eq('id', id)
 
       if (error) {
-        return errorResponse(error.message, 500)
+        return apiError('DELETE_ERROR', error.message, 500)
       }
 
-      return jsonResponse({ success: true })
+      return apiSuccess(null, '删除成功')
     } catch (error) {
       console.error('Error deleting category:', error)
-      return errorResponse('Internal server error', 500)
+      return apiError('SERVER_ERROR', '服务器错误', 500)
     }
   }
 
-  return errorResponse('Method not allowed', 405)
+  return apiError('METHOD_NOT_ALLOWED', '方法不允许', 405)
 }

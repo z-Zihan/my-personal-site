@@ -65,15 +65,20 @@ function ArticleEditor() {
     setCategoryLoading(true)
     try {
       const { data } = await categoryApi.create({ name: newCategoryName.trim() })
-      if (data.data) {
-        setCategories([...categories, data.data])
-        form.setFieldsValue({ category_id: data.data.id })
+      if (data.success) {
+        // 重新获取分类列表
+        await fetchCategories()
         message.success('分类添加成功')
         setNewCategoryName('')
         setAddCategoryVisible(false)
       }
     } catch (error) {
-      message.error(error.response?.data?.error || '添加失败')
+      const errorCode = error.response?.data?.code
+      if (errorCode === 'DUPLICATE_CATEGORY') {
+        message.error('分类名称已存在')
+      } else {
+        message.error(error.response?.data?.message || '添加失败')
+      }
     } finally {
       setCategoryLoading(false)
     }
@@ -97,7 +102,7 @@ function ArticleEditor() {
           }
           message.success('分类删除成功')
         } catch (error) {
-          message.error(error.response?.data?.error || '删除失败')
+          message.error(error.response?.data?.message || '删除失败')
         } finally {
           setCategoryLoading(false)
         }
@@ -118,16 +123,22 @@ function ArticleEditor() {
     }
     setCategoryLoading(true)
     try {
-      await categoryApi.update({ id: editingCategory.id, name: newCategoryName.trim() })
-      setCategories(categories.map(cat =>
-        cat.id === editingCategory.id ? { ...cat, name: newCategoryName.trim() } : cat
-      ))
-      message.success('分类更新成功')
-      setNewCategoryName('')
-      setEditingCategory(null)
-      setAddCategoryVisible(false)
+      const { data } = await categoryApi.update({ id: editingCategory.id, name: newCategoryName.trim() })
+      if (data.success) {
+        // 重新获取分类列表
+        await fetchCategories()
+        message.success('分类更新成功')
+        setNewCategoryName('')
+        setEditingCategory(null)
+        setAddCategoryVisible(false)
+      }
     } catch (error) {
-      message.error(error.response?.data?.error || '更新失败')
+      const errorCode = error.response?.data?.code
+      if (errorCode === 'DUPLICATE_CATEGORY') {
+        message.error('分类名称已存在')
+      } else {
+        message.error(error.response?.data?.message || '更新失败')
+      }
     } finally {
       setCategoryLoading(false)
     }
