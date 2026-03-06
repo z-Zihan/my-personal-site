@@ -21,6 +21,7 @@ function ArticleEditor() {
   const [addCategoryVisible, setAddCategoryVisible] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState(null);
+  const [categoryLoading, setCategoryLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -61,9 +62,9 @@ function ArticleEditor() {
       message.warning('请输入分类名称')
       return
     }
+    setCategoryLoading(true)
     try {
       const { data } = await categoryApi.create({ name: newCategoryName.trim() })
-      console.log('子涵:', data)
       if (data.data) {
         setCategories([...categories, data.data])
         form.setFieldsValue({ category_id: data.data.id })
@@ -73,6 +74,8 @@ function ArticleEditor() {
       }
     } catch (error) {
       message.error(error.response?.data?.error || '添加失败')
+    } finally {
+      setCategoryLoading(false)
     }
   }
 
@@ -83,7 +86,9 @@ function ArticleEditor() {
       okText: '确认',
       cancelText: '取消',
       okType: 'danger',
+      okButtonProps: { loading: categoryLoading },
       onOk: async () => {
+        setCategoryLoading(true)
         try {
           await categoryApi.delete(categoryId)
           setCategories(categories.filter(cat => cat.id !== categoryId))
@@ -93,6 +98,8 @@ function ArticleEditor() {
           message.success('分类删除成功')
         } catch (error) {
           message.error(error.response?.data?.error || '删除失败')
+        } finally {
+          setCategoryLoading(false)
         }
       },
     })
@@ -109,6 +116,7 @@ function ArticleEditor() {
       message.warning('请输入分类名称')
       return
     }
+    setCategoryLoading(true)
     try {
       await categoryApi.update({ id: editingCategory.id, name: newCategoryName.trim() })
       setCategories(categories.map(cat =>
@@ -120,6 +128,8 @@ function ArticleEditor() {
       setAddCategoryVisible(false)
     } catch (error) {
       message.error(error.response?.data?.error || '更新失败')
+    } finally {
+      setCategoryLoading(false)
     }
   }
 
@@ -208,6 +218,7 @@ function ArticleEditor() {
                         type="text"
                         size="small"
                         icon={<EditOutlined />}
+                        disabled={categoryLoading}
                         onClick={(e) => {
                           e.stopPropagation()
                           handleEditCategory(categories.find(c => c.id === option.value))
@@ -218,6 +229,7 @@ function ArticleEditor() {
                         danger
                         size="small"
                         icon={<DeleteOutlined />}
+                        disabled={categoryLoading}
                         onClick={(e) => {
                           e.stopPropagation()
                           handleDeleteCategory(option.value, option.label)
@@ -234,6 +246,7 @@ function ArticleEditor() {
                         type="primary"
                         size="small"
                         icon={<PlusOutlined />}
+                        loading={categoryLoading}
                         onClick={() => {
                           setEditingCategory(null)
                           setNewCategoryName('')
@@ -262,6 +275,7 @@ function ArticleEditor() {
             onOk={editingCategory ? handleUpdateCategory : handleAddCategory}
             okText={editingCategory ? '更新' : '添加'}
             cancelText="取消"
+            confirmLoading={categoryLoading}
             onCancel={() => {
               setAddCategoryVisible(false)
               setNewCategoryName('')
