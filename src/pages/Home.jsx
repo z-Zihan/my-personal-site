@@ -14,6 +14,7 @@ import BlurText from '../components/effects/BlurText';
 import Magnet from '../components/effects/Magnet';
 import Aurora from '../components/effects/Aurora';
 import LoadingSpinner from '../components/effects/LoadingSpinner';
+import PixelCard from '../components/effects/PixelCard';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -21,6 +22,8 @@ export default function Home() {
   const [hotNews, setHotNews] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [categories, setCategories] = useState([{ id: 'all', name: '全部' }]);
 
   useEffect(() => {
     fetchData();
@@ -28,19 +31,41 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
-      const [articlesRes, newsRes, statsRes] = await Promise.all([
+      const [articlesRes, newsRes, statsRes, categoriesRes] = await Promise.all([
         axios.get(`${API_BASE}/api/articles?page=1&limit=6&status=published`),
         axios.get(`${API_BASE}/api/hot-news`),
-        axios.get(`${API_BASE}/api/stats`)
+        axios.get(`${API_BASE}/api/stats`),
+        axios.get(`${API_BASE}/api/categories`)
       ]);
       setArticles(articlesRes.data.data || []);
       setHotNews(newsRes.data.data || []);
       setStats(statsRes.data.data);
+      if (categoriesRes.data.data && categoriesRes.data.data.length > 0) {
+        setCategories([{ id: 'all', name: '全部' }, ...categoriesRes.data.data]);
+      }
     } catch (error) {
       console.error('Fetch data error:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchArticlesByCategory = async (categoryId) => {
+    try {
+      const params = { page: 1, limit: 6, status: 'published' };
+      if (categoryId !== 'all') {
+        params.category_id = categoryId;
+      }
+      const { data } = await axios.get(`${API_BASE}/api/articles`, { params });
+      setArticles(data.data || []);
+    } catch (error) {
+      console.error('Fetch articles by category error:', error);
+    }
+  };
+
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId);
+    fetchArticlesByCategory(categoryId);
   };
 
   if (loading) {
@@ -133,6 +158,24 @@ export default function Home() {
         >
           ✨ 最新文章
         </motion.h2>
+
+        {/* 分类 Tab */}
+        <div className="flex justify-center flex-wrap gap-3 mb-8">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => handleCategoryChange(cat.id)}
+              className={`px-6 py-2 rounded-full transition-all ${
+                selectedCategory === cat.id
+                  ? 'bg-primary text-dark font-bold'
+                  : 'border border-primary text-primary hover:bg-primary hover:text-dark'
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {articles.map((article, index) => (
             <motion.div
@@ -142,9 +185,9 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <SpotlightCard
+              <PixelCard
                 className="h-full cursor-pointer"
-                spotlightColor="rgba(139, 92, 246, 0.2)"
+                variant="purple"
               >
                 <div onClick={() => navigate(`/blog/${article.id}`)}>
                   <img
@@ -169,7 +212,7 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-              </SpotlightCard>
+              </PixelCard>
             </motion.div>
           ))}
         </div>

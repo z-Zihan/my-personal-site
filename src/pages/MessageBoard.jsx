@@ -5,6 +5,7 @@ import { toast } from '../utils/toast'
 import useVisitorStore from '../store/visitorStore'
 import { formatDate } from '../utils/helpers'
 import Avatar from '../components/common/Avatar'
+import PixelCard from '../components/effects/PixelCard'
 
 function MessageBoard() {
   const [messages, setMessages] = useState([])
@@ -83,19 +84,20 @@ function MessageBoard() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="glass p-6 rounded-xl neon-border"
               >
-                <div className="flex items-start gap-4">
-                  <Avatar userId={message.visitor_id} size={40} />
-                  <div className="flex-1">
-                    <p className="text-gray-300 mb-2">{message.content}</p>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <span className="font-medium text-gray-400">{message.visitor_name || `访客 ${message.visitor_id?.slice(-6)}`}</span>
-                      <span>•</span>
-                      <span>{formatDate(message.created_at)}</span>
+                <PixelCard variant="cyan" className="p-6">
+                  <div className="flex items-start gap-4">
+                    <Avatar userId={message.visitor_id} size={40} />
+                    <div className="flex-1">
+                      <p className="text-gray-300 mb-2">{message.content}</p>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <span className="font-medium text-gray-400">{message.visitor_name || `访客 ${message.visitor_id?.slice(-6)}`}</span>
+                        <span>•</span>
+                        <span>{formatDate(message.created_at)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </PixelCard>
               </motion.div>
             ))
           )}
@@ -106,25 +108,26 @@ function MessageBoard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           onSubmit={handleSubmit}
-          className="glass p-6 rounded-2xl neon-border"
         >
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="写下你的留言..."
-            rows={4}
-            className="w-full bg-transparent border border-gray-700 rounded-lg p-4 focus:border-primary focus:outline-none resize-none"
-            disabled={submitting}
-          />
-          <div className="flex justify-end mt-4">
-            <button
-              type="submit"
-              disabled={submitting || !content.trim()}
-              className="px-8 py-3 bg-primary text-dark font-bold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary hover:text-white transition-all"
-            >
-              {submitting ? '提交中...' : '提交留言'}
-            </button>
-          </div>
+          <PixelCard variant="green" className="p-6">
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="写下你的留言..."
+              rows={4}
+              className="w-full bg-transparent border border-gray-700 rounded-lg p-4 focus:border-primary focus:outline-none resize-none"
+              disabled={submitting}
+            />
+            <div className="flex justify-end mt-4">
+              <button
+                type="submit"
+                disabled={submitting || !content.trim()}
+                className="px-8 py-3 bg-primary text-dark font-bold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary hover:text-white transition-all"
+              >
+                {submitting ? '提交中...' : '提交留言'}
+              </button>
+            </div>
+          </PixelCard>
         </motion.form>
       </div>
     </div>

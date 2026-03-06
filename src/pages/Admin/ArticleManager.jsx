@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table, Button, Card, Space, Tag, Popconfirm, message, Switch, Modal } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CommentOutlined } from '@ant-design/icons';
+import { Table, Button, Card, Space, Tag, Popconfirm, message, Switch, Modal, InputNumber } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CommentOutlined, StarOutlined } from '@ant-design/icons';
 import { articlesApi, commentsApi } from '../../utils/api';
 import { formatDate } from '../../utils/helpers';
 
@@ -10,6 +10,8 @@ function ArticleManager() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [statusChangingId, setStatusChangingId] = useState(null);
+  const [recommendChangingId, setRecommendChangingId] = useState(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [commentsModalVisible, setCommentsModalVisible] = useState(false);
   const [currentArticle, setCurrentArticle] = useState(null);
   const [comments, setComments] = useState([]);
@@ -55,6 +57,44 @@ function ArticleManager() {
     }
   }
 
+  const handleToggleRecommend = async (id, isRecommended) => {
+    setRecommendChangingId(id);
+    try {
+      await articlesApi.updateRecommend({ id, is_recommended: !isRecommended, recommend_order: !isRecommended ? 0 : undefined })
+      message.success(isRecommended ? '已取消推荐' : '已设为推荐')
+      fetchArticles()
+    } catch (error) {
+      message.error(error.response?.data?.error || '推荐状态更新失败')
+    } finally {
+      setRecommendChangingId(null);
+    }
+  }
+
+  const handleUpdateRecommendOrder = async (id, order) => {
+    try {
+      await articlesApi.updateRecommend({ id, recommend_order: order })
+      message.success('排序已更新')
+      // 本地更新，不重新加载
+      setArticles(articles.map(art =>
+        art.id === id ? { ...art, recommend_order: order } : art
+      ))
+    } catch (error) {
+      message.error(error.response?.data?.error || '排序更新失败')
+    }
+  }
+
+  const handleBatchRecommend = async (selectedRowKeys) => {
+    try {
+      for (let i = 0; i < selectedRowKeys.length; i++) {
+        await articlesApi.updateRecommend({ id: selectedRowKeys[i], is_recommended: true, recommend_order: i })
+      }
+      message.success(`已批量设置 ${selectedRowKeys.length} 篇文章为推荐`)
+      fetchArticles()
+    } catch (error) {
+      message.error(error.response?.data?.error || '批量设置失败')
+    }
+  }
+
   const handleShowComments = async (article) => {
     if (!article.comment_count || article.comment_count === 0) return;
 
@@ -87,6 +127,37 @@ function ArticleManager() {
       dataIndex: 'title',
       key: 'title',
       ellipsis: true,
+    },
+    {
+      title: '推荐',
+      dataIndex: 'is_recommended',
+      key: 'is_recommended',
+      width: 80,
+      render: (isRecommended, record) => (
+        <Switch
+          checked={isRecommended}
+          checkedChildren="推荐"
+          unCheckedChildren=""
+          loading={recommendChangingId === record.id}
+          onChange={() => handleToggleRecommend(record.id, isRecommended)}
+        />
+      ),
+    },
+    {
+      title: '排序',
+      dataIndex: 'recommend_order',
+      key: 'recommend_order',
+      width: 100,
+      render: (order, record) => (
+        <InputNumber
+          size="small"
+          min={0}
+          value={order ?? 0}
+          disabled={!record.is_recommended}
+          onChange={(value) => handleUpdateRecommendOrder(record.id, value)}
+          placeholder="推荐顺序"
+        />
+      ),
     },
     {
       title: '状态',
@@ -180,13 +251,15 @@ function ArticleManager() {
       <Card
         title="文章管理"
         extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => navigate('/admin/articles/new')}
-          >
-            新建文章
-          </Button>
+          <Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => navigate('/admin/articles/new')}
+            >
+              新建文章
+            </Button>
+          </Space>
         }
       >
         <Table
@@ -195,9 +268,33 @@ function ArticleManager() {
           rowKey="id"
           loading={loading}
           pagination={{ pageSize: 10 }}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1400 }}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: setSelectedRowKeys,
+          }}
         />
       </Card>
+
+      {selectedRowKeys.length > 0 && (
+        <Card style={{ marginTop: 16 }}>
+          <Space>
+            <span>已选择 {selectedRowKeys.length} 篇文章</span>
+            <Button
+              type="primary"
+              icon={<StarOutlined />}
+              onClick={() => handleBatchRecommend(selectedRowKeys)}
+            >
+              批量设为推荐
+            </Button>
+            <Button
+              onClick={() => setSelectedRowKeys([])}
+            >
+              取消选择
+            </Button>
+          </Space>
+        </Card>
+      )}
 
       {/* 评论列表弹窗 */}
       <Modal

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card, Statistic, Row, Col, Typography, Spin, Empty, Table, Progress } from 'antd'
+import { Card, Statistic, Row, Col, Typography, Spin, Empty, Table, Progress, Tag } from 'antd'
 import {
   FileTextOutlined,
   EyeOutlined,
@@ -7,6 +7,8 @@ import {
   FireOutlined,
   UserOutlined,
   LaptopOutlined,
+  ClockCircleOutlined,
+  StarOutlined,
 } from '@ant-design/icons'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -16,15 +18,19 @@ import {
 import axios from 'axios'
 import VisitorMap from '../../components/admin/VisitorMap'
 import { API_BASE } from '../../constants/apiConstants'
+import { useNavigate } from 'react-router-dom'
 
 const { Title } = Typography
 
 const COLORS = ['#00f0ff', '#7000ff', '#00ff88', '#ff6600', '#ff0066', '#00ccff']
 
 function Dashboard() {
+  const navigate = useNavigate()
   const [stats, setStats] = useState(null)
   const [analytics, setAnalytics] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [latestArticles, setLatestArticles] = useState([])
+  const [recommendedArticles, setRecommendedArticles] = useState([])
 
   useEffect(() => {
     fetchAllData()
@@ -32,12 +38,16 @@ function Dashboard() {
 
   const fetchAllData = async () => {
     try {
-      const [statsRes, analyticsRes] = await Promise.all([
+      const [statsRes, analyticsRes, latestRes, recommendedRes] = await Promise.all([
         axios.get(`${API_BASE}/api/stats`),
-        axios.get(`${API_BASE}/api/analytics?type=overview`)
+        axios.get(`${API_BASE}/api/analytics?type=overview`),
+        axios.get(`${API_BASE}/api/articles?page=1&limit=6&status=published`),
+        axios.get(`${API_BASE}/api/articles?page=1&limit=10&recommended=true`)
       ])
       setStats(statsRes.data?.data || statsRes.data)
       setAnalytics(analyticsRes.data?.data || analyticsRes.data)
+      setLatestArticles(latestRes.data?.data || [])
+      setRecommendedArticles(recommendedRes.data?.data || [])
 
       // 获取详细统计数据
       const [daily, pages, devices, browsers] = await Promise.all([
@@ -175,6 +185,132 @@ function Dashboard() {
               valueStyle={{ color: '#ff6600' }}
               styles={{ content: { color: '#ff6600' } }}
             />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* 推荐文章模块 */}
+      {recommendedArticles.length > 0 && (
+        <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+          <Col xs={24}>
+            <Card title={<><StarOutlined style={{ color: '#fadb14', marginRight: 8 }} />推荐文章</>}>
+              <Table
+                dataSource={recommendedArticles}
+                rowKey="id"
+                pagination={false}
+                size="small"
+                scroll={{ x: 800 }}
+                columns={[
+                  {
+                    title: '标题',
+                    dataIndex: 'title',
+                    key: 'title',
+                    ellipsis: true,
+                    render: (title, record) => (
+                      <a onClick={() => navigate(`/blog/${record.id}`)} target="_blank" rel="noopener noreferrer">
+                        {title}
+                      </a>
+                    ),
+                  },
+                  {
+                    title: '排序',
+                    dataIndex: 'recommend_order',
+                    key: 'recommend_order',
+                    width: 80,
+                    render: (order) => order ?? '-',
+                  },
+                  {
+                    title: '浏览量',
+                    dataIndex: 'views',
+                    key: 'views',
+                    width: 80,
+                    sorter: (a, b) => a.views - b.views,
+                  },
+                  {
+                    title: '点赞数',
+                    dataIndex: 'likes',
+                    key: 'likes',
+                    width: 80,
+                    sorter: (a, b) => a.likes - b.likes,
+                  },
+                  {
+                    title: '发布时间',
+                    dataIndex: 'created_at',
+                    key: 'created_at',
+                    width: 120,
+                    render: (date) => new Date(date).toLocaleDateString('zh-CN'),
+                  },
+                ]}
+              />
+            </Card>
+          </Col>
+        </Row>
+      )}
+
+      {/* 最新文章模块 */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24}>
+          <Card title={<><ClockCircleOutlined style={{ color: '#00f0ff', marginRight: 8 }} />最新文章（最多显示 6 篇）</>}>
+            {latestArticles.length > 0 ? (
+              <Table
+                dataSource={latestArticles}
+                rowKey="id"
+                pagination={false}
+                size="small"
+                scroll={{ x: 800 }}
+                columns={[
+                  {
+                    title: '标题',
+                    dataIndex: 'title',
+                    key: 'title',
+                    ellipsis: true,
+                    render: (title, record) => (
+                      <a onClick={() => navigate(`/blog/${record.id}`)} target="_blank" rel="noopener noreferrer">
+                        {title}
+                      </a>
+                    ),
+                  },
+                  {
+                    title: '状态',
+                    dataIndex: 'status',
+                    key: 'status',
+                    width: 80,
+                    render: (status) => (
+                      <Tag color={status === 'published' ? 'green' : 'gray'}>
+                        {status === 'published' ? '已发布' : '草稿'}
+                      </Tag>
+                    ),
+                  },
+                  {
+                    title: '浏览量',
+                    dataIndex: 'views',
+                    key: 'views',
+                    width: 80,
+                  },
+                  {
+                    title: '点赞数',
+                    dataIndex: 'likes',
+                    key: 'likes',
+                    width: 80,
+                  },
+                  {
+                    title: '评论数',
+                    dataIndex: 'comment_count',
+                    key: 'comment_count',
+                    width: 80,
+                  },
+                  {
+                    title: '创建时间',
+                    dataIndex: 'created_at',
+                    key: 'created_at',
+                    width: 120,
+                    render: (date) => new Date(date).toLocaleDateString('zh-CN'),
+                  },
+                ]}
+              />
+            ) : (
+              <Empty description="暂无文章" />
+            )}
           </Card>
         </Col>
       </Row>

@@ -24,6 +24,7 @@ export const articlesApi = {
   update: (data) => api.put('/update-article', data),
   delete: (id) => api.delete('/delete-article', { params: { id } }),
   toggleStatus: (data) => api.patch('/toggle-article-status', data),
+  updateRecommend: (data) => api.post('/update-article-recommend', data),
 }
 
 // 留言相关 API
@@ -57,6 +58,14 @@ export const authApi = {
 export const commentsApi = {
   getList: (params) => api.get('/comments', { params }),
   delete: (id) => api.delete('/delete-comment', { params: { id } }),
+}
+
+// 分类相关 API
+export const categoriesApi = {
+  getList: () => api.get('/categories'),
+  create: (data) => api.post('/categories', data),
+  update: (data) => api.put('/categories', data),
+  delete: (id) => api.delete('/categories', { params: { id } }),
 }
 
 export default api

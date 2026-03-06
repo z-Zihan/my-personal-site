@@ -18,17 +18,35 @@ export default async function handler(req) {
     const page = parseInt(url.searchParams.get('page') || '1')
     const limit = parseInt(url.searchParams.get('limit') || '10')
     const status = url.searchParams.get('status')
+    const recommended = url.searchParams.get('recommended')
+    const category_id = url.searchParams.get('category_id')
 
     let query = supabase
       .from('articles')
-      .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range((page - 1) * limit, page * limit - 1)
+      .select('*, categories(name, id)', { count: 'exact' })
+
+    // 如果是获取推荐文章
+    if (recommended === 'true') {
+      query = query.eq('is_recommended', true)
+        .order('recommend_order', { ascending: true })
+        .order('likes', { ascending: false })
+        .order('views', { ascending: false })
+        .order('created_at', { ascending: false })
+    } else {
+      // 普通文章列表
+      query = query.order('created_at', { ascending: false })
+    }
+
+    query = query.range((page - 1) * limit, page * limit - 1)
 
     if (status) {
       query = query.eq('status', status)
     }
-    // 默认显示所有状态的文章（包括草稿和已发布）
+
+    // 如果指定了分类 ID
+    if (category_id) {
+      query = query.eq('category_id', category_id)
+    }
 
     const { data, error, count } = await query
 

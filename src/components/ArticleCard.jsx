@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import ReadingTime from './common/ReadingTime'
 import { getArticleCover } from '../utils/defaultCovers'
+import PixelCard from './effects/PixelCard'
 
-function ArticleCard({ article }) {
+function ArticleCard({ article, isRecommended }) {
   const navigate = useNavigate()
 
   if (!article) return null
@@ -10,10 +11,16 @@ function ArticleCard({ article }) {
   const coverUrl = getArticleCover(article)
 
   return (
-    <article
+    <PixelCard
+      variant="purple"
+      className="overflow-hidden cursor-pointer relative"
       onClick={() => navigate(`/blog/${article.id}`)}
-      className="glass rounded-xl overflow-hidden cursor-pointer transform hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl"
     >
+      {isRecommended && (
+        <div className="absolute top-2 right-2 z-10 bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-bold">
+          ⭐ 推荐
+        </div>
+      )}
       <img
         src={coverUrl}
         alt={article.title}
@@ -24,6 +31,11 @@ function ArticleCard({ article }) {
         }}
       />
       <div className="p-6">
+        {article.categories && article.categories.name && (
+          <span className="inline-block bg-primary/20 text-primary px-2 py-1 rounded text-xs mb-2">
+            {article.categories.name}
+          </span>
+        )}
         <h3 className="text-xl font-bold mb-2 line-clamp-2">
           {article.title}
         </h3>
@@ -35,7 +47,7 @@ function ArticleCard({ article }) {
           <span>👁️ {article.views || 0}</span>
         </div>
       </div>
-    </article>
+    </PixelCard>
   )
 }
 

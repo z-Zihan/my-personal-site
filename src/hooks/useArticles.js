@@ -28,7 +28,7 @@ export function useArticles(initialParams = {}) {
 
   useEffect(() => {
     fetchArticles()
-  }, [])
+  }, [initialParams.category_id])
 
   return { articles, loading, error, pagination, refetch: fetchArticles }
 }

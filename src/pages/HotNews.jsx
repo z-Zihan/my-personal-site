@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion as Motion } from 'framer-motion'
 import { hotNewsApi } from '../utils/api'
+import PixelCard from '../components/effects/PixelCard'
 
 // 前端本地缓存时间：5 分钟
 const CLIENT_CACHE_DURATION = 5 * 60 * 1000
@@ -80,36 +81,38 @@ function HotNews() {
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="block glass p-6 rounded-xl hover:bg-primary/10 transition-all neon-border"
+                className="block"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-3xl font-bold text-primary">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                      {item.source && (
-                        <span className="px-2 py-1 bg-secondary/20 text-secondary text-xs rounded">
-                          {item.source}
+                <PixelCard variant="orange" className="p-6 hover:bg-primary/10 transition-all">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-3xl font-bold text-primary">
+                          {String(index + 1).padStart(2, '0')}
                         </span>
-                      )}
+                        {item.source && (
+                          <span className="px-2 py-1 bg-secondary/20 text-secondary text-xs rounded">
+                            {item.source}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-xl font-medium ml-12">{item.title}</h3>
                     </div>
-                    <h3 className="text-xl font-medium ml-12">{item.title}</h3>
+                    <svg
+                      className="w-6 h-6 text-gray-500 flex-shrink-0 ml-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
                   </div>
-                  <svg
-                    className="w-6 h-6 text-gray-500 flex-shrink-0 ml-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                    />
-                  </svg>
-                </div>
+                </PixelCard>
               </Motion.a>
             ))}
           </div>

@@ -38,22 +38,28 @@ export default async function handler(req) {
 
     // 创建文章
     const body = await req.json()
-    const { title, content, summary, cover, status = 'draft' } = body
+    const { title, content, summary, cover, status = 'draft', category_id } = body
 
     if (!title || !content) {
       return errorResponse('Title and content are required', 400)
     }
 
+    const insertData = {
+      title,
+      content,
+      summary: summary || '',
+      cover: cover || '',
+      status,
+      views: 0,
+    }
+
+    if (category_id) {
+      insertData.category_id = category_id
+    }
+
     const { data: article, error } = await supabase
       .from('articles')
-      .insert([{
-        title,
-        content,
-        summary: summary || '',
-        cover: cover || '',
-        status,
-        views: 0,
-      }])
+      .insert([insertData])
       .select()
       .single()
 

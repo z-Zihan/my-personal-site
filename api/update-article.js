@@ -38,7 +38,7 @@ export default async function handler(req) {
 
     // 更新文章
     const body = await req.json()
-    const { id, title, content, summary, cover, status } = body
+    const { id, title, content, summary, cover, status, category_id } = body
 
     if (!id) {
       return errorResponse('Article ID is required', 400)
@@ -50,6 +50,7 @@ export default async function handler(req) {
     if (summary !== undefined) updateData.summary = summary
     if (cover !== undefined) updateData.cover = cover
     if (status !== undefined) updateData.status = status
+    if (category_id !== undefined) updateData.category_id = category_id
 
     const { data: article, error } = await supabase
       .from('articles')
