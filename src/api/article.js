@@ -45,4 +45,22 @@ export const articleApi = {
    * @param {object} data - { id, recommended }
    */
   updateRecommend: (data) => post('/api/update-article-recommend', data),
+
+  /**
+   * 检查用户是否已点赞
+   * @param {object} params - { article_id, visitor_id }
+   */
+  checkLikeStatus: (params) => get('/api/like-article', params),
 };
+
+/**
+ * 点赞文章
+ * @param {object} data - { article_id, visitor_id }
+ */
+export const likeArticle = (data) => post('/api/like-article', data);
+
+/**
+ * 取消点赞
+ * @param {object} params - { article_id, visitor_id }
+ */
+export const unlikeArticle = (params) => del('/api/like-article', params);

@@ -45,6 +45,7 @@ export default function CommentSection({ articleId }) {
     try {
       // 获取地理位置 - 使用 ipapi.co (HTTPS)
       const location = await Promise.race([
+        // fetch("https://ipapi.co/json/?lang=zh-CN")
         fetch("https://ipapi.co/json/")
           .then((res) => res.json())
           .then((data) => {

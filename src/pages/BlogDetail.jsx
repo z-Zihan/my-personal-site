@@ -5,7 +5,6 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import ReadingProgress from "../components/common/ReadingProgress";
-import TableOfContents from "../components/common/TableOfContents";
 import ShareButtons from "../components/common/ShareButtons";
 import LikeButton from "../components/common/LikeButton";
 import ReadingTime from "../components/common/ReadingTime";

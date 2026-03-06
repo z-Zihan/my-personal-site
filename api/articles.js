@@ -56,28 +56,56 @@ export default async function handler(req) {
       return errorResponse(error.message, 500)
     }
 
-    // 为每篇文章添加点赞数和评论数统计
-    const articlesWithStats = await Promise.all(
-      data.map(async (article) => {
-        const { count: likeCount, error: likeError } = await supabase
+    // 批量获取点赞数和评论数（优化 N+1 查询）
+    const articleIds = data.map(article => article.id)
+
+    // 批量查询点赞数
+    let likeCounts = []
+    if (articleIds.length > 0) {
+      const { data: likeData } = await supabase
+        .from('likes')
+        .select('article_id')
+        .in('article_id', articleIds)
+        .rpc('count_by_article_id')
+
+      // 如果 RPC 不存在，使用普通查询
+      if (!likeData) {
+        const { data: fallbackData } = await supabase
           .from('likes')
-          .select('*', { count: 'exact', head: true })
-          .eq('article_id', article.id)
+          .select('article_id')
+          .in('article_id', articleIds)
 
-        const { count: commentCount, error: commentError } = await supabase
-          .from('comments')
-          .select('*', { count: 'exact', head: true })
-          .eq('article_id', article.id)
+        // 统计每个文章的点赞数
+        likeCounts = fallbackData?.reduce((acc, like) => {
+          acc[like.article_id] = (acc[like.article_id] || 0) + 1
+          return acc
+        }, {}) || {}
+      } else {
+        likeCounts = likeData
+      }
+    }
 
-        console.log(`Article ${article.id}: likes=${likeCount}, comments=${commentCount}`)
+    // 批量查询评论数
+    let commentCounts = []
+    if (articleIds.length > 0) {
+      const { data: commentData } = await supabase
+        .from('comments')
+        .select('article_id')
+        .in('article_id', articleIds)
 
-        return {
-          ...article,
-          likes: likeCount || 0,
-          comment_count: commentCount || 0
-        }
-      })
-    )
+      // 统计每个文章的评论数
+      commentCounts = commentData?.reduce((acc, comment) => {
+        acc[comment.article_id] = (acc[comment.article_id] || 0) + 1
+        return acc
+      }, {}) || {}
+    }
+
+    // 合并统计数据
+    const articlesWithStats = data.map(article => ({
+      ...article,
+      likes: likeCounts[article.id] || 0,
+      comment_count: commentCounts[article.id] || 0
+    }))
 
     return jsonResponse({
       data: articlesWithStats,
