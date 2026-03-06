@@ -2,12 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useArticles } from "../hooks/useArticles";
 import ArticleCard from "../components/ArticleCard";
-import PixelCard from "../components/effects/PixelCard";
-import Crosshair from "../components/effects/Crosshair";
+import GooeyNav from "../components/effects/GooeyNav";
 import axios from "axios";
 import { API_BASE } from "../constants/apiConstants";
-import { motion } from "framer-motion";
-import LightPillar from "../components/effects/LightPillar";
 
 function BlogList() {
   const navigate = useNavigate();
@@ -52,71 +49,39 @@ function BlogList() {
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen pt-20 pb-20 relative overflow-hidden">
-      <Crosshair color="#a855f7" targeted containerRef={containerRef} />
-      {/* <div className="absolute inset-0 z-0">
-        <LightPillar
-          topColor="#5227FF"
-          bottomColor="#FF9FFC"
-          intensity={1}
-          rotationSpeed={0.3}
-          interactive={false}
-          glowAmount={0.002}
-          pillarWidth={3}
-          pillarHeight={0.4}
-          noiseIntensity={0.5}
-          pillarRotation={25}
-        />
-      </div> */}
+    <div
+      ref={containerRef}
+      className="min-h-screen pt-20 pb-20 relative overflow-hidden"
+    >
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <h1 className="text-5xl font-bold text-center mb-12 neon-text">
           全部文章
         </h1>
 
-        {/* 分类 Tab - 炫酷切换效果 */}
-        <div className="mb-12">
-          <div className="flex justify-center flex-wrap gap-2">
-            {categories.map((cat, index) => (
-              <motion.button
-                key={cat.id}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.05 }}
-                onClick={() => {
-                  setSelectedCategory(cat.id);
-                  setPage(1);
-                }}
-                className={`relative px-6 py-3 rounded-lg font-medium transition-all overflow-hidden ${
-                  selectedCategory === cat.id
-                    ? "text-white"
-                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {selectedCategory === cat.id && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600"
-                    initial={false}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                )}
-                <span className="relative z-10">{cat.name}</span>
-              </motion.button>
-            ))}
-          </div>
+        {/* 分类导航 - GooeyNav */}
+        <div className="mb-12 flex justify-center">
+          <GooeyNav
+            items={categories.map((cat) => ({
+              label: cat.name,
+              href: "#",
+            }))}
+            particleCount={15}
+            particleDistances={[90, 10]}
+            particleR={100}
+            initialActiveIndex={0}
+            animationTime={600}
+            timeVariance={300}
+            colors={[1, 2, 3, 1, 2, 3, 1, 4]}
+            onClick={(index) => {
+              setSelectedCategory(categories[index].id);
+              setPage(1);
+            }}
+          />
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(6)].map((_, i) => (
-              <PixelCard
-                key={i}
-                variant="purple"
-                className="h-80 animate-pulse"
-              />
-            ))}
+          <div className="text-center py-20">
+            <p className="text-xl text-gray-400">加载中...</p>
           </div>
         ) : articles.length === 0 ? (
           <div className="text-center py-20">

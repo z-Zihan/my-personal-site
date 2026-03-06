@@ -78,7 +78,7 @@ export default function Profile() {
         {/* 用户信息卡片 */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-            👤 个人信息
+            个人信息
           </h2>
 
           {/* 头像和用户名 */}

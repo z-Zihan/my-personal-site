@@ -436,18 +436,18 @@ function ArticleManager() {
               render: (name, record) => name || `访客 ${record.visitor_id?.slice(-6)}`,
             },
             {
+              title: '评论时间',
+              dataIndex: 'created_at',
+              key: 'created_at',
+              width: 160,
+              render: (date) => formatDate(date),
+            },
+            {
               title: '地理位置',
               dataIndex: 'location',
               key: 'location',
               width: 120,
               render: (location) => location || '-',
-            },
-            {
-              title: '评论时间',
-              dataIndex: 'created_at',
-              key: 'created_at',
-              width: 180,
-              render: (date) => formatDate(date),
             },
             {
               title: '操作',

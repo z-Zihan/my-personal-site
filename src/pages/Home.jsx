@@ -14,6 +14,7 @@ import Magnet from '../components/effects/Magnet';
 import Aurora from '../components/effects/Aurora';
 import LoadingSpinner from '../components/effects/LoadingSpinner';
 import PixelCard from '../components/effects/PixelCard';
+import CountUpNumber from '../components/effects/CountUp';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -98,7 +99,7 @@ export default function Home() {
                   className="text-3xl font-bold group-hover:scale-110 transition-transform"
                   whileHover={{ scale: 1.1 }}
                 >
-                  {stats.totalArticles || 0}
+                  <CountUpNumber end={stats.totalArticles || 0} duration={2.5} />
                 </motion.div>
                 <div className="text-white/70">文章</div>
               </div>
@@ -107,7 +108,7 @@ export default function Home() {
                   className="text-3xl font-bold group-hover:scale-110 transition-transform"
                   whileHover={{ scale: 1.1 }}
                 >
-                  {stats.totalViews || 0}
+                  <CountUpNumber end={stats.totalViews || 0} duration={2.5} />
                 </motion.div>
                 <div className="text-white/70">阅读</div>
               </div>
@@ -116,7 +117,7 @@ export default function Home() {
                   className="text-3xl font-bold group-hover:scale-110 transition-transform"
                   whileHover={{ scale: 1.1 }}
                 >
-                  {stats.totalMessages || 0}
+                  <CountUpNumber end={stats.totalMessages || 0} duration={2.5} />
                 </motion.div>
                 <div className="text-white/70">留言</div>
               </div>
