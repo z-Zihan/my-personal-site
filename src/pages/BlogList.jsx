@@ -54,7 +54,7 @@ function BlogList() {
       ref={containerRef}
       className="min-h-screen pt-20 pb-20 relative overflow-hidden"
     >
-      <Crosshair color="#00ffff" containerRef={containerRef} />
+      <Crosshair color="#dc25d0" containerRef={containerRef} />
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <h1 className="text-5xl font-bold text-center mb-12 neon-text">
           全部文章

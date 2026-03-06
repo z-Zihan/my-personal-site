@@ -4,9 +4,31 @@ export const config = {
   runtime: 'edge',
 }
 
+// 简单的 token 验证函数 - 只验证时间戳格式
+function validateToken(token) {
+  if (!token || !token.startsWith('admin_')) {
+    return false
+  }
+  const timestamp = token.split('_')[1]
+  return timestamp && !isNaN(parseInt(timestamp))
+}
+
 export default async function handler(req) {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
+  }
+
+  // 验证管理员 token
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return errorResponse('Unauthorized', 401)
+  }
+
+  const token = authHeader.substring(7)
+
+  // 验证 token
+  if (!validateToken(token)) {
+    return errorResponse('Invalid or expired token', 401)
   }
 
   // GET - 获取分类列表

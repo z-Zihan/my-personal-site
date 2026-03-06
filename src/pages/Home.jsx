@@ -5,10 +5,7 @@ import SearchBar from '../components/common/SearchBar';
 import ReadingTime from '../components/common/ReadingTime';
 import { getArticleCover } from '../utils/defaultCovers';
 import { articleApi, hotNewsApi, statsApi } from '../api';
-import ParticleBackground from '../components/ParticleBackground';
-import GradientBackground from '../components/effects/GradientBackground';
 import Sparkles from '../components/effects/Sparkles';
-import SpotlightCard from '../components/effects/SpotlightCard';
 import BlurText from '../components/effects/BlurText';
 import Magnet from '../components/effects/Magnet';
 import Aurora from '../components/effects/Aurora';
@@ -266,7 +263,7 @@ export default function Home() {
             <div className="grid md:grid-cols-2 gap-4">
               {hotNews.slice(0, 6).map((news, index) => (
                 <motion.a
-                  key={news.id}
+                  key={`hot-news-${news.title}${index}`}
                   href={news.link}
                   target="_blank"
                   rel="noopener noreferrer"

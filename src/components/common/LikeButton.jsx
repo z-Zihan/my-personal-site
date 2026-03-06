@@ -111,16 +111,49 @@ export default function LikeButton({ articleId, initialLikes }) {
     <button
       onClick={handleLike}
       disabled={loading}
-      className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all select-none ${
-        isLiked
-          ? 'bg-pink-500 text-white'
-          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-pink-100 dark:hover:bg-pink-900'
-      } ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}`}
+      className={`group relative flex items-center gap-2 px-5 py-2.5 rounded-2xl transition-all duration-300 select-none
+        ${isLiked
+          ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/30'
+          : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 shadow-md shadow-gray-200/50 dark:shadow-gray-900/50 hover:shadow-lg hover:shadow-pink-500/20 dark:hover:shadow-pink-900/20'
+        }
+        ${loading ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105 active:scale-95 cursor-pointer'}
+      `}
       aria-label={isLiked ? '取消点赞' : '点赞'}
       aria-pressed={isLiked}
     >
-      <span className="text-lg" aria-hidden="true">{isLiked ? '❤️' : '🤍'}</span>
-      <span className="font-medium">{loading ? '...' : likes}</span>
+      {/* 光晕效果 */}
+      {isLiked && (
+        <span className="absolute inset-0 rounded-2xl bg-gradient-to-r from-pink-400/20 to-rose-400/20 animate-pulse" />
+      )}
+
+      {/* 爱心图标 */}
+      <span
+        className={`relative text-xl transition-transform duration-300 ${
+          isLiked ? 'animate-heartbeat' : 'group-hover:scale-110'
+        }`}
+        aria-hidden="true"
+      >
+        {isLiked ? '❤️' : '🤍'}
+      </span>
+
+      {/* 点赞数 */}
+      <span className={`relative font-semibold text-base ${isLiked ? 'text-white' : 'text-gray-700 dark:text-gray-200'}`}>
+        {loading ? (
+          <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          </svg>
+        ) : likes}
+      </span>
+
+      {/* 提示文字 */}
+      {!loading && (
+        <span className={`relative text-sm transition-all duration-300 ${
+          isLiked ? 'text-pink-100' : 'text-gray-500 dark:text-gray-400 group-hover:text-pink-500 dark:group-hover:text-pink-400'
+        }`}>
+          {isLiked ? '已赞' : '点赞'}
+        </span>
+      )}
     </button>
   );
 }
