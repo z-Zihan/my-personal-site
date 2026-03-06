@@ -28,7 +28,7 @@ export default function CommentSection({ articleId }) {
   const fetchComments = async () => {
     try {
       const res = await get('/api/comments', { article_id: articleId });
-      setComments(res.data.data || []);
+      setComments(res.data || []);
     } catch (error) {
       console.error("Fetch comments error:", error);
     }

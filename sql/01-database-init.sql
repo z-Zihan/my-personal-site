@@ -328,48 +328,56 @@ ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 
 -- articles 表策略
 CREATE POLICY "Allow public read access for published articles"
-ON articles FOR SELECT TO anon USING (true);
+ON articles FOR SELECT TO anon, authenticated USING (true);
 
 CREATE POLICY "Allow full access for authenticated users"
 ON articles FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 其他博客表策略
-CREATE POLICY "Allow public read access" ON categories FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow public read access" ON tags FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow public read access" ON comments FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow insert for all" ON comments FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "Allow public read access" ON likes FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow public insert access" ON likes FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "Allow public delete access" ON likes FOR DELETE TO anon USING (true);
-CREATE POLICY "Allow public read access" ON bookmarks FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow insert for all" ON bookmarks FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "Allow delete for all" ON bookmarks FOR DELETE TO anon USING (true);
-CREATE POLICY "Allow public read access" ON daily_views FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow public read access" ON hot_news FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow public read access" ON hot_news_cache FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow insert for all" ON hot_news_cache FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "Allow update for all" ON hot_news_cache FOR UPDATE TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public read access" ON messages FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow public insert access" ON messages FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Allow public read access" ON categories FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow public read access" ON tags FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow public read access" ON comments FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow insert for all" ON comments FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Allow anonymous read access" ON likes FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow anonymous insert access" ON likes FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Allow anonymous delete access" ON likes FOR DELETE TO anon, authenticated USING (true);
+CREATE POLICY "Allow public read access" ON bookmarks FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow insert for all" ON bookmarks FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Allow delete for all" ON bookmarks FOR DELETE TO anon, authenticated USING (true);
+CREATE POLICY "Allow public read access" ON daily_views FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow public read access" ON hot_news FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow public read access" ON hot_news_cache FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow insert for all" ON hot_news_cache FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Allow update for all" ON hot_news_cache FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public read access" ON messages FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow public insert access" ON messages FOR INSERT TO anon, authenticated WITH CHECK (true);
 
 -- 用户偏好表策略
-CREATE POLICY "Allow public read access" ON user_preferences FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow upsert for all" ON user_preferences FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public read access" ON user_preferences FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow upsert for all" ON user_preferences FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- 埋点分析表策略（允许匿名写入）
-CREATE POLICY "Allow public read access" ON visitors FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow insert for all" ON visitors FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "Allow update for all" ON visitors FOR UPDATE TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public read access" ON visitors FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow insert for all" ON visitors FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Allow update for all" ON visitors FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
 
-CREATE POLICY "Allow public read access" ON sessions FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow insert for all" ON sessions FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "Allow update for all" ON sessions FOR UPDATE TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public read access" ON sessions FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow insert for all" ON sessions FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Allow update for all" ON sessions FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
 
-CREATE POLICY "Allow public read access" ON page_views FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow insert for all" ON page_views FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Allow public read access" ON page_views FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow insert for all" ON page_views FOR INSERT TO anon, authenticated WITH CHECK (true);
 
-CREATE POLICY "Allow public read access" ON events FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow insert for all" ON events FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Allow anonymous read access" ON events FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow insert for all" ON events FOR INSERT TO anon, authenticated WITH CHECK (true);
+
+-- 授予所有表权限给 anon 和 authenticated 角色
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
 
 -- ============================================
 -- 数据库初始化完成！

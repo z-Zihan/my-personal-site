@@ -15,10 +15,10 @@ export default function SearchBar({ onSearchResults }) {
         setLoading(true);
         try {
           const res = await searchApi.search(query);
-          setResults(res.data.data || []);
+          setResults(res.data || []);
           setIsOpen(true);
           if (onSearchResults) {
-            onSearchResults(res.data.data || []);
+            onSearchResults(res.data || []);
           }
         } catch (error) {
           console.error('Search error:', error);

@@ -32,8 +32,9 @@ export default function BlogDetail() {
       setLoading(true);
       setError(null);
       const res = await get('/api/article-detail', { id });
-      if (res.data && res.data.data) {
-        setArticle(res.data.data);
+      console.log('Fetched article:', res.data);
+      if ( res.data) {
+        setArticle(res.data);
       } else {
         setError("文章不存在");
       }
