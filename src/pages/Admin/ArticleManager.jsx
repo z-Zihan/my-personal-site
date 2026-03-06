@@ -62,7 +62,7 @@ function ArticleManager() {
     setLoading(true);
     try {
       const { data } = await articlesApi.getList({ limit: 100 });
-      setArticles(data.data?.data || []);
+      setArticles(data?.data || []);
     } catch (error) {
       message.error('加载文章失败');
     } finally {
@@ -74,7 +74,7 @@ function ArticleManager() {
     try {
       const { data } = await articlesApi.getList({ recommended: true, limit: 50 });
       // 按 recommend_order 排序
-      const sorted = (data.data?.data || []).sort((a, b) => (a.recommend_order ?? 0) - (b.recommend_order ?? 0));
+      const sorted = (data?.data || []).sort((a, b) => (a.recommend_order ?? 0) - (b.recommend_order ?? 0));
       setRecommendedArticles(sorted);
     } catch (error) {
       console.error('加载推荐文章失败:', error);
@@ -174,7 +174,7 @@ function ArticleManager() {
     setCommentsLoading(true);
     try {
       const { data } = await commentsApi.getList({ article_id: article.id });
-      setComments(data.data?.data || []);
+      setComments(data?.data || []);
     } catch (error) {
       message.error('加载评论失败');
     } finally {
@@ -348,6 +348,10 @@ function ArticleManager() {
       render: (order) => order ?? 0,
     },
   ];
+
+  console.log('articles', articles);
+  console.log('recommendedArticles', recommendedArticles);
+  console.log('recommendedArticles', recommendedArticles);
 
   return (
     <div>

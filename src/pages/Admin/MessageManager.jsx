@@ -18,7 +18,7 @@ function MessageManager() {
     setLoading(true)
     try {
       const { data } = await messagesApi.getList()
-      setMessages(data.data?.data || [])
+      setMessages(data?.data || [])
     } catch (error) {
       message.error('加载留言失败')
     } finally {

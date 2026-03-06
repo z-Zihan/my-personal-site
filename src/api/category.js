@@ -25,5 +25,5 @@ export const categoryApi = {
    * 删除分类
    * @param {number} id - 分类 ID
    */
-  delete: (id) => del('/api/categories', { id }),
+  delete: (id) => del('/api/categories', {}, { params: { id } }),
 };

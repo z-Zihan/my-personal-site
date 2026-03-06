@@ -49,7 +49,8 @@ function ArticleEditor() {
   const fetchCategories = async () => {
     try {
       const { data } = await categoryApi.getList()
-      setCategories(data.data || [])
+      console.log('categories data', data)
+      setCategories(data || [])
     } catch (error) {
       console.error('Fetch categories error:', error)
       message.error('加载分类失败')
