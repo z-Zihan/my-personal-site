@@ -1,33 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { toast } from '../../utils/toast';
-import { API_BASE } from '../../constants/apiConstants';
-import Avatar from './Avatar';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "../../utils/toast";
+import { API_BASE } from "../../constants/apiConstants";
+import Avatar from "./Avatar";
 
 export default function CommentSection({ articleId }) {
   const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [visitorId, setVisitorId] = useState('');
-  const [visitorName, setVisitorName] = useState('');
+  const [visitorId, setVisitorId] = useState("");
+  const [visitorName, setVisitorName] = useState("");
 
   useEffect(() => {
-    let vid = localStorage.getItem('visitor_id');
+    let vid = localStorage.getItem("visitor_id");
     if (!vid) {
-      vid = 'visitor_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('visitor_id', vid);
+      vid =
+        "visitor_" +
+        Date.now().toString(36) +
+        "_" +
+        Math.random().toString(36).substr(2, 9);
+      localStorage.setItem("visitor_id", vid);
     }
     setVisitorId(vid);
-    setVisitorName(localStorage.getItem('userName') || '');
+    setVisitorName(localStorage.getItem("userName") || "");
     fetchComments();
   }, [articleId]);
 
   const fetchComments = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/comments?article_id=${articleId}`);
+      const res = await axios.get(
+        `${API_BASE}/api/comments?article_id=${articleId}`,
+      );
       setComments(res.data.data || []);
     } catch (error) {
-      console.error('Fetch comments error:', error);
+      console.error("Fetch comments error:", error);
     }
   };
 
@@ -37,18 +43,20 @@ export default function CommentSection({ articleId }) {
 
     setLoading(true);
     try {
-      // 获取地理位置 - 使用 ip-api.com
+      // 获取地理位置 - 使用 ipapi.co (HTTPS)
       const location = await Promise.race([
-        fetch('http://ip-api.com/json/?lang=zh-CN')
-          .then(res => res.json())
-          .then(data => {
-            if (data.status === 'success') {
-              return `${data.city || ''} ${data.country || ''}`.trim() || '未知';
+        fetch("https://ipapi.co/json/")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && !data.error) {
+              return (
+                `${data.city || ""} ${data.country_name || ""}`.trim() || "未知"
+              );
             }
-            return '未知';
+            return "未知";
           })
-          .catch(() => '未知'),
-        new Promise(resolve => setTimeout(() => resolve('未知'), 3000))
+          .catch(() => "未知"),
+        new Promise((resolve) => setTimeout(() => resolve("未知"), 3000)),
       ]);
 
       await axios.post(`${API_BASE}/api/create-comment`, {
@@ -56,23 +64,23 @@ export default function CommentSection({ articleId }) {
         visitor_id: visitorId,
         content: newComment,
         visitor_name: visitorName || undefined,
-        location: location || undefined
+        location: location || undefined,
       });
-      setNewComment('');
+      setNewComment("");
       fetchComments();
-      toast.success('评论成功');
+      toast.success("评论成功");
     } catch (error) {
-      toast.error('评论失败，请重试');
+      toast.error("评论失败，请重试");
     } finally {
       setLoading(false);
     }
   };
 
   const getAvatar = (id) => {
-    const avatars = ['🐱', '🐶', '🦊', '🦁', '🐯', '🐼', '🐨', '🐸'];
+    const avatars = ["🐱", "🐶", "🦊", "🦁", "🐯", "🐼", "🐨", "🐸"];
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
-      hash = ((hash << 5) - hash) + id.charCodeAt(i);
+      hash = (hash << 5) - hash + id.charCodeAt(i);
       hash = hash & hash;
     }
     return avatars[Math.abs(hash) % avatars.length];
@@ -80,7 +88,9 @@ export default function CommentSection({ articleId }) {
 
   return (
     <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-      <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">评论 ({comments.length})</h3>
+      <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+        评论 ({comments.length})
+      </h3>
 
       <form onSubmit={handleSubmit} className="mb-8">
         <textarea
@@ -95,12 +105,12 @@ export default function CommentSection({ articleId }) {
           disabled={loading}
           className="mt-3 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
         >
-          {loading ? '提交中...' : '发表评论'}
+          {loading ? "提交中..." : "发表评论"}
         </button>
       </form>
 
       <div className="space-y-4">
-        {comments.map((comment, index) => (
+        {comments.map((comment) => (
           <div
             key={comment.id}
             className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
@@ -108,18 +118,31 @@ export default function CommentSection({ articleId }) {
             <div className="flex items-start gap-3">
               <Avatar userId={comment.visitor_id} size={40} />
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {comment.visitor_name || `访客 ${comment.visitor_id?.slice(-6)}`}
+                    {comment.visitor_name ||
+                      `访客 ${comment.visitor_id?.slice(-6)}`}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(comment.created_at).toLocaleString("zh-CN", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      hour12: false,
+                    })}
                   </span>
                   {comment.location && (
-                    <span className="text-xs text-gray-500">📍 {comment.location}</span>
+                    <span className="text-xs text-gray-500">
+                      📍 {comment.location}
+                    </span>
                   )}
                 </div>
-                <p className="text-gray-900 dark:text-white">{comment.content}</p>
-                <div className="mt-2 text-sm text-gray-500">
-                  <span>{new Date(comment.created_at).toLocaleDateString('zh-CN')}</span>
-                </div>
+                <p className="text-gray-900 dark:text-white">
+                  {comment.content}
+                </p>
               </div>
             </div>
           </div>

@@ -163,7 +163,6 @@ const ElectricBorder = ({
       const rect = container.getBoundingClientRect();
       const width = rect.width + borderOffset * 2;
       const height = rect.height + borderOffset * 2;
-      console.log('12',rect.height);
 
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = width * dpr;

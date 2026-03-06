@@ -27,7 +27,7 @@ export default function LikeButton({ articleId, initialLikes }) {
       if (liked) {
         // 取消点赞
         await axios.delete(`${API_BASE}/api/like-article`, {
-          data: { article_id: articleId, visitor_id: visitorId }
+          params: { article_id: articleId, visitor_id: visitorId }
         });
         setLikes(Math.max(0, likes - 1));
         setLiked(false);

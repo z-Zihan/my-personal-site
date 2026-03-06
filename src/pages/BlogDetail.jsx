@@ -94,7 +94,7 @@ export default function BlogDetail() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <ReadingProgress />
-      <TableOfContents contentRef={contentRef} />
+      {/* <TableOfContents contentRef={contentRef} /> */}
 
       {/* Header */}
       <header className="bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 py-20">
