@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { post, del } from '../../utils/request';
+import { articleApi } from '../../api/article';
 import { toast } from '../../utils/toast';
 
 // 本地存储 key
@@ -79,7 +79,7 @@ export default function LikeButton({ articleId, initialLikes }) {
     try {
       if (newLikeStatus) {
         // 点赞
-        await post('/api/like-article', {
+        await articleApi.checkLikeStatus({
           article_id: articleId,
           visitor_id: visitorId
         });
@@ -87,7 +87,7 @@ export default function LikeButton({ articleId, initialLikes }) {
         toast.success('点赞成功');
       } else {
         // 取消点赞
-        await del('/api/like-article', {
+        await articleApi.deleteLike({
           article_id: articleId,
           visitor_id: visitorId
         });

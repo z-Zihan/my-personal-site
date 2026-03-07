@@ -4,7 +4,7 @@ import { API_BASE } from '../constants/apiConstants';
 // 创建 axios 实例
 const request = axios.create({
   baseURL: API_BASE,
-  timeout: 10000,
+  timeout: 180000,
   headers: {
     'Content-Type': 'application/json',
   },

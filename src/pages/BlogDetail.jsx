@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { get } from "../utils/request";
+import { articleApi } from "../api/article";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -31,7 +31,7 @@ export default function BlogDetail() {
     try {
       setLoading(true);
       setError(null);
-      const res = await get('/api/article-detail', { id });
+      const res = await articleApi.getDetail(id);
       if ( res.data) {
         setArticle(res.data);
       } else {

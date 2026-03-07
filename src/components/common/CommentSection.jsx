@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { get, post } from "../../utils/request";
+import { commentApi } from "../../api/comment";
 import { toast } from "../../utils/toast";
 import Avatar from "./Avatar";
 
@@ -27,7 +27,7 @@ export default function CommentSection({ articleId }) {
 
   const fetchComments = async () => {
     try {
-      const res = await get('/api/comments', { article_id: articleId });
+      const res = await commentApi.getList({ article_id: articleId });
       setComments(res.data || []);
     } catch (error) {
       console.error("Fetch comments error:", error);
@@ -57,7 +57,7 @@ export default function CommentSection({ articleId }) {
         new Promise((resolve) => setTimeout(() => resolve("未知"), 3000)),
       ]);
 
-      await post('/api/create-comment', {
+      await commentApi.create({
         article_id: articleId,
         visitor_id: visitorId,
         content: newComment,

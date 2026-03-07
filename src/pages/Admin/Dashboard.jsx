@@ -15,7 +15,9 @@ import {
   PieChart, Pie, Cell, Legend,
   LineChart, Line,
 } from 'recharts'
-import { get } from '../../utils/request'
+import { articleApi } from '../../api/article'
+import { statsApi } from '../../api/stats'
+import { analyticsApi } from '../../api/analytics'
 import VisitorMap from '../../components/admin/VisitorMap'
 import { useNavigate } from 'react-router-dom'
 
@@ -38,9 +40,9 @@ function Dashboard() {
   const fetchAllData = async () => {
     try {
       const [statsRes, analyticsRes, latestRes] = await Promise.all([
-        get('/api/stats'),
-        get('/api/analytics', { type: 'overview' }),
-        get('/api/articles', { page: 1, limit: 6, status: 'published' })
+        statsApi.getStats(),
+        analyticsApi.getOverview(),
+        articleApi.getList({ page: 1, limit: 6, status: 'published' })
       ])
       setStats(statsRes?.data || statsRes.data)
       setAnalytics(analyticsRes?.data || analyticsRes.data)
@@ -49,10 +51,10 @@ function Dashboard() {
 
       // 获取详细统计数据
       const [daily, pages, devices, browsers] = await Promise.all([
-        get('/api/analytics', { type: 'daily', days: 7 }),
-        get('/api/analytics', { type: 'pages', days: 7 }),
-        get('/api/analytics', { type: 'devices', days: 7 }),
-        get('/api/analytics', { type: 'browsers', days: 7 }),
+        analyticsApi.getDaily(7),
+        analyticsApi.getPages(7),
+        analyticsApi.getDevices(7),
+        analyticsApi.getBrowsers(7),
       ])
 
       // 确保数据是数组

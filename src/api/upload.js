@@ -1,4 +1,5 @@
 import { post } from '../utils/request';
+import { API_ENDPOINTS } from '../constants/apiConstants';
 
 /**
  * 图片上传 API
@@ -11,7 +12,7 @@ export const uploadApi = {
   uploadImage: (file) => {
     const formData = new FormData();
     formData.append('image', file);
-    return post('/api/upload-image', formData, {
+    return post(API_ENDPOINTS.UPLOAD_IMAGE, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

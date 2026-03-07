@@ -8,6 +8,14 @@ export const API_ENDPOINTS = {
   ARTICLE_DETAIL: '/api/article-detail',
   HOT_NEWS: '/api/hot-news',
   SEARCH: '/api/search',
+  MESSAGES: '/api/messages',
+  LIKE_ARTICLE: '/api/like-article',
+  CATEGORIES: '/api/categories',
+  CREATE_ARTICLE: '/api/create-article',
+  UPDATE_ARTICLE: '/api/update-article',
+  DELETE_ARTICLE: '/api/delete-article',
+  TOGGLE_ARTICLE_STATUS: '/api/toggle-article-status',
+  UPDATE_ARTICLE_RECOMMEND: '/api/update-article-recommend',
 
   // 评论相关
   COMMENTS: '/api/comments',
@@ -15,7 +23,6 @@ export const API_ENDPOINTS = {
   DELETE_COMMENT: '/api/delete-comment',
 
   // 点赞相关
-  LIKE_ARTICLE: '/api/like-article',
 
   // 统计相关
   STATS: '/api/stats',
@@ -26,6 +33,12 @@ export const API_ENDPOINTS = {
 
   // 消息相关
   CREATE_MESSAGE: '/api/create-message',
+  DELETE_MESSAGE: '/api/delete-message',
+
+  // 认证相关
+  LOGIN: '/api/login',
+  // 其他
+  BATCH_DELETE_COMMENT: '/api/batch-delete-comment',
 };
 
 export default {

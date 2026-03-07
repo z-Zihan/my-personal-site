@@ -4,7 +4,7 @@ import { useArticles } from "../hooks/useArticles";
 import ArticleCard from "../components/ArticleCard";
 import GooeyNav from "../components/effects/GooeyNav";
 import Crosshair from "../components/effects/Crosshair";
-import { get } from "../utils/request";
+import { categoryApi } from "../api/category";
 
 function BlogList() {
   const containerRef = useRef(null);
@@ -19,7 +19,7 @@ function BlogList() {
 
   const fetchCategories = async () => {
     try {
-      const { data } = await get('/api/categories');
+      const { data } = await categoryApi.getList();
       if (data && data.length > 0) {
         setCategories([{ id: "all", name: "全部" }, ...data]);
       }
