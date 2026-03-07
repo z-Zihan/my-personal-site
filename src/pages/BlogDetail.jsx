@@ -32,7 +32,6 @@ export default function BlogDetail() {
       setLoading(true);
       setError(null);
       const res = await get('/api/article-detail', { id });
-      console.log('Fetched article:', res.data);
       if ( res.data) {
         setArticle(res.data);
       } else {

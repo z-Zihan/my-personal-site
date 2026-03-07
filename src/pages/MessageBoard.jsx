@@ -40,7 +40,7 @@ function MessageBoard() {
   const fetchMessages = async () => {
     try {
       const { data } = await messageApi.getList();
-      setMessages(data.data || []);
+      setMessages(data || []);
     } catch (error) {
       console.error("Error fetching messages:", error);
     } finally {

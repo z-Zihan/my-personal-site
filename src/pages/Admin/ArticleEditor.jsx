@@ -32,7 +32,7 @@ function ArticleEditor() {
   const fetchArticle = async () => {
     try {
       const { data } = await articleApi.getDetail(id);
-      const article = data.data;
+      const article = data;
       form.setFieldsValue({
         title: article.title,
         summary: article.summary,
