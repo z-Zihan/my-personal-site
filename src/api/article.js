@@ -33,7 +33,7 @@ export const articleApi = {
    * 删除文章
    * @param {number} id - 文章 ID
    */
-  delete: (id) => del(API_ENDPOINTS.DELETE_ARTICLE, { id }),
+  delete: (id) => del(API_ENDPOINTS.DELETE_ARTICLE, {}, { params: { id } }),
 
   /**
    * 切换文章状态
