@@ -23,8 +23,8 @@ const Crosshair = ({ color = 'white', containerRef = null }: CrosshairProps) => 
   const cursorRef = useRef<HTMLDivElement>(null)
   const lineHorizontalRef = useRef<HTMLDivElement>(null)
   const lineVerticalRef = useRef<HTMLDivElement>(null)
-  const filterXRef = useRef<SVGFElemenTurbulenceElement | null>(null)
-  const filterYRef = useRef<SVGFElemenTurbulenceElement | null>(null)
+  const filterXRef = useRef<SVGFETurbulenceElement | null>(null)
+  const filterYRef = useRef<SVGFETurbulenceElement | null>(null)
 
   let mouse = { x: 0, y: 0 }
 

@@ -25,7 +25,7 @@ function Navbar() {
     { path: '/message', label: '留言' },
   ]
 
-  const isActive = (path) => location.pathname === path
+  const isActive = (path: string) => location.pathname === path
 
   return (
     <motion.nav

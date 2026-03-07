@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion as Motion } from "framer-motion";
 import { hotNewsApi } from "../api/index";
+import type { HotNews } from "../api/index";
 import PixelCard from "../components/effects/PixelCard";
 import Crosshair from "../components/effects/Crosshair";
 
@@ -8,9 +9,9 @@ import Crosshair from "../components/effects/Crosshair";
 const CLIENT_CACHE_DURATION = 5 * 60 * 1000;
 const CACHE_KEY = "hot_news_cache";
 
-function HotNews() {
+function HotNewsPage() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [news, setNews] = useState<any[]>([]);
+  const [news, setNews] = useState<HotNews[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,8 +29,8 @@ function HotNews() {
       }
 
       try {
-        const { data } = await hotNewsApi.getList();
-        const newsData = data || [];
+        const data = await hotNewsApi.getList();
+        const newsData = (data as unknown as { data?: HotNews[] }).data || [];
         setNews(newsData);
 
         // 更新本地缓存
@@ -56,7 +57,7 @@ function HotNews() {
 
   return (
     <div ref={containerRef} className="min-h-screen pt-20 pb-24">
-      <Crosshair color="#f97316" containerRef={containerRef} />
+      <Crosshair color="#f97316" containerRef={containerRef as React.RefObject<HTMLElement>} />
       <div className="max-w-4xl mx-auto px-4">
         <Motion.h1
           initial={{ opacity: 0, y: 20 }}
@@ -154,7 +155,7 @@ function HotNews() {
             {news.map((item, index) => (
               <Motion.a
                 key={`hot_news_${item.id}${index}`}
-                href={item.link}
+                href={item.link || item.url || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
                 initial={{ opacity: 0, x: -50 }}
@@ -206,4 +207,4 @@ function HotNews() {
   );
 }
 
-export default HotNews;
+export default HotNewsPage;

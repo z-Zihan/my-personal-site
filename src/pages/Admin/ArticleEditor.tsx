@@ -16,10 +16,10 @@ function ArticleEditor() {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState('');
   const [cover, setCover] = useState('');
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [addCategoryVisible, setAddCategoryVisible] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingCategory, setEditingCategory] = useState<{ id: number; name: string } | null>(null);
   const [categoryLoading, setCategoryLoading] = useState(false);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ function ArticleEditor() {
 
   const fetchArticle = async () => {
     try {
-      const { data } = await articleApi.getDetail(id);
+      const { data } = await articleApi.getDetail(Number(id));
       const article = data;
       form.setFieldsValue({
         title: article.title,
@@ -43,7 +43,7 @@ function ArticleEditor() {
 
       setContent(article.content || '');
       setCover(article.cover || '');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('加载文章失败:', error);
       message.error('加载文章失败');
     }
@@ -52,8 +52,8 @@ function ArticleEditor() {
   const fetchCategories = async () => {
     try {
       const res = await categoryApi.getList()
-      const list = Array.isArray(res) ? res : (res.data || [])
-      setCategories(list)
+      const list = Array.isArray(res) ? res : (res as { data?: { id: number; name: string }[] }).data || []
+      setCategories(list.map(cat => ({ id: cat.id as number, name: cat.name })))
     } catch (error) {
       console.error('Fetch categories error:', error)
       message.error('加载分类失败')
@@ -75,8 +75,8 @@ function ArticleEditor() {
       message.success('分类添加成功')
       setNewCategoryName('')
       setAddCategoryVisible(false)
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || '添加失败'
+    } catch (error: unknown) {
+      const errorMessage = (error as { response?: { data?: { error?: string } }; message?: string }).response?.data?.error || (error as { message?: string }).message || '添加失败'
       // 检查是否重复（通过错误消息判断）
       if (errorMessage.includes('already exists') || errorMessage.includes('已存在')) {
         message.error('分类名称已存在')
@@ -88,7 +88,7 @@ function ArticleEditor() {
     }
   }
 
-  const handleDeleteCategory = async (categoryId, categoryName) => {
+  const handleDeleteCategory = async (categoryId: number, categoryName: string) => {
     Modal.confirm({
       title: '确认删除',
       content: `确定要删除分类"${categoryName}"吗？`,
@@ -105,8 +105,8 @@ function ArticleEditor() {
             form.setFieldsValue({ category_id: undefined })
           }
           message.success('分类删除成功')
-        } catch (error) {
-          message.error(error.response?.data?.error || '删除失败')
+        } catch (error: unknown) {
+          message.error((error as { response?: { data?: { error?: string } }; message?: string }).response?.data?.error || '删除失败')
         } finally {
           setCategoryLoading(false)
         }
@@ -114,7 +114,7 @@ function ArticleEditor() {
     })
   }
 
-  const handleEditCategory = (category) => {
+  const handleEditCategory = (category: { id: number; name: string }) => {
     setEditingCategory(category)
     setNewCategoryName(category.name)
     setAddCategoryVisible(true)
@@ -127,15 +127,15 @@ function ArticleEditor() {
     }
     setCategoryLoading(true)
     try {
-      const { data } = await categoryApi.update({ id: editingCategory.id, name: newCategoryName.trim() })
+      const { data } = await categoryApi.update({ id: editingCategory!.id, name: newCategoryName.trim() })
       // 重新获取分类列表
       await fetchCategories()
       message.success('分类更新成功')
       setNewCategoryName('')
       setEditingCategory(null)
       setAddCategoryVisible(false)
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || '更新失败'
+    } catch (error: unknown) {
+      const errorMessage = (error as { response?: { data?: { error?: string } }; message?: string }).response?.data?.error || (error as { message?: string }).message || '更新失败'
       // 检查是否重复（通过错误消息判断）
       if (errorMessage.includes('already exists') || errorMessage.includes('已存在')) {
         message.error('分类名称已存在')
@@ -147,7 +147,7 @@ function ArticleEditor() {
     }
   }
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values: { status?: 'draft' | 'published' | 'archived'; [key: string]: unknown }) => {
     setLoading(true);
     try {
       // 如果选择的是草稿状态，并且文章是推荐状态，就取消推荐
@@ -160,14 +160,14 @@ function ArticleEditor() {
 
       // 当状态为草稿时，强制设置 is_recommended 为 false
       if (submitData.status === 'draft') {
-        submitData.is_recommended = false;
+        (submitData as { is_recommended?: boolean }).is_recommended = false;
       }
 
-      const articleData = submitData;
+      const articleData = submitData as { id?: number; title?: string; content?: string; summary?: string; category_id?: number; cover?: string; status?: 'draft' | 'published' | 'archived'; is_recommended?: boolean };
 
       if (id) {
         // 更新
-        await articleApi.update({ id, ...articleData });
+        await articleApi.update({ id: Number(id), ...articleData });
         message.success('文章更新成功');
       } else {
         // 创建
@@ -176,8 +176,8 @@ function ArticleEditor() {
       }
 
       navigate('/admin/articles');
-    } catch (error) {
-      message.error(error.response?.data?.error || '操作失败');
+    } catch (error: unknown) {
+      message.error((error as { response?: { data?: { error?: string } }; message?: string }).response?.data?.error || '操作失败');
     } finally {
       setLoading(false);
     }
@@ -241,7 +241,7 @@ function ArticleEditor() {
                       disabled={categoryLoading}
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleEditCategory(categories.find(c => c.id === option.value))
+                        handleEditCategory(categories.find((c) => c.id === option.value)!)
                       }}
                     />
                     <Button
@@ -252,7 +252,7 @@ function ArticleEditor() {
                       disabled={categoryLoading}
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleDeleteCategory(option.value, option.label)
+                        handleDeleteCategory(option.value as number, String(option.label))
                       }}
                     />
                   </Space>
@@ -279,7 +279,7 @@ function ArticleEditor() {
                 </>
               )}
             >
-              {categories.map(cat => (
+              {categories.map((cat: { id: number; name: string }) => (
                 <Select.Option key={cat.id} value={cat.id}>
                   {cat.name}
                 </Select.Option>

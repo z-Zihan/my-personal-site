@@ -16,6 +16,13 @@ interface EditorInstance {
   [key: string]: unknown
 }
 
+// WangEditor 的 IDomEditor 类型
+interface WangEditorInstance {
+  getHtml: () => string
+  setHtml: (html: string) => void
+  [key: string]: unknown
+}
+
 export default function RichEditor({ value, onChange, height = 400 }: RichEditorProps) {
   const editorRef = useRef<EditorInstance | null>(null)
   const [editorInstance, setEditorInstance] = useState<EditorInstance | null>(null)
@@ -81,12 +88,12 @@ export default function RichEditor({ value, onChange, height = 400 }: RichEditor
       <Toolbar editor={editorInstance as unknown as typeof Editor.prototype} defaultConfig={toolbarConfig} mode="default" style={{ borderBottom: '1px solid #d9d9d9' }} />
       <Editor
         defaultConfig={editorConfig as unknown as Record<string, unknown>}
-        onCreated={(editor: EditorInstance) => {
-          editorRef.current = editor
-          setEditorInstance(editor)
+        onCreated={(editor: unknown) => {
+          editorRef.current = editor as EditorInstance
+          setEditorInstance(editor as EditorInstance)
           // 编辑器创建后，如果有 value 则立即设置
           if (value) {
-            editor.setHtml(value)
+            (editor as EditorInstance).setHtml(value)
           }
         }}
         mode="default"

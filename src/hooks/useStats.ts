@@ -1,16 +1,12 @@
 import { useEffect, useState } from 'react'
-import { statsApi } from '../api/index'
+import { statsApi, Stats as StatsType } from '../api/index'
 
-interface Stats {
+export interface Stats {
   totalArticles?: number
   totalComments?: number
   totalMessages?: number
   totalViews?: number
   [key: string]: unknown
-}
-
-interface StatsResponse {
-  data: Stats
 }
 
 export function useStats() {
@@ -22,8 +18,8 @@ export function useStats() {
     setLoading(true)
     setError(null)
     try {
-      const { data } = await statsApi.getStats()
-      setStats((data as StatsResponse)?.data || null)
+      const data = await statsApi.getStats()
+      setStats((data as unknown as StatsType) || null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {

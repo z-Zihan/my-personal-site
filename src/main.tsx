@@ -9,7 +9,7 @@ import { initAnalytics } from './utils/analytics'
 // 初始化埋点
 initAnalytics()
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConfigProvider>
       <RouterProvider router={router} />

@@ -1,7 +1,7 @@
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { useRef } from 'react'
 
-export default function TextReveal({ text, className = '' }) {
+export default function TextReveal({ text, className = '' }: { text: string; className?: string }) {
   const ref = useRef(null)
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -19,7 +19,7 @@ export default function TextReveal({ text, className = '' }) {
       className={`text-5xl md:text-7xl font-bold text-white mb-6 ${className}`}
       style={{ opacity, y }}
     >
-      {words.map((word, i) => (
+      {words.map((word: string, i: number) => (
         <motion.span
           key={i}
           initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}

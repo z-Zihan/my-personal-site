@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { Heart } from 'lucide-react'
 import { articleApi } from '../../api/article'
 import { toast } from '../../utils/toast'
 
@@ -97,7 +98,7 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
         // 使用后端返回的实际点赞数
         const likeData = res as unknown as { likes?: number }
         if (likeData?.likes !== undefined) {
-          setLikes(likeData.likes)
+          setLikes(Number(likeData.likes))
         }
         setLikeStatus(articleId)
         toast.success('点赞成功')
@@ -110,7 +111,7 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
         // 使用后端返回的实际点赞数
         const likeData = res as unknown as { likes?: number }
         if (likeData?.likes !== undefined) {
-          setLikes(likeData.likes)
+          setLikes(Number(likeData.likes))
         }
         removeLikeStatus(articleId)
         toast.success('已取消点赞')
@@ -150,12 +151,12 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
 
       {/* 爱心图标 */}
       <span
-        className={`relative text-xl transition-transform duration-300 ${
+        className={`relative transition-transform duration-300 ${
           isLiked ? 'animate-heartbeat' : 'group-hover:scale-110'
         }`}
         aria-hidden="true"
       >
-        {isLiked ? '❤️' : '🤍'}
+        <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-white' : 'text-gray-400 group-hover:text-pink-500'}`} />
       </span>
 
       {/* 点赞数 */}

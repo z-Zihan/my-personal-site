@@ -1,17 +1,13 @@
 import { useEffect, useState } from 'react'
-import { hotNewsApi } from '../api/index'
+import { hotNewsApi, HotNews as HotNewsType } from '../api/index'
 
-interface HotNewsItem {
-  id: number
+export interface HotNewsItem {
+  id?: number
   title: string
   url: string
   source: string
   created_at?: string
   [key: string]: unknown
-}
-
-interface HotNewsResponse {
-  data: HotNewsItem[]
 }
 
 export function useHotNews() {
@@ -23,8 +19,15 @@ export function useHotNews() {
     setLoading(true)
     setError(null)
     try {
-      const { data } = await hotNewsApi.getList()
-      setNews((data as HotNewsResponse)?.data || [])
+      const data = await hotNewsApi.getList()
+      const newsData = data as unknown as HotNewsType[]
+      setNews(newsData.map(item => ({
+        ...item,
+        id: item.id || 0,
+        title: item.title || '',
+        url: item.url || '',
+        source: item.source || '',
+      })) || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {

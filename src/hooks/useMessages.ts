@@ -1,17 +1,13 @@
 import { useEffect, useState } from 'react'
-import { messageApi } from '../api/index'
+import { messageApi, Message as MessageType } from '../api/index'
 
-interface Message {
-  id: number
+export interface Message {
+  id?: number
   content: string
   author?: string
   email?: string
   created_at?: string
   [key: string]: unknown
-}
-
-interface MessagesResponse {
-  data: Message[]
 }
 
 export function useMessages() {
@@ -23,8 +19,13 @@ export function useMessages() {
     setLoading(true)
     setError(null)
     try {
-      const { data } = await messageApi.getList()
-      setMessages((data as MessagesResponse)?.data || [])
+      const data = await messageApi.getList()
+      const messagesData = data as unknown as MessageType[]
+      setMessages(messagesData.map(item => ({
+        ...item,
+        id: item.id || 0,
+        content: item.content || '',
+      })) || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {

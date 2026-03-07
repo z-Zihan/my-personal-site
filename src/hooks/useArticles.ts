@@ -61,9 +61,10 @@ export function useArticles(initialParams: ArticleFilters = {}) {
         ...initialParams,
         ...params,
       })
-      const response = result as ArticlesResponse
+      // result 已经是 ArticleListResponse 类型，直接解构
+      const response = result as unknown as ArticlesResponse
       setArticles(response.data || [])
-      setPagination(response.pagination || pagination)
+      setPagination(response.pagination || { page: 1, limit: 18, total: 0, totalPages: 0 })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {

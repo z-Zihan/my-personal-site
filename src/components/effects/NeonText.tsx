@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 
-export default function NeonText({ text, className = '' }) {
+export default function NeonText({ text, className = '' }: { text: string; className?: string }) {
   return (
     <div className={`relative ${className}`}>
       {/* 发光层 */}

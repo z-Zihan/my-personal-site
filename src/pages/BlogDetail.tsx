@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Calendar, Eye } from "lucide-react";
 import { articleApi, Article } from "../api/article";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -80,7 +81,8 @@ export default function BlogDetail() {
     try {
       setLoading(true);
       setError(null);
-      const articleData = await articleApi.getDetail(Number(id));
+      const response = await articleApi.getDetail(id);
+      const articleData = (response as { data?: Article }).data;
       if (articleData) {
         setArticle(articleData);
       } else {
@@ -88,7 +90,7 @@ export default function BlogDetail() {
       }
     } catch (err: unknown) {
       console.error("Fetch article error:", err);
-      if ((err as any)?.response?.status === 404) {
+      if ((err as { response?: { status?: number } })?.response?.status === 404) {
         setError("文章不存在");
       } else {
         setError("加载失败，请稍后重试");
@@ -160,11 +162,13 @@ export default function BlogDetail() {
             </p>
           )}
           <div className="flex items-center justify-center gap-6 text-white/80 flex-wrap">
-            <span>
-              📅 {new Date(article.created_at).toLocaleDateString("zh-CN")}
+            <span className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" /> {new Date(article.created_at || Date.now()).toLocaleDateString("zh-CN")}
             </span>
             <ReadingTime content={article.content} />
-            <span>👁️ {article.views || 0} 次阅读</span>
+            <span className="flex items-center gap-2">
+              <Eye className="w-5 h-5" /> {article.views || 0} 次阅读
+            </span>
           </div>
         </div>
       </header>
@@ -191,13 +195,13 @@ export default function BlogDetail() {
         {/* Actions */}
         <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <LikeButton articleId={Number(id)} initialLikes={article.likes} />
+            <LikeButton articleId={id} initialLikes={article.likes} />
             <ShareButtons title={article.title} url={window.location.href} />
           </div>
         </div>
 
         {/* Comments */}
-        <CommentSection articleId={Number(id)} />
+        <CommentSection articleId={id} />
       </main>
     </div>
   );

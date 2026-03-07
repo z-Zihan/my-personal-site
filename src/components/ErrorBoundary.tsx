@@ -1,5 +1,6 @@
 import React, { Component, ReactNode } from 'react'
 import { useNavigate, useRouteError } from 'react-router-dom'
+import { RefreshCw, Home } from 'lucide-react'
 
 interface ErrorBoundaryState {
   hasError: boolean
@@ -128,15 +129,15 @@ function ErrorFallback({ error, resetErrorBoundary, goHome }: ErrorFallbackProps
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={resetErrorBoundary}
-            className="px-8 py-3 bg-white text-red-600 font-semibold rounded-full hover:bg-white/90 transition-colors shadow-lg hover:shadow-xl hover:scale-105 transform duration-200"
+            className="px-8 py-3 bg-white text-red-600 font-semibold rounded-full hover:bg-white/90 transition-colors shadow-lg hover:shadow-xl hover:scale-105 transform duration-200 flex items-center gap-2 mx-auto"
           >
-            🔄 刷新页面
+            <RefreshCw className="w-5 h-5" /> 刷新页面
           </button>
           <button
             onClick={goHome || resetErrorBoundary}
-            className="px-8 py-3 bg-white/20 text-white font-semibold rounded-full hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/30"
+            className="px-8 py-3 bg-white/20 text-white font-semibold rounded-full hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/30 flex items-center gap-2 mx-auto"
           >
-            🏠 返回首页
+            <Home className="w-5 h-5" /> 返回首页
           </button>
         </div>
 

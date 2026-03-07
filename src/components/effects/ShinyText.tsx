@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 
-export default function ShinyText({ text, className = '', duration = 2 }) {
+export default function ShinyText({ text, className = '', duration = 2 }: { text: string; className?: string; duration?: number }) {
   return (
     <span className={`relative inline-block ${className}`}>
       <motion.span

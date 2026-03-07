@@ -1,16 +1,16 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, useRef } from "react";
-import { useArticles } from "../hooks/useArticles";
+import { useArticles, Article } from "../hooks/useArticles";
 import ArticleCard from "../components/ArticleCard";
 import GooeyNav from "../components/effects/GooeyNav";
 import Crosshair from "../components/effects/Crosshair";
-import { categoryApi } from "../api/category";
+import { categoryApi, Category } from "../api/category";
 
 function BlogList() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [categories, setCategories] = useState<Array<{ id: string | number; name: string }>>([{ id: "all", name: "全部" }]);
+  const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
+  const [categories, setCategories] = useState<Category[]>([{ id: "all", name: "全部" } as unknown as Category]);
   const { articles, loading, pagination, refetch } = useArticles({
     status: "published",
     limit: 18,
@@ -21,7 +21,7 @@ function BlogList() {
     try {
       const { data } = await categoryApi.getList();
       if (data && data.length > 0) {
-        setCategories([{ id: "all", name: "全部" }, ...data]);
+        setCategories([{ id: "all", name: "全部" } as unknown as Category, ...data]);
       }
     } catch (error) {
       console.error("Fetch categories error:", error);
@@ -52,7 +52,7 @@ function BlogList() {
       ref={containerRef}
       className="min-h-screen pt-20 pb-24 relative overflow-hidden"
     >
-      <Crosshair color="#dc25d0" containerRef={containerRef} />
+      <Crosshair color="#dc25d0" containerRef={containerRef as unknown as React.RefObject<HTMLElement>} />
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <h1 className="text-5xl font-bold text-center mb-12 neon-text">
           全部文章
@@ -72,8 +72,8 @@ function BlogList() {
             animationTime={600}
             timeVariance={300}
             colors={[1, 2, 3, 1, 2, 3, 1, 4]}
-            onClick={(index) => {
-              setSelectedCategory(categories[index].id);
+            onClick={(index: number) => {
+              setSelectedCategory(categories[index].id as unknown as number);
               setPage(1);
             }}
           />
@@ -127,8 +127,8 @@ function BlogList() {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {articles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
+              {articles.map((article: Article) => (
+                <ArticleCard key={article.id} article={{ ...article, summary: article.summary || '' }} isRecommended={false} />
               ))}
             </div>
 

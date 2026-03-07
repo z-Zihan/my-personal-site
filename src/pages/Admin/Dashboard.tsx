@@ -34,11 +34,20 @@ const COLORS = ['#00f0ff', '#7000ff', '#00ff88', '#ff6600', '#ff0066', '#00ccff'
 
 function Dashboard() {
   const navigate = useNavigate()
-  const [stats, setStats] = useState(null)
-  const [analytics, setAnalytics] = useState(null)
+  const [stats, setStats] = useState<{ totalArticles?: number; totalMessages?: number; totalNews?: number } | null>(null)
+  const [analytics, setAnalytics] = useState<{
+    totalVisitors?: number
+    totalPageViews?: number
+    totalSessions?: number
+    totalEvents?: number
+    daily?: Array<{ date: string; views: number }>
+    pages?: Array<{ path: string; views: number }>
+    devices?: Array<{ name: string; value: number }>
+    browsers?: Array<{ name: string; value: number }>
+  } | null>(null)
   const [loading, setLoading] = useState(true)
-  const [latestArticles, setLatestArticles] = useState([])
-  const [recommendedArticles, setRecommendedArticles] = useState([])
+  const [latestArticles, setLatestArticles] = useState<Array<{ id: number; title: string; status: string; views: number; likes: number; comment_count: number; created_at: string; updated_at?: string }>>([])
+  const [recommendedArticles, setRecommendedArticles] = useState<Array<{ id: number; title: string; views: number; likes: number; recommend_order?: number; created_at: string }>>([])
 
   useEffect(() => {
     fetchAllData()
@@ -51,11 +60,11 @@ function Dashboard() {
         analyticsApi.getOverview(),
         articleApi.getList({ page: 1, limit: 6, status: 'published' })
       ])
-      setStats(statsRes?.data || statsRes.data)
-      setAnalytics(analyticsRes?.data || analyticsRes.data)
-      setLatestArticles(latestRes?.data || [])
+      setStats(statsRes?.data || null)
+      setAnalytics(analyticsRes?.data || null)
+      setLatestArticles((latestRes as { data?: Array<{ id: number; title: string; status: string; views: number; likes: number; comment_count: number; created_at: string; updated_at?: string }> }).data || [])
       // 推荐文章必须是已发布的文章
-      setRecommendedArticles(latestRes?.data?.filter(a => a.is_recommended && a.status === 'published').slice(0, 10) || [])
+      setRecommendedArticles(((latestRes as { data?: Array<{ id: number; title: string; status: string; is_recommended?: boolean; views: number; likes: number; recommend_order?: number; created_at: string }> }).data || []).filter(a => a.is_recommended && a.status === 'published').slice(0, 10) || [])
 
       // 获取详细统计数据
       const [daily, pages, devices, browsers] = await Promise.all([

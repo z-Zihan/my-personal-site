@@ -1,5 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Star } from 'lucide-react'
 import ReadingTime from './common/ReadingTime'
 import { getArticleCover } from '../utils/defaultCovers'
 import PixelCard from './effects/PixelCard'
@@ -23,10 +24,10 @@ export interface Article {
 
 interface ArticleCardProps {
   article: Article
-  isRecommended: boolean
+  isRecommended?: boolean
 }
 
-function ArticleCard({ article, isRecommended }: ArticleCardProps) {
+function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
   const navigate = useNavigate()
 
   if (!article) return null
@@ -48,8 +49,8 @@ function ArticleCard({ article, isRecommended }: ArticleCardProps) {
       }}
     >
       {isRecommended && (
-        <div className="absolute top-2 right-2 z-10 bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-bold">
-          ⭐ 推荐
+        <div className="absolute top-2 right-2 z-10 bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+          <Star className="w-4 h-4" /> 推荐
         </div>
       )}
       {/* 浅色背景层 */}

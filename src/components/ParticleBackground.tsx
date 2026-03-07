@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 
 function ParticleBackground() {
   // 使用 useMemo 缓存随机值，避免在渲染时调用 impure 函数

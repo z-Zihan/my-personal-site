@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Star, BookOpen, TrendingUp, Newspaper } from 'lucide-react';
 import SearchBar from '../components/common/SearchBar';
 import ReadingTime from '../components/common/ReadingTime';
 import { getArticleCover } from '../utils/defaultCovers';
-import { articleApi, hotNewsApi, statsApi } from '../api';
+import { articleApi, hotNewsApi, statsApi, Article, HotNews, Stats } from '../api';
 import Sparkles from '../components/effects/Sparkles';
 import BlurText from '../components/effects/BlurText';
 import Magnet from '../components/effects/Magnet';
@@ -15,10 +16,10 @@ import CountUpNumber from '../components/effects/CountUp';
 
 export default function Home() {
   const navigate = useNavigate();
-  const [articles, setArticles] = useState<any[]>([]);
-  const [recommendedArticles, setRecommendedArticles] = useState<any[]>([]);
-  const [hotNews, setHotNews] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>(null);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [recommendedArticles, setRecommendedArticles] = useState<Article[]>([]);
+  const [hotNews, setHotNews] = useState<HotNews[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,12 +35,16 @@ export default function Home() {
         hotNewsApi.getList(),
         statsApi.getStats()
       ]);
-      setArticles(articlesRes.data || []);
+      const articlesData = (articlesRes as unknown as { data?: Article[] }).data || [];
       // 过滤出发布状态的推荐文章
-      const publishedRecommended = (recommendedRes.data || []).filter(article => article.status === 'published');
+      const recommendedData = (recommendedRes as unknown as { data?: Article[] }).data || [];
+      const publishedRecommended = recommendedData.filter(article => article.status === 'published');
+      const newsData = (newsRes as unknown as { data?: HotNews[] }).data || [];
+      const statsData = (statsRes as unknown as { data?: Stats }).data || null;
+      setArticles(articlesData);
       setRecommendedArticles(publishedRecommended);
-      setHotNews(newsRes.data || []);
-      setStats(statsRes.data);
+      setHotNews(newsData);
+      setStats(statsData);
     } catch (error) {
       console.error('Fetch data error:', error);
     } finally {
@@ -136,7 +141,7 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            ⭐ 推荐文章
+            <Star className="inline w-6 h-6 mr-2" /> 推荐文章
           </motion.h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -158,8 +163,8 @@ export default function Home() {
                       alt={article.title}
                       className="w-full h-48 object-cover"
                       loading="lazy"
-                      onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop'
+                      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop'
                       }}
                     />
                     <div className="p-6">
@@ -191,7 +196,7 @@ export default function Home() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          ✨ 最新文章
+          <BookOpen className="inline w-6 h-6 mr-2" /> 最新文章
         </motion.h2>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -261,12 +266,12 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              🔥 热点资讯
+              <TrendingUp className="inline w-6 h-6 mr-2" /> 热点资讯
             </motion.h2>
             <div className="grid md:grid-cols-2 gap-4">
               {hotNews.slice(0, 6).map((news, index) => (
                 <motion.a
-                  key={`hot-news-${news.title}${index}`}
+                  key={`hot-news-${news.id || news.title}${index}`}
                   href={news.link}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -282,13 +287,13 @@ export default function Home() {
                     whileHover={{ rotate: 360, scale: 1.2 }}
                     transition={{ duration: 0.6 }}
                   >
-                    📰
+                    <Newspaper className="w-8 h-8" />
                   </motion.span>
                   <div>
                     <h4 className="font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-purple-500 transition-colors">
                       {news.title}
                     </h4>
-                    <span className="text-sm text-gray-500">{news.source}</span>
+                    <span className="text-sm text-gray-500">{news.source || ''}</span>
                   </div>
                 </motion.a>
               ))}

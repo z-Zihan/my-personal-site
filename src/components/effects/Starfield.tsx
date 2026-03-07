@@ -8,8 +8,12 @@ export default function Starfield({
   starCount = 150,
   twinkleSpeed = 'medium',
   constellationLines = true
+}: {
+  starCount?: number
+  twinkleSpeed?: 'slow' | 'medium' | 'fast'
+  constellationLines?: boolean
 }) {
-  const durationMap = {
+  const durationMap: Record<string, number> = {
     slow: 4,
     medium: 2,
     fast: 1

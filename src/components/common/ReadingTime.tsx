@@ -1,4 +1,5 @@
 import React from 'react'
+import { Clock } from 'lucide-react'
 
 interface ReadingTimeProps {
   content?: string
@@ -18,7 +19,7 @@ export default function ReadingTime({ content }: ReadingTimeProps) {
 
   return (
     <span className="flex items-center text-sm">
-      <span className="mr-1">📖</span>
+      <Clock className="w-4 h-4 mr-1" />
       预计阅读 {minutes} 分钟
     </span>
   )

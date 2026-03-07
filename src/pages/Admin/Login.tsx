@@ -42,15 +42,15 @@ function AdminLogin() {
     }
   }, [isDev, isAuthenticated, login, navigate])
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values: { username: string; password: string }) => {
     try {
       const { data } = await authApi.login(values)
       const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString()
       login(data?.token, data?.user, expiresAt)
       message.success('登录成功')
       navigate('/admin/dashboard')
-    } catch (err) {
-      message.error(err.response?.data?.error || '登录失败')
+    } catch (err: unknown) {
+      message.error((err as { response?: { data?: { error?: string } }; message?: string }).response?.data?.error || '登录失败')
     }
   }
 

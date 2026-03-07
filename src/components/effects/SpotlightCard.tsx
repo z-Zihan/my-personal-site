@@ -1,12 +1,16 @@
 import { motion } from 'framer-motion';
 import { useRef, useState } from 'react';
 
-const SpotlightCard = ({ children, className = '', spotlightColor = 'rgba(139, 92, 246, 0.15)' }) => {
-  const cardRef = useRef(null);
+const SpotlightCard = ({ children, className = '', spotlightColor = 'rgba(139, 92, 246, 0.15)' }: {
+  children: React.ReactNode
+  className?: string
+  spotlightColor?: string
+}) => {
+  const cardRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     setPosition({

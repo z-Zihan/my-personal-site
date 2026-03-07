@@ -150,6 +150,7 @@ export const trackPageView = (pagePath: string, pageTitle: string) => {
 
 // 点击事件
 export const trackClick = (element: HTMLElement, pagePath: string) => {
+  const deviceInfo = getDeviceInfo()
   queueEvent({
     event_name: 'click',
     event_type: 'interaction',
@@ -157,25 +158,30 @@ export const trackClick = (element: HTMLElement, pagePath: string) => {
     element_selector:
       element.tagName.toLowerCase() + (element.className ? '.' + String(element.className).split(' ')[0] : ''),
     element_text: element.textContent?.substring(0, 100),
+    ...deviceInfo,
   })
 }
 
 // 表单提交事件
 export const trackFormSubmit = (formName: string, pagePath: string) => {
+  const deviceInfo = getDeviceInfo()
   queueEvent({
     event_name: 'form_submit',
     event_type: 'conversion',
     page_path: pagePath,
     event_data: { form_name: formName },
+    ...deviceInfo,
   })
 }
 
 // 自定义事件
 export const trackEvent = (eventName: string, eventType: string, eventData: Record<string, unknown> = {}) => {
+  const deviceInfo = getDeviceInfo()
   queueEvent({
     event_name: eventName,
     event_type: eventType,
     ...eventData,
+    ...deviceInfo,
   })
 }
 
@@ -197,7 +203,7 @@ export const initAnalytics = () => {
 
   // 自动追踪所有点击
   document.addEventListener('click', (e) => {
-    const target = e.target.closest('a, button, [role="button"]')
+    const target = (e.target as Element | null)?.closest('a, button, [role="button"]')
     if (target) {
       trackClick(target as HTMLElement, window.location.pathname)
     }

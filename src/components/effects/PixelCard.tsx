@@ -1,6 +1,15 @@
 import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 
+interface PixelCardProps {
+  children: React.ReactNode
+  className?: string
+  variant?: 'default' | 'pink' | 'cyan' | 'purple' | 'green' | 'orange' | 'gold'
+  pixelSize?: number
+  hoverIntensity?: number
+  onClick?: () => void
+}
+
 const PixelCard = ({
   children,
   className = '',
@@ -8,12 +17,16 @@ const PixelCard = ({
   pixelSize = 8,
   hoverIntensity = 1,
   onClick
-}) => {
-  const cardRef = useRef(null);
+}: PixelCardProps) => {
+  const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  const variants = {
+  const variants: Record<string, {
+    border: string
+    glow: string
+    pixel: string
+  }> = {
     default: {
       border: 'rgba(139, 92, 246, 0.5)',
       glow: 'rgba(139, 92, 246, 0.3)',
@@ -51,9 +64,9 @@ const PixelCard = ({
     }
   };
 
-  const colors = variants[variant] || variants.default;
+  const colors = variants[variant as string] || variants.default;
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;

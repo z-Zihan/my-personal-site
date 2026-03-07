@@ -55,7 +55,7 @@ function AdminLayout() {
   }, [])
 
   // 切换主题处理
-  const handleToggleTheme = (checked) => {
+  const handleToggleTheme = (checked: boolean) => {
     setIsDark(checked)
     if (checked) {
       document.documentElement.classList.add('dark')

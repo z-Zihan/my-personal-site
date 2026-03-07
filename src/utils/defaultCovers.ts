@@ -37,7 +37,7 @@ export const isValidImageUrl = (url: string | null | undefined): boolean => {
 }
 
 export interface Article {
-  id: number | string
+  id?: number | string
   cover?: string
   [key: string]: unknown
 }
@@ -47,7 +47,7 @@ export const getArticleCover = (article: Article): string => {
   if (isValidImageUrl(article.cover)) {
     return article.cover as string
   }
-  return getDefaultCover(article.id)
+  return getDefaultCover(article.id || 0)
 }
 
 export default {

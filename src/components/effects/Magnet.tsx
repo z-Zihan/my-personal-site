@@ -7,6 +7,12 @@ const Magnet = ({
   padding = 100,
   strength = 0.5,
   active = true,
+}: {
+  children: React.ReactNode
+  className?: string
+  padding?: number
+  strength?: number
+  active?: boolean
 }) => {
   const ref = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -18,10 +24,10 @@ const Magnet = ({
   const springX = useSpring(x, springConfig);
   const springY = useSpring(y, springConfig);
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!active || !ref.current) return;
 
-    const rect = ref.current.getBoundingClientRect();
+    const rect = (ref.current as HTMLElement).getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 

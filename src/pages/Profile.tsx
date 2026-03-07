@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Settings, Sun, Moon, Globe, Palette } from 'lucide-react';
 import { toast } from '../utils/toast';
-import { getLanguage, setLanguage, t } from '../utils/i18n';
+import { getLanguage, setLanguage, t, Language } from '../utils/i18n';
 import { useThemeStore } from '../store/themeStore';
 import Avatar from '../components/common/Avatar';
 import { sanitizeInput, inputRules } from '../utils/sanitize';
@@ -10,7 +11,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { darkMode, setDarkMode } = useThemeStore();
   const [visitorId, setVisitorId] = useState('');
-  const [language, setLang] = useState('zh');
+  const [language, setLang] = useState<Language>('zh');
   const [userName, setUserName] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [stats, setStats] = useState({ comments: 0, likes: 0 });
@@ -43,13 +44,13 @@ export default function Profile() {
     setLoading(false);
   }, []);
 
-  const handleLanguageChange = (lang) => {
+  const handleLanguageChange = (lang: Language) => {
     setLanguage(lang);
     setLang(lang);
     toast.success(lang === 'zh' ? '语言已切换为中文' : 'Language switched to English');
   };
 
-  const handleThemeChange = (isDark) => {
+  const handleThemeChange = (isDark: boolean) => {
     setDarkMode(isDark);
     localStorage.setItem('darkMode', isDark.toString());
     toast.success(isDark ? '已切换到暗黑模式' : '已切换到浅色模式');
@@ -179,13 +180,13 @@ export default function Profile() {
         {/* 设置卡片 */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-            ⚙️ {t('settings')}
+            <Settings className="inline w-6 h-6 mr-2" /> {t('settings')}
           </h2>
-          
+
           {/* 语言切换 */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              🌐 {t('language')}
+              <Globe className="inline w-5 h-5 mr-2" /> {t('language')}
             </label>
             <div className="flex gap-2">
               <button
@@ -214,7 +215,7 @@ export default function Profile() {
           {/* 主题切换 */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              🎨 {t('theme')}
+              <Palette className="inline w-5 h-5 mr-2" /> {t('theme')}
             </label>
             <div className="flex gap-2">
               <button
@@ -225,7 +226,7 @@ export default function Profile() {
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                ☀️ 浅色
+                <Sun className="w-5 h-5" /> 浅色
               </button>
               {/* <button
                 onClick={() => handleThemeChange(true)}
@@ -235,7 +236,7 @@ export default function Profile() {
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                🌙 暗黑
+                <Moon className="w-5 h-5" /> 暗黑
               </button> */}
             </div>
           </div>

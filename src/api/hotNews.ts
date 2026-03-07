@@ -5,6 +5,7 @@ export interface HotNews {
   id?: number;
   title?: string;
   url?: string;
+  link?: string;
   source?: string;
   heat?: number;
   [key: string]: unknown;
