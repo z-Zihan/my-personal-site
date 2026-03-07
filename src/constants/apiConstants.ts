@@ -39,7 +39,9 @@ export const API_ENDPOINTS = {
   LOGIN: '/api/login',
   // 其他
   BATCH_DELETE_COMMENT: '/api/batch-delete-comment',
-};
+} as const;
+
+export type ApiEndpoint = typeof API_ENDPOINTS[keyof typeof API_ENDPOINTS];
 
 export default {
   API_BASE,

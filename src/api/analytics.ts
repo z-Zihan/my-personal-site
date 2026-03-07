@@ -1,0 +1,81 @@
+import { get } from '../utils/request';
+import { API_ENDPOINTS } from '../constants/apiConstants';
+
+export interface AnalyticsOverview {
+  totalViews?: number;
+  totalVisitors?: number;
+  [key: string]: unknown;
+}
+
+export interface AnalyticsDaily {
+  date?: string;
+  views?: number;
+  visitors?: number;
+  [key: string]: unknown;
+}
+
+export interface AnalyticsPage {
+  path?: string;
+  views?: number;
+  [key: string]: unknown;
+}
+
+export interface AnalyticsDevice {
+  device?: string;
+  count?: number;
+  [key: string]: unknown;
+}
+
+export interface AnalyticsBrowser {
+  browser?: string;
+  count?: number;
+  [key: string]: unknown;
+}
+
+export interface AnalyticsCountry {
+  country?: string;
+  count?: number;
+  [key: string]: unknown;
+}
+
+type AnalyticsType = 'overview' | 'daily' | 'pages' | 'devices' | 'browsers' | 'countries';
+
+/**
+ * 数据分析 API
+ */
+export const analyticsApi = {
+  /**
+   * 获取概览数据
+   */
+  getOverview: () => get<AnalyticsOverview>(API_ENDPOINTS.ANALYTICS, { type: 'overview' as AnalyticsType }),
+
+  /**
+   * 获取每日统计数据
+   * @param days - 天数
+   */
+  getDaily: (days = 7) => get<AnalyticsDaily[]>(API_ENDPOINTS.ANALYTICS, { type: 'daily' as AnalyticsType, days }),
+
+  /**
+   * 获取页面访问数据
+   * @param days - 天数
+   */
+  getPages: (days = 7) => get<AnalyticsPage[]>(API_ENDPOINTS.ANALYTICS, { type: 'pages' as AnalyticsType, days }),
+
+  /**
+   * 获取设备分布数据
+   * @param days - 天数
+   */
+  getDevices: (days = 7) => get<AnalyticsDevice[]>(API_ENDPOINTS.ANALYTICS, { type: 'devices' as AnalyticsType, days }),
+
+  /**
+   * 获取浏览器分布数据
+   * @param days - 天数
+   */
+  getBrowsers: (days = 7) => get<AnalyticsBrowser[]>(API_ENDPOINTS.ANALYTICS, { type: 'browsers' as AnalyticsType, days }),
+
+  /**
+   * 获取地域分布数据
+   * @param days - 天数
+   */
+  getCountries: (days = 30) => get<AnalyticsCountry[]>(API_ENDPOINTS.ANALYTICS, { type: 'countries' as AnalyticsType, days }),
+};
