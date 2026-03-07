@@ -29,12 +29,15 @@ export default function Home() {
     try {
       const [articlesRes, recommendedRes, newsRes, statsRes] = await Promise.all([
         articleApi.getList({ page: 1, limit: 6, status: 'published' }),
-        articleApi.getList({ page: 1, limit: 6, recommended: true }),
+        // 推荐文章必须是发布状态
+        articleApi.getList({ page: 1, limit: 6, recommended: true, status: 'published' }),
         hotNewsApi.getList(),
         statsApi.getStats()
       ]);
       setArticles(articlesRes.data || []);
-      setRecommendedArticles(recommendedRes.data || []);
+      // 过滤出发布状态的推荐文章
+      const publishedRecommended = (recommendedRes.data || []).filter(article => article.status === 'published');
+      setRecommendedArticles(publishedRecommended);
       setHotNews(newsRes.data || []);
       setStats(statsRes.data);
     } catch (error) {

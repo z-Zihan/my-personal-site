@@ -4,6 +4,7 @@ import { toast } from '../utils/toast';
 import { getLanguage, setLanguage, t } from '../utils/i18n';
 import { useThemeStore } from '../store/themeStore';
 import Avatar from '../components/common/Avatar';
+import { sanitizeInput, inputRules } from '../utils/sanitize';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -55,7 +56,15 @@ export default function Profile() {
   };
 
   const handleSaveName = () => {
-    localStorage.setItem('userName', userName);
+    // 验证输入长度
+    if (userName.length > inputRules.nicknameMaxLength) {
+      toast.error(`昵称长度不能超过 ${inputRules.nicknameMaxLength} 个字符`);
+      return;
+    }
+
+    // 清理输入内容，防止 XSS 攻击
+    const cleanedName = sanitizeInput(userName);
+    localStorage.setItem('userName', cleanedName);
     setEditingName(false);
     toast.success('昵称已保存');
   };
@@ -100,13 +109,14 @@ export default function Profile() {
                     type="text"
                     value={userName}
                     onChange={(e) => setUserName(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent cursor-pointer"
                     placeholder="输入昵称"
+                    maxLength={inputRules.nicknameMaxLength}
                     autoFocus
                   />
                   <button
                     onClick={handleSaveName}
-                    className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+                    className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 cursor-pointer"
                   >
                     保存
                   </button>
@@ -115,7 +125,7 @@ export default function Profile() {
                       setEditingName(false);
                       setUserName(localStorage.getItem('userName') || '');
                     }}
-                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer"
                   >
                     取消
                   </button>
@@ -127,7 +137,7 @@ export default function Profile() {
                   </span>
                   <button
                     onClick={() => setEditingName(true)}
-                    className="text-purple-500 hover:text-purple-600 text-sm"
+                    className="text-purple-500 hover:text-purple-600 text-sm cursor-pointer"
                   >
                     编辑
                   </button>
@@ -180,7 +190,7 @@ export default function Profile() {
             <div className="flex gap-2">
               <button
                 onClick={() => handleLanguageChange('zh')}
-                className={`px-4 py-2 rounded-lg transition-all ${
+                className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
                   language === 'zh'
                     ? 'bg-purple-500 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -190,7 +200,7 @@ export default function Profile() {
               </button>
               <button
                 onClick={() => handleLanguageChange('en')}
-                className={`px-4 py-2 rounded-lg transition-all ${
+                className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
                   language === 'en'
                     ? 'bg-purple-500 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -209,7 +219,7 @@ export default function Profile() {
             <div className="flex gap-2">
               <button
                 onClick={() => handleThemeChange(false)}
-                className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
+                className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
                   !darkMode
                     ? 'bg-purple-500 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -235,7 +245,7 @@ export default function Profile() {
         <div className="text-center">
           <button
             onClick={() => navigate('/')}
-            className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:opacity-90 transition-opacity"
+            className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:opacity-90 transition-opacity cursor-pointer"
           >
             ← 返回首页
           </button>

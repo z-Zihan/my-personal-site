@@ -17,7 +17,10 @@ export default function BlogDetail() {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [headerVisible, setHeaderVisible] = useState(true);
   const contentRef = useRef(null);
+  const lastScrollY = useRef(0);
+  const ticking = useRef(false);
 
   useEffect(() => {
     if (!id) {
@@ -27,6 +30,40 @@ export default function BlogDetail() {
     }
     fetchArticle();
   }, [id]);
+
+  // 监听滚动，控制 header 和底部磨合的显示/隐藏
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!ticking.current) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          let newHeaderVisible = true;
+          // 向下滚动且超过一定距离时，隐藏 header 和底部磨合
+          if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+            newHeaderVisible = false;
+          } else {
+            // 向上滚动时，显示 header 和底部磨合
+            newHeaderVisible = true;
+          }
+          lastScrollY.current = currentScrollY;
+          ticking.current = false;
+
+          // 只在状态变化时触发事件，避免不必要的更新
+          if (newHeaderVisible !== headerVisible) {
+            setHeaderVisible(newHeaderVisible);
+            // 触发自定义事件通知 App.jsx
+            window.dispatchEvent(new CustomEvent('header-visibility-change', {
+              detail: { visible: newHeaderVisible }
+            }));
+          }
+        });
+        ticking.current = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [headerVisible]);
 
   // 文章加载成功后，记录浏览埋点
   useEffect(() => {
@@ -88,13 +125,13 @@ export default function BlogDetail() {
           <div className="flex gap-4 justify-center">
             <button
               onClick={() => navigate("/")}
-              className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+              className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors cursor-pointer"
             >
               返回首页
             </button>
             <button
               onClick={() => navigate("/blog")}
-              className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors cursor-pointer"
             >
               查看文章列表
             </button>
@@ -105,7 +142,9 @@ export default function BlogDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors pb-24">
+    <div
+      className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors pb-24"
+    >
       <ReadingProgress />
       {/* <TableOfContents contentRef={contentRef} /> */}
 

@@ -146,6 +146,21 @@ a {
    移动端兼容样式
    ============================================ */
 
+/* 全局按钮样式 - 添加鼠标指针样式 */
+button, .btn, [role="button"] {
+  cursor: pointer;
+}
+
+/* 全局输入框样式 - 添加鼠标指针样式 */
+input, textarea {
+  cursor: pointer;
+}
+
+/* 输入框聚焦时改变 cursor */
+input:focus, textarea:focus {
+  cursor: text;
+}
+
 /* 基础响应式断点 */
 @media (max-width: 640px) {
   /* Hero 区域移动端优化 */

@@ -137,7 +137,7 @@ function BlogList() {
                 <button
                   onClick={() => handlePageChange(page - 1)}
                   disabled={page === 1}
-                  className="px-6 py-2 border border-primary text-primary rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary hover:text-dark transition-all"
+                  className="px-6 py-2 border border-primary text-primary rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary hover:text-dark transition-all cursor-pointer"
                 >
                   上一页
                 </button>
@@ -147,7 +147,7 @@ function BlogList() {
                 <button
                   onClick={() => handlePageChange(page + 1)}
                   disabled={page === pagination.totalPages}
-                  className="px-6 py-2 border border-primary text-primary rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary hover:text-dark transition-all"
+                  className="px-6 py-2 border border-primary text-primary rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary hover:text-dark transition-all cursor-pointer"
                 >
                   下一页
                 </button>

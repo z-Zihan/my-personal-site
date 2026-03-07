@@ -21,6 +21,7 @@ export function useArticles(initialParams = {}) {
         ...initialParams,
         ...params,
       });
+      console.log("data", data);
       setArticles(data || []);
       setPagination(pagination || pagination);
     } catch (err) {

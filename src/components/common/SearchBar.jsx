@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchApi } from '../../api/search';
+import { sanitizeInput, inputRules } from '../../utils/sanitize';
 
 export default function SearchBar({ onSearchResults }) {
   const navigate = useNavigate();
@@ -47,10 +48,11 @@ export default function SearchBar({ onSearchResults }) {
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => setQuery(sanitizeInput(e.target.value))}
           onFocus={() => query.length >= 1 && setIsOpen(true)}
           placeholder="搜索文章..."
-          className="w-full md:w-64 px-4 py-2 pl-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+          maxLength={inputRules.searchMaxLength}
+          className="w-full md:w-64 px-4 py-2 pl-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
         />
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
       </div>

@@ -150,12 +150,20 @@ function ArticleEditor() {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      const articleData = {
+      // 如果选择的是草稿状态，并且文章是推荐状态，就取消推荐
+      const submitData = {
         ...values,
         content,
         cover,
         status: values.status || 'draft',
       };
+
+      // 当状态为草稿时，强制设置 is_recommended 为 false
+      if (submitData.status === 'draft') {
+        submitData.is_recommended = false;
+      }
+
+      const articleData = submitData;
 
       if (id) {
         // 更新

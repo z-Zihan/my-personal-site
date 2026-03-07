@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { commentApi } from "../../api/comment";
 import { toast } from "../../utils/toast";
 import Avatar from "./Avatar";
+import { cleanUserInput, inputRules } from "../../utils/sanitize";
 
 export default function CommentSection({ articleId }) {
   const [comments, setComments] = useState([]);
@@ -38,11 +39,22 @@ export default function CommentSection({ articleId }) {
     e.preventDefault();
     if (!newComment.trim()) return;
 
+    // 验证输入长度
+    if (newComment.length > inputRules.commentMaxLength) {
+      toast.error(`评论长度不能超过 ${inputRules.commentMaxLength} 个字符`);
+      return;
+    }
+
+    // 验证输入安全性
+    if (!newComment.trim()) {
+      toast.error('请输入评论内容');
+      return;
+    }
+
     setLoading(true);
     try {
-      // 获取地理位置 - 使用 ipapi.co (HTTPS)
+      // 获取地理位置
       const location = await Promise.race([
-        // fetch("https://ipapi.co/json/?lang=zh-CN")
         fetch("https://ipapi.co/json/")
           .then((res) => res.json())
           .then((data) => {
@@ -57,10 +69,13 @@ export default function CommentSection({ articleId }) {
         new Promise((resolve) => setTimeout(() => resolve("未知"), 3000)),
       ]);
 
+      // 清理输入内容，防止 XSS 攻击
+      const cleanedComment = cleanUserInput(newComment);
+
       await commentApi.create({
         article_id: articleId,
         visitor_id: visitorId,
-        content: newComment,
+        content: cleanedComment,
         visitor_name: visitorName || undefined,
         location: location || undefined,
       });
@@ -96,15 +111,21 @@ export default function CommentSection({ articleId }) {
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="写下你的评论..."
           rows="4"
-          className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          maxLength={inputRules.commentMaxLength}
+          className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
         />
-        <button
-          type="submit"
-          disabled={loading}
-          className="mt-3 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-        >
-          {loading ? "提交中..." : "发表评论"}
-        </button>
+        <div className="flex items-center justify-between mt-2">
+          <span className="text-sm text-gray-500">
+            {newComment.length}/{inputRules.commentMaxLength} 字
+          </span>
+          <button
+            type="submit"
+            disabled={loading || !newComment.trim()}
+            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {loading ? "提交中..." : "发表评论"}
+          </button>
+        </div>
       </form>
 
       <div className="space-y-4">

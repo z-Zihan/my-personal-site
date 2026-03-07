@@ -8,6 +8,7 @@ import Avatar from "../components/common/Avatar";
 import PixelCard from "../components/effects/PixelCard";
 import ElectricBorder from "../components/effects/ElectricBorder";
 import { useGeolocation } from "../hooks/useGeolocation";
+import { cleanUserInput, inputRules } from "../utils/sanitize";
 
 function MessageBoard() {
   const [messages, setMessages] = useState([]);
@@ -52,12 +53,21 @@ function MessageBoard() {
     e.preventDefault();
     if (!content.trim()) return;
 
+    // 验证输入长度
+    if (content.length > inputRules.messageMaxLength) {
+      toast.error(`留言长度不能超过 ${inputRules.messageMaxLength} 个字符`);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const visitorName = getVisitorName();
+      // 清理输入内容，防止 XSS 攻击
+      const cleanedContent = cleanUserInput(content);
+
       await messageApi.create({
         visitor_id: visitorId,
-        content,
+        content: cleanedContent,
         visitor_name: visitorName || undefined,
         location: location || undefined,
       });
@@ -254,7 +264,7 @@ function MessageBoard() {
                   type="button"
                   onClick={handleGetLocation}
                   disabled={locationLoading}
-                  className="text-xs px-3 py-1 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200 transition-colors duration-200 disabled:opacity-50"
+                  className="text-xs px-3 py-1 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200 transition-colors duration-200 disabled:opacity-50 cursor-pointer"
                 >
                   {locationLoading
                     ? "获取中..."
@@ -269,9 +279,9 @@ function MessageBoard() {
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="分享你的想法，留下你的足迹..."
                 rows={5}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-700 placeholder-gray-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 focus:outline-none resize-none transition-all duration-300"
+                maxLength={inputRules.messageMaxLength}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-700 placeholder-gray-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 focus:outline-none resize-none transition-all duration-300 cursor-pointer"
                 disabled={submitting}
-                maxLength={200}
               />
 
               <div className="flex items-center justify-between mt-4">
@@ -289,14 +299,14 @@ function MessageBoard() {
                       d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span>{content.length} 字</span>
+                  <span>{content.length}/{inputRules.messageMaxLength} 字</span>
                 </div>
 
                 {/* 炫酷提交按钮 */}
                 <motion.button
                   type="submit"
                   disabled={submitting || !content.trim()}
-                  className="relative overflow-hidden px-8 py-3 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 text-white font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed group"
+                  className="relative overflow-hidden px-8 py-3 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 text-white font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed group cursor-pointer"
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                 >
