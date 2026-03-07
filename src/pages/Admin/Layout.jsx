@@ -71,11 +71,14 @@ function AdminLayout() {
 
   if (loading || !token) {
     return (
-      <AntLayout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
+      <AntLayout style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
         <Content style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div className="animate-spin text-4xl mb-4">⏳</div>
-            <p>加载中...</p>
+          <div className="relative">
+            {/* 科技风 Loading 动画 */}
+            <div className="w-20 h-20 border-4 border-purple-300 rounded-full animate-spin" style={{ animationDuration: '2s', borderLeftColor: '#7000ff', borderTopColor: '#00f0ff' }} />
+            <div className="absolute top-1 left-1 w-18 h-18 border-4 border-cyan-300 rounded-full animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse', borderRightColor: '#00f0ff' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full animate-pulse shadow-lg shadow-purple-500/50" />
+            <p style={{ marginTop: 24, textAlign: 'center', color: '#666', fontSize: 16 }}>加载中...</p>
           </div>
         </Content>
       </AntLayout>

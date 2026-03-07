@@ -52,9 +52,12 @@ export default function BlogDetail() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin text-4xl mb-4">⏳</div>
-          <p className="text-gray-600 dark:text-gray-400">加载中...</p>
+        <div className="relative">
+          {/* 脉冲光环加载器 */}
+          <div className="w-16 h-16 border-4 border-purple-200 dark:border-purple-900 rounded-full animate-ping" />
+          <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-purple-500 rounded-full animate-spin" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-purple-500 rounded-full shadow-lg shadow-purple-500/50 animate-pulse" />
+          <p className="text-center mt-6 text-gray-600 dark:text-gray-400 animate-pulse">加载文章中...</p>
         </div>
       </div>
     );

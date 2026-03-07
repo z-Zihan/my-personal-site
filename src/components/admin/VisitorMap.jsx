@@ -196,9 +196,14 @@ export default function VisitorMap() {
 
   if (loading) {
     return (
-      <div style={{ height: 450, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f5', borderRadius: 8 }}>
-        <div className="animate-spin text-4xl mr-2">⏳</div>
-        <span>加载地图数据...</span>
+      <div style={{ height: 450, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f0f2f5 0%, #e8e4ff 100%)', borderRadius: 8 }}>
+        <div className="relative">
+          {/* 地球仪风格加载器 */}
+          <div className="w-16 h-16 border-4 border-purple-200 rounded-full animate-spin" style={{ animationDuration: '2s', borderLeftColor: '#7000ff', borderTopColor: '#00f0ff' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 border-4 border-cyan-200 rounded-full animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse', borderRightColor: '#00f0ff' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-gradient-to-r from-purple-600 to-cyan-400 rounded-full shadow-lg shadow-purple-500/50" />
+          <p style={{ color: '#666', marginTop: 24, textAlign: 'center', fontSize: 14 }}>加载地图数据...</p>
+        </div>
       </div>
     );
   }

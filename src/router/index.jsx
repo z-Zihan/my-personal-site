@@ -1,4 +1,5 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import { ErrorBoundary, RouteErrorBoundary } from '../components/ErrorBoundary'
 import App from '../App'
 import Home from '../pages/Home'
 import BlogList from '../pages/BlogList'
@@ -6,6 +7,7 @@ import BlogDetail from '../pages/BlogDetail'
 import HotNews from '../pages/HotNews'
 import MessageBoard from '../pages/MessageBoard'
 import Profile from '../pages/Profile'
+import NotFound from '../pages/NotFound'
 import AdminLayout from '../pages/Admin/Layout'
 import AdminLogin from '../pages/Admin/Login'
 import Dashboard from '../pages/Admin/Dashboard'
@@ -18,6 +20,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       { index: true, element: <Home /> },
       { path: 'blog', element: <BlogList /> },
@@ -27,17 +30,19 @@ const router = createBrowserRouter([
       { path: 'profile', element: <Profile /> },
     ],
   },
-  
+
   // 后台登录页面（独立）
   {
     path: '/admin/login',
     element: <AdminLogin />,
+    errorElement: <RouteErrorBoundary />,
   },
-  
+
   // 后台管理路由（需要认证）
   {
     path: '/admin',
     element: <AdminLayout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         index: true,
@@ -64,6 +69,12 @@ const router = createBrowserRouter([
         element: <MessageManager />,
       },
     ],
+  },
+
+  // 404 页面 - 放在最后
+  {
+    path: '*',
+    element: <NotFound />,
   },
 ])
 

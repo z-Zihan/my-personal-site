@@ -62,8 +62,14 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin text-4xl">⏳</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="relative">
+          {/* 旋转渐变圆环 */}
+          <div className="w-20 h-20 border-4 border-pink-200 dark:border-pink-900 rounded-full animate-spin" style={{ borderLeftColor: '#ec4899', borderTopColor: '#a855f7' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 border-4 border-purple-200 dark:border-purple-900 rounded-full animate-spin" style={{ animationDuration: '0.8s', animationDirection: 'reverse', borderRightColor: '#a855f7', borderBottomColor: '#06b6d4' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full animate-pulse shadow-lg" />
+          <p className="text-center mt-8 text-gray-600 dark:text-gray-400 animate-pulse">加载个人信息...</p>
+        </div>
       </div>
     );
   }

@@ -90,7 +90,22 @@ export function put(url, data = {}, config = {}) {
  * @returns {Promise}
  */
 export function del(url, data = {}, config = {}) {
+  // 如果只传了两个参数，且第二个参数包含 params/config 配置项，则视为 config
+  if (arguments.length === 2 && !dataHasBody(data)) {
+    config = data;
+    data = {};
+  }
   return request.delete(url, { data, ...config });
+}
+
+/**
+ * 判断 data 是否是请求体数据（而非 config 配置）
+ */
+function dataHasBody(data) {
+  if (!data) return false;
+  // 如果包含常见的 config 配置项，则认为不是 body 数据
+  const configKeys = ['params', 'headers', 'timeout', 'baseURL', 'responseType'];
+  return !configKeys.some(key => key in data);
 }
 
 /**

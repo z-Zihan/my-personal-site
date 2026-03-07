@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Card, Statistic, Row, Col, Typography, Spin, Empty, Table, Progress, Tag } from 'antd'
+import { Card, Statistic, Row, Col, Typography, Table, Progress, Tag } from 'antd'
+import EmptyState from '../../components/common/EmptyState'
 import {
   FileTextOutlined,
   EyeOutlined,
@@ -76,17 +77,57 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div style={{ padding: 24, textAlign: 'center' }}>
-        <Spin size="large" />
-        <p style={{ marginTop: 16 }}>加载数据中...</p>
+      <div style={{ padding: 48, textAlign: 'center', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', minHeight: '100vh' }}>
+        {/* 科技风 Loading 动画 */}
+        <div className="relative inline-block">
+          {/* 外环 */}
+          <div className="w-20 h-20 border-4 border-purple-300 rounded-full animate-spin" style={{ animationDuration: '2s', borderLeftColor: '#7000ff', borderTopColor: '#00f0ff' }} />
+          {/* 中环 */}
+          <div className="absolute top-1 left-1 w-18 h-18 border-4 border-cyan-300 rounded-full animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse', borderRightColor: '#00f0ff' }} />
+          {/* 内环 */}
+          <div className="absolute top-2 left-2 w-14 h-14 border-t-4 border-purple-400 rounded-full animate-spin" style={{ animationDuration: '1s' }} />
+          {/* 中心脉冲 */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full animate-pulse shadow-lg shadow-purple-500/50" />
+        </div>
+        <p style={{ marginTop: 24, color: '#666', fontSize: 16 }}>加载数据仪表盘中...</p>
       </div>
     )
   }
 
   if (!stats || !analytics) {
     return (
-      <div style={{ padding: 24 }}>
-        <Empty description="暂无数据" />
+      <div style={{ padding: 48, textAlign: 'center', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {/* 空状态 - 科技风插图 */}
+        <div className="relative">
+          {/* 背景光晕 */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
+
+          {/* SVG 图标 - 数据图表 */}
+          <svg
+            className="w-32 h-32 text-gray-400 relative z-10 mx-auto mb-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+
+          <h3 className="text-2xl font-semibold text-gray-600 mb-3">暂无数据</h3>
+          <p className="text-gray-500 text-center max-w-md">
+            数据正在收集中
+            <br />
+            <span className="text-sm opacity-70">请稍后再来查看，统计数据将会在这里展示</span>
+          </p>
+
+          {/* 浮动装饰点 */}
+          <div className="absolute top-0 right-0 w-3 h-3 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0s' }} />
+          <div className="absolute bottom-4 left-4 w-2 h-2 bg-cyan-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+        </div>
       </div>
     )
   }
@@ -302,7 +343,7 @@ function Dashboard() {
                 ]}
               />
             ) : (
-              <Empty description="暂无文章" />
+              <EmptyState description="暂无文章" icon="article" />
             )}
           </Card>
         </Col>
@@ -330,7 +371,7 @@ function Dashboard() {
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <Empty description="暂无访问数据" style={{ padding: 40 }} />
+              <EmptyState description="暂无访问数据" icon="chart" />
             )}
           </Card>
         </Col>
@@ -359,7 +400,7 @@ function Dashboard() {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <Empty description="暂无设备数据" style={{ padding: 40 }} />
+              <EmptyState description="暂无设备数据" icon="data" />
             )}
           </Card>
         </Col>
@@ -398,7 +439,7 @@ function Dashboard() {
                 ]}
               />
             ) : (
-              <Empty description="暂无页面数据" style={{ padding: 40 }} />
+              <EmptyState description="暂无页面数据" icon="data" />
             )}
           </Card>
         </Col>
@@ -423,7 +464,7 @@ function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <Empty description="暂无浏览器数据" style={{ padding: 40 }} />
+              <EmptyState description="暂无浏览器数据" icon="data" />
             )}
           </Card>
         </Col>

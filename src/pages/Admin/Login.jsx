@@ -65,7 +65,12 @@ function AdminLogin() {
         background: '#f0f2f5'
       }}>
         <Card style={{ textAlign: 'center', background: '#ffffff' }}>
-          <div className="animate-spin text-4xl mb-4">⏳</div>
+          <div className="relative mb-4">
+            {/* 科技风加载器 */}
+            <div className="w-16 h-16 border-4 border-purple-200 rounded-full animate-spin" style={{ borderLeftColor: '#7000ff', borderTopColor: '#00f0ff' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 border-4 border-cyan-200 rounded-full animate-spin" style={{ animationDuration: '0.8s', animationDirection: 'reverse', borderRightColor: '#00f0ff' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-purple-500 rounded-full animate-pulse" />
+          </div>
           <p style={{ color: '#7000ff' }}>已登录，跳转中...</p>
         </Card>
       </div>
