@@ -20,7 +20,6 @@ export default function VisitorMap() {
       if (worldMapData && worldMapData.features && worldMapData.features.length > 0) {
         echarts.registerMap('world', worldMapData);
         setMapRegistered(true);
-        console.log('Map registered from local file');
       } else {
         console.warn('Local map data invalid, using empty fallback');
         echarts.registerMap('world', {

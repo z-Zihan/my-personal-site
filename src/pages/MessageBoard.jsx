@@ -92,9 +92,11 @@ function MessageBoard() {
           <div className="flex items-center gap-3 mb-6">
             <div className="w-1 h-8 bg-gradient-to-b from-purple-400 to-cyan-400 rounded-full"></div>
             <h2 className="text-2xl font-bold text-gray-800">所有留言</h2>
-            <span className="px-3 py-1 bg-purple-100 rounded-full text-sm text-purple-600">
-              {messages.length} 条
-            </span>
+            {messages.length > 0 && (
+              <span className="px-3 py-1 bg-purple-100 rounded-full text-sm text-purple-600">
+                {messages.length} 条
+              </span>
+            )}
           </div>
 
           {/* 只有这个区域可以滚动 */}
@@ -102,25 +104,60 @@ function MessageBoard() {
           <div className="h-[500px] overflow-y-auto overflow-x-hidden space-y-4 custom-scrollbar  px-8 py-4">
             <AnimatePresence>
               {loading ? (
-                <div className="space-y-4">
-                  {[...Array(5)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="bg-white/80 backdrop-blur-xl p-6 rounded-xl animate-pulse border border-purple-100"
-                    />
-                  ))}
+                <div className="flex flex-col items-center justify-center h-full">
+                  {/* 科技风 Loading - 紫色主题 */}
+                  <div className="relative mb-8">
+                    {/* 外环 */}
+                    <div className="w-20 h-20 border-2 border-purple-500/30 rounded-full animate-spin" style={{ animationDuration: '3s' }} />
+                    {/* 中环 */}
+                    <div className="absolute top-1 left-1 w-18 h-18 border-2 border-cyan-400/50 rounded-full animate-spin" style={{ animationDuration: '2s', animationDirection: 'reverse' }} />
+                    {/* 内环 */}
+                    <div className="absolute top-2 left-2 w-16 h-16 border-t-2 border-purple-300 rounded-full animate-spin" />
+                    {/* 中心脉冲 */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-gradient-to-r from-purple-400 to-cyan-400 rounded-full animate-pulse shadow-lg shadow-purple-500/50" />
+                    {/* 轨道点 */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-purple-300 rounded-full animate-ping" style={{ animationDelay: '0s' }} />
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-cyan-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+                  </div>
+                  <p className="text-lg text-gray-400 animate-pulse">正在加载留言...</p>
                 </div>
               ) : messages.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="text-center py-20"
+                  className="flex flex-col items-center justify-center h-full py-20"
                 >
-                  <div className="text-6xl mb-4">💬</div>
-                  <p className="text-xl text-gray-500">
-                    暂无留言，快来抢沙发吧！
+                  {/* 空状态 SVG 插图 - 对话气泡 */}
+                  <div className="relative mb-8">
+                    {/* 背景光晕 */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse" />
+
+                    {/* SVG 图标 - 对话气泡 */}
+                    <svg
+                      className="w-32 h-32 text-gray-600 relative z-10"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"
+                      />
+                    </svg>
+
+                    {/* 浮动小点装饰 */}
+                    <div className="absolute top-0 right-0 w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0s' }} />
+                    <div className="absolute bottom-4 left-4 w-2 h-2 bg-cyan-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+                    <div className="absolute top-1/2 -right-4 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
+                  </div>
+
+                  <h3 className="text-2xl font-semibold text-gray-300 mb-3">暂无留言</h3>
+                  <p className="text-gray-500 text-center max-w-md">
+                    这里还没有任何留言
+                    <br />
+                    <span className="text-sm opacity-70">快来抢沙发，留下你的第一条评论吧！</span>
                   </p>
                 </motion.div>
               ) : (
