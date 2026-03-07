@@ -21,7 +21,7 @@ export const commentApi = {
    * 删除评论
    * @param {number} id - 评论 ID
    */
-  delete: (id) => del(API_ENDPOINTS.DELETE_COMMENT, { id }),
+  delete: (id) => del(API_ENDPOINTS.DELETE_COMMENT, {}, { params: { id } }),
 
   /**
    * 批量删除评论

@@ -5,12 +5,10 @@ import {
   Button,
   Card,
   Space,
-  Tag,
   Popconfirm,
   message,
   Switch,
   Modal,
-  InputNumber,
   Drawer,
   Typography,
 } from "antd";
@@ -244,11 +242,25 @@ function ArticleManager() {
     }
   };
 
+  const handleCloseCommentsModal = () => {
+    setCommentsModalVisible(false);
+    setCurrentArticle(null);
+    setSelectedCommentKeys([]);
+    fetchArticles(); // 关闭后重新请求文章管理数据
+  };
+
   const handleDeleteComment = async (id) => {
     try {
       await commentApi.delete(id);
       message.success("删除成功");
-      handleShowComments(currentArticle); // 刷新评论列表
+      // 刷新评论列表
+      const { data } = await commentApi.getList({ article_id: currentArticle.id });
+      setComments(data || []);
+      // 如果评论数量为 0，自动关闭弹窗
+      if (!data || data.length === 0) {
+        message.info("评论已全部删除");
+        handleCloseCommentsModal();
+      }
     } catch (error) {
       message.error(error.response?.data?.error || "删除失败");
     }
@@ -263,7 +275,14 @@ function ArticleManager() {
       await commentApi.batchDelete(selectedCommentKeys);
       message.success(`成功删除 ${selectedCommentKeys.length} 条评论`);
       setSelectedCommentKeys([]);
-      handleShowComments(currentArticle); // 刷新评论列表
+      // 刷新评论列表
+      const { data } = await commentApi.getList({ article_id: currentArticle.id });
+      setComments(data || []);
+      // 如果评论数量为 0，自动关闭弹窗
+      if (!data || data.length === 0) {
+        message.info("评论已全部删除");
+        handleCloseCommentsModal();
+      }
     } catch (error) {
       message.error(error.response?.data?.error || "批量删除失败");
     }
@@ -567,7 +586,7 @@ function ArticleManager() {
           currentArticle ? `《${currentArticle.title}》的评论` : "评论列表"
         }
         open={commentsModalVisible}
-        onCancel={() => setCommentsModalVisible(false)}
+        onCancel={handleCloseCommentsModal}
         footer={null}
         width={800}
       >
