@@ -4,7 +4,7 @@
 -- 项目：个人博客系统（含埋点分析）
 -- 数据库：Supabase (PostgreSQL)
 -- 执行方式：在 Supabase Dashboard → SQL Editor 中执行
--- 最后更新：2026-03-06
+-- 最后更新：2026-03-07
 -- ============================================
 
 -- 启用 UUID 扩展
@@ -208,6 +208,7 @@ CREATE TABLE IF NOT EXISTS events (
 -- 博客表索引
 CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
 CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_articles_updated_at ON articles(updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category_id);
 CREATE INDEX IF NOT EXISTS idx_comments_article ON comments(article_id);
 CREATE INDEX IF NOT EXISTS idx_comments_created ON comments(created_at DESC);

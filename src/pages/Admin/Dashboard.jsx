@@ -54,7 +54,8 @@ function Dashboard() {
       setStats(statsRes?.data || statsRes.data)
       setAnalytics(analyticsRes?.data || analyticsRes.data)
       setLatestArticles(latestRes?.data || [])
-      setRecommendedArticles(latestRes?.data?.filter(a => a.is_recommended).slice(0, 10) || [])
+      // 推荐文章必须是已发布的文章
+      setRecommendedArticles(latestRes?.data?.filter(a => a.is_recommended && a.status === 'published').slice(0, 10) || [])
 
       // 获取详细统计数据
       const [daily, pages, devices, browsers] = await Promise.all([
@@ -232,7 +233,7 @@ function Dashboard() {
                 rowKey="id"
                 pagination={false}
                 size="small"
-                scroll={{ x: 800 }}
+                scroll={{ x: 900 }}
                 columns={[
                   {
                     title: '标题',
@@ -270,8 +271,18 @@ function Dashboard() {
                     title: '发布时间',
                     dataIndex: 'created_at',
                     key: 'created_at',
-                    width: 120,
-                    render: (date) => new Date(date).toLocaleDateString('zh-CN'),
+                    width: 160,
+                    render: (date) => {
+                      const d = new Date(date)
+                      return d.toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })
+                    },
                   },
                 ]}
               />
@@ -290,7 +301,7 @@ function Dashboard() {
                 rowKey="id"
                 pagination={false}
                 size="small"
-                scroll={{ x: 800 }}
+                scroll={{ x: 1000 }}
                 columns={[
                   {
                     title: '标题',
@@ -336,8 +347,36 @@ function Dashboard() {
                     title: '创建时间',
                     dataIndex: 'created_at',
                     key: 'created_at',
-                    width: 120,
-                    render: (date) => new Date(date).toLocaleDateString('zh-CN'),
+                    width: 160,
+                    render: (date) => {
+                      const d = new Date(date)
+                      return d.toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })
+                    },
+                  },
+                  {
+                    title: '最后修改时间',
+                    dataIndex: 'updated_at',
+                    key: 'updated_at',
+                    width: 160,
+                    render: (date) => {
+                      if (!date) return '-'
+                      const d = new Date(date)
+                      return d.toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })
+                    },
                   },
                 ]}
               />

@@ -51,6 +51,8 @@ export default async function handler(req) {
     if (cover !== undefined) updateData.cover = cover
     if (status !== undefined) updateData.status = status
     if (category_id !== undefined) updateData.category_id = category_id
+    // 添加最后修改时间
+    updateData.updated_at = new Date().toISOString()
 
     const { data: article, error } = await supabase
       .from('articles')

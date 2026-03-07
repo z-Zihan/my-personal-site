@@ -73,7 +73,8 @@ function ArticleManager() {
 
   const fetchRecommendedArticles = async () => {
     try {
-      const { data } = await articleApi.getList({ recommended: true, limit: 50 });
+      // 推荐文章必须是已发布的文章
+      const { data } = await articleApi.getList({ recommended: true, status: 'published', limit: 50 });
       // 按 recommend_order 排序
       const sorted = (data?.data || []).sort((a, b) => (a.recommend_order ?? 0) - (b.recommend_order ?? 0));
       setRecommendedArticles(sorted);
@@ -288,7 +289,35 @@ function ArticleManager() {
       dataIndex: 'created_at',
       key: 'created_at',
       width: 180,
-      render: (date) => new Date(date).toLocaleDateString('zh-CN'),
+      render: (date) => {
+        const d = new Date(date)
+        return d.toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        })
+      },
+    },
+    {
+      title: '最后修改时间',
+      dataIndex: 'updated_at',
+      key: 'updated_at',
+      width: 180,
+      render: (date) => {
+        if (!date) return '-'
+        const d = new Date(date)
+        return d.toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        })
+      },
     },
     {
       title: '操作',
@@ -395,7 +424,7 @@ function ArticleManager() {
           rowKey="id"
           loading={loading}
           pagination={{ pageSize: 10 }}
-          scroll={{ x: 1600 }}
+          scroll={{ x: 1800 }}
           rowSelection={{
             selectedRowKeys,
             onChange: setSelectedRowKeys,

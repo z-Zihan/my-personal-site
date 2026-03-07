@@ -125,98 +125,151 @@ async function handleStats(req) {
       }
 
       case "daily":
-        // 每日趋势
-        { const dailyResult = await supabase
-          .from("page_views")
-          .select("created_at")
-          .gte("created_at", startDate);
-        const dailyData = dailyResult.data || [];
-        const dailyStats = {};
-        dailyData.forEach((pv) => {
-          const date = pv.created_at.split("T")[0];
-          dailyStats[date] = (dailyStats[date] || 0) + 1;
-        });
-        data = Object.entries(dailyStats).map(([date, views]) => ({
-          date,
-          views,
-        }));
-        break; }
+        // 每日趋势 - 使用 aggregate 分组统计
+        {
+          const { data: dailyData, error } = await supabase.rpc('get_daily_pageviews', {
+            start_date: startDate
+          });
+          if (error && !error.message.includes('Function')) {
+            console.error('RPC error:', error);
+          }
+          // 如果 RPC 函数不存在，回退到普通查询
+          if (!dailyData || error) {
+            const dailyResult = await supabase
+              .from("page_views")
+              .select("created_at")
+              .gte("created_at", startDate);
+            const rawDailyData = dailyResult.data || [];
+            const dailyStats = {};
+            rawDailyData.forEach((pv) => {
+              const date = pv.created_at.split("T")[0];
+              dailyStats[date] = (dailyStats[date] || 0) + 1;
+            });
+            data = Object.entries(dailyStats).map(([date, views]) => ({ date, views }));
+          } else {
+            data = dailyData;
+          }
+          break;
+        }
 
       case "pages":
-        // 热门页面
-        { const pagesResult = await supabase
-          .from("page_views")
-          .select("page_path, page_title")
-          .gte("created_at", startDate)
-          .order("created_at", { ascending: false })
-          .limit(100);
-        const pageStats = {};
-        (pagesResult.data || []).forEach((pv) => {
-          if (!pageStats[pv.page_path]) {
-            pageStats[pv.page_path] = {
-              path: pv.page_path,
-              title: pv.page_title,
-              views: 0,
-            };
+        // 热门页面 - 使用聚合查询
+        {
+          const { data: pagesData, error } = await supabase.rpc('get_top_pages', {
+            start_date: startDate,
+            limit_count: 10
+          });
+          if (error && !error.message.includes('Function')) {
+            console.error('RPC error:', error);
           }
-          pageStats[pv.page_path].views++;
-        });
-        data = Object.values(pageStats)
-          .sort((a, b) => b.views - a.views)
-          .slice(0, 10);
-        break; }
+          // 如果 RPC 函数不存在，回退到普通查询
+          if (!pagesData || error) {
+            const pagesResult = await supabase
+              .from("page_views")
+              .select("page_path, page_title")
+              .gte("created_at", startDate)
+              .order("created_at", { ascending: false })
+              .limit(100);
+            const pageStats = {};
+            (pagesResult.data || []).forEach((pv) => {
+              if (!pageStats[pv.page_path]) {
+                pageStats[pv.page_path] = {
+                  path: pv.page_path,
+                  title: pv.page_title,
+                  views: 0,
+                };
+              }
+              pageStats[pv.page_path].views++;
+            });
+            data = Object.values(pageStats)
+              .sort((a, b) => b.views - a.views)
+              .slice(0, 10);
+          } else {
+            data = pagesData;
+          }
+          break;
+        }
 
-      case "devices": // 设备分布
+      case "devices": // 设备分布 - 使用聚合
       {
-        const deviceResult = await supabase
-          .from("page_views")
-          .select("device_type")
-          .gte("created_at", startDate);
-        const deviceStats = {};
-        (deviceResult.data || []).forEach((pv) => {
-          const type = pv.device_type || "unknown";
-          deviceStats[type] = (deviceStats[type] || 0) + 1;
+        const { data: deviceData, error } = await supabase.rpc('get_device_stats', {
+          start_date: startDate
         });
-        data = Object.entries(deviceStats).map(([name, value]) => ({
-          name,
-          value,
-        }));
+        if (error && !error.message.includes('Function')) {
+          console.error('RPC error:', error);
+        }
+        if (!deviceData || error) {
+          const deviceResult = await supabase
+            .from("page_views")
+            .select("device_type")
+            .gte("created_at", startDate);
+          const deviceStats = {};
+          (deviceResult.data || []).forEach((pv) => {
+            const type = pv.device_type || "unknown";
+            deviceStats[type] = (deviceStats[type] || 0) + 1;
+          });
+          data = Object.entries(deviceStats).map(([name, value]) => ({ name, value }));
+        } else {
+          data = deviceData;
+        }
         break;
       }
 
-      case "browsers": // 浏览器分布
+      case "browsers": // 浏览器分布 - 使用聚合
       {
-        const browserResult = await supabase
-          .from("page_views")
-          .select("browser")
-          .gte("created_at", startDate);
-        const browserStats = {};
-        (browserResult.data || []).forEach((pv) => {
-          const browser = pv.browser || "Unknown";
-          browserStats[browser] = (browserStats[browser] || 0) + 1;
+        const { data: browserData, error } = await supabase.rpc('get_browser_stats', {
+          start_date: startDate,
+          limit_count: 10
         });
-        data = Object.entries(browserStats)
-          .map(([name, value]) => ({ name, value }))
-          .sort((a, b) => b.value - a.value)
-          .slice(0, 10);
+        if (error && !error.message.includes('Function')) {
+          console.error('RPC error:', error);
+        }
+        if (!browserData || error) {
+          const browserResult = await supabase
+            .from("page_views")
+            .select("browser")
+            .gte("created_at", startDate);
+          const browserStats = {};
+          (browserResult.data || []).forEach((pv) => {
+            const browser = pv.browser || "Unknown";
+            browserStats[browser] = (browserStats[browser] || 0) + 1;
+          });
+          data = Object.entries(browserStats)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 10);
+        } else {
+          data = browserData;
+        }
         break;
       }
 
-      case "countries":
-        // 地域分布
-        { const countryResult = await supabase
-          .from("visitors")
-          .select("country")
-          .gte("created_at", startDate);
-        const countryStats = {};
-        (countryResult.data || []).forEach((v) => {
-          const country = v.country || "Unknown";
-          countryStats[country] = (countryStats[country] || 0) + 1;
+      case "countries": // 地域分布 - 使用聚合
+      {
+        const { data: countryData, error } = await supabase.rpc('get_country_stats', {
+          start_date: startDate
         });
-        data = Object.entries(countryStats)
-          .map(([name, value]) => ({ name, value }))
-          .sort((a, b) => b.value - a.value);
-        break; }
+        if (error && !error.message.includes('Function')) {
+          console.error('RPC error:', error);
+        }
+        if (!countryData || error) {
+          const countryResult = await supabase
+            .from("visitors")
+            .select("country")
+            .gte("created_at", startDate);
+          const countryStats = {};
+          (countryResult.data || []).forEach((v) => {
+            const country = v.country || "Unknown";
+            countryStats[country] = (countryStats[country] || 0) + 1;
+          });
+          data = Object.entries(countryStats)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value);
+        } else {
+          data = countryData;
+        }
+        break;
+      }
 
       default:
         return errorResponse("Invalid stats type", 400);

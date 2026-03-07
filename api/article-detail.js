@@ -21,50 +21,73 @@ export default async function handler(req) {
       return errorResponse('Article ID is required', 400)
     }
 
-    // 获取文章详情
+    // 1. 先获取文章（包含当前 views）
     const { data: article, error: fetchError } = await supabase
       .from('articles')
       .select('*')
       .eq('id', id)
       .single()
 
-    if (fetchError) {
+    if (fetchError || !article) {
       console.error('Supabase fetch error:', fetchError)
-      return errorResponse('Database error: ' + fetchError.message, 500)
+      return errorResponse('Database error: ' + (fetchError?.message || 'Article not found'), 500)
     }
 
-    if (!article) {
-      return errorResponse('Article not found', 404)
+    // 2. 计算新的浏览量
+    const newViewCount = (article.views || 0) + 1
+
+    // 3. 更新浏览量（异步，不阻塞响应）
+    // 使用 wait/continue 模式，即使失败也不影响返回
+    const updatePromise = supabase
+      .from('articles')
+      .update({ views: newViewCount })
+      .eq('id', id)
+      .then(({ error }) => {
+        if (error) {
+          console.error('View update error:', error)
+        }
+      })
+      .catch(err => console.error('View update catch error:', err))
+
+    // 4. 同时更新每日访问量
+    const today = new Date().toISOString().split('T')[0]
+    const dailyViewPromise = supabase
+      .from('daily_views')
+      .upsert({
+        date: today,
+        count: 1
+      }, {
+        onConflict: 'date'
+      })
+      .then(({ error }) => {
+        if (error) {
+          console.error('Daily view update error:', error)
+        }
+      })
+      .catch(err => console.error('Daily view catch error:', err))
+
+    // 等待两个更新操作（但不阻塞，如果太慢会超时）
+    try {
+      await Promise.race([
+        Promise.all([updatePromise, dailyViewPromise]),
+        new Promise(resolve => setTimeout(resolve, 500)) // 最多等 500ms
+      ])
+    } catch (e) {
+      console.error('Update timeout or error, but continuing...', e)
     }
 
-    // 计算点赞数
+    // 5. 计算点赞数
     const { count: likeCount } = await supabase
       .from('likes')
       .select('*', { count: 'exact', head: true })
       .eq('article_id', article.id)
 
+    // 6. 返回文章数据（使用新的浏览量）
     const articleWithLikes = {
       ...article,
+      views: newViewCount,
       likes: likeCount || 0
     }
-
-    // 增加阅读量（异步，不阻塞响应）
-    supabase
-      .from('articles')
-      .update({ views: article.views + 1 })
-      .eq('id', id)
-      .then(() => {
-        // 增加每日访问量
-        return supabase
-          .from('daily_views')
-          .upsert({
-            date: new Date().toISOString().split('T')[0],
-            count: 1
-          }, {
-            onConflict: 'date'
-          })
-      })
-      .catch(err => console.error('View increment error:', err))
 
     return jsonResponse({ data: articleWithLikes })
   } catch (error) {
