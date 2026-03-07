@@ -80,7 +80,7 @@ const LightPillar = ({
         stencil: false,
         depth: false
       });
-    } catch (error) {
+    } catch {
       setWebGLSupported(false);
       return;
     }

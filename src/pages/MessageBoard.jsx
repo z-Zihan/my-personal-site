@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { messagesApi } from "../utils/api";
+import { messageApi } from '../api/index';
 import { toast } from "../utils/toast";
 import useVisitorStore from "../store/visitorStore";
 import { formatDate } from "../utils/helpers";
@@ -39,7 +39,7 @@ function MessageBoard() {
 
   const fetchMessages = async () => {
     try {
-      const { data } = await messagesApi.getList();
+      const { data } = await messageApi.getList();
       setMessages(data.data || []);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -55,7 +55,7 @@ function MessageBoard() {
     setSubmitting(true);
     try {
       const visitorName = getVisitorName();
-      await messagesApi.create({
+      await messageApi.create({
         visitor_id: visitorId,
         content,
         visitor_name: visitorName || undefined,

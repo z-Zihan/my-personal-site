@@ -1,7 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 
+// eslint-disable-next-line no-undef
 const supabaseUrl = process.env.SUPABASE_URL
+// eslint-disable-next-line no-undef
 const supabaseKey = process.env.SUPABASE_ANON_KEY
+// eslint-disable-next-line no-undef
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 // 如果有 service role key，优先使用（用于创建 bucket 等管理操作）

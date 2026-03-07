@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { messagesApi } from '../../utils/api'
+import { messageApi } from '../../api/index'
 import { Table, Button, Popconfirm, message, Typography, Popover, Space } from 'antd'
 import { DeleteOutlined } from '@ant-design/icons'
 import { formatDate } from '../../utils/helpers'
@@ -18,8 +18,8 @@ function MessageManager() {
   const fetchMessages = async () => {
     setLoading(true)
     try {
-      const { data } = await messagesApi.getList()
-      setMessages(data?.data || [])
+      const { data } = await messageApi.getList()
+      setMessages(data || [])
     } catch (error) {
       message.error('加载留言失败')
     } finally {
@@ -29,7 +29,7 @@ function MessageManager() {
 
   const handleDelete = async (id) => {
     try {
-      await messagesApi.delete(id)
+      await messageApi.delete(id)
       message.success('删除成功')
       fetchMessages()
     } catch (error) {
@@ -43,7 +43,7 @@ function MessageManager() {
       return
     }
     try {
-      await messagesApi.batchDelete(selectedRowKeys)
+      await messageApi.batchDelete(selectedRowKeys)
       message.success(`成功删除 ${selectedRowKeys.length} 条留言`)
       setSelectedRowKeys([])
       fetchMessages()

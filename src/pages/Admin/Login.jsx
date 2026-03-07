@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Form, Input, Button, Card, message, Typography } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
-import { authApi } from '../../utils/api'
+import { authApi } from '../../api/index'
 import useAuthStore from '../../store/authStore'
 
 const { Title } = Typography
@@ -46,7 +46,7 @@ function AdminLogin() {
     try {
       const { data } = await authApi.login(values)
       const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString()
-      login(data.data.token, data.data.user, expiresAt)
+      login(data?.token, data?.user, expiresAt)
       message.success('登录成功')
       navigate('/admin/dashboard')
     } catch (err) {

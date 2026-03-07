@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { messagesApi } from '../utils/api'
+import { messageApi } from '../api/index'
 
 export function useMessages() {
   const [messages, setMessages] = useState([])
@@ -10,7 +10,7 @@ export function useMessages() {
     setLoading(true)
     setError(null)
     try {
-      const { data } = await messagesApi.getList()
+      const { data } = await messageApi.getList()
       setMessages(data.data || [])
     } catch (err) {
       setError(err.message)

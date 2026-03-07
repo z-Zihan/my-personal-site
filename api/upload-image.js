@@ -71,7 +71,7 @@ export default async function handler(req) {
       await ensureBucketExists()
 
       // 上传到 Supabase Storage
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('image')
         .upload(fileName, file, {
           cacheControl: '3600',

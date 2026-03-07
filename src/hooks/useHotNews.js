@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { hotNewsApi } from '../utils/api'
+import { hotNewsApi } from '../api/index'
 
 export function useHotNews() {
   const [news, setNews] = useState([])

@@ -4,7 +4,7 @@ import { Form, Input, Button, Card, message, Select, Space, Tag, Modal, InputNum
 import { PlusOutlined, DeleteOutlined, EditOutlined,ArrowLeftOutlined } from '@ant-design/icons';
 import RichEditor from '../../components/common/RichEditor';
 import ImageUploader from '../../components/common/ImageUploader';
-import { articlesApi } from '../../utils/api';
+import { articleApi } from '../../api/index';
 import { categoryApi } from '../../api/category';
 
 const { TextArea } = Input;
@@ -31,7 +31,7 @@ function ArticleEditor() {
 
   const fetchArticle = async () => {
     try {
-      const { data } = await articlesApi.getDetail(id);
+      const { data } = await articleApi.getDetail(id);
       const article = data.data;
       form.setFieldsValue({
         title: article.title,
@@ -159,11 +159,11 @@ function ArticleEditor() {
 
       if (id) {
         // 更新
-        await articlesApi.update({ id, ...articleData });
+        await articleApi.update({ id, ...articleData });
         message.success('文章更新成功');
       } else {
         // 创建
-        await articlesApi.create(articleData);
+        await articleApi.create(articleData);
         message.success('文章创建成功');
       }
 

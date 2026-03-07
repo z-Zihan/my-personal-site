@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { uploadApi } from '../../utils/api';
+import { uploadApi } from '../../api/upload';
 import { toast } from '../../utils/toast';
 
 export default function ImageUploader({ onChange, value, accept = "image/*" }) {

@@ -42,8 +42,8 @@ export default async function handler(req) {
     if (req.method === 'POST' || req.method === 'DELETE') {
       try {
         body = await req.json()
-      } catch (e) {
-        body = {}
+      } catch {
+        // ignore parse error
       }
     }
 

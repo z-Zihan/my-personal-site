@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { statsApi } from '../utils/api'
+import { statsApi } from '../api/index'
 
 export function useStats() {
   const [stats, setStats] = useState(null)

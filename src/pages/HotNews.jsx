@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion as Motion } from 'framer-motion'
-import { hotNewsApi } from '../utils/api'
+import { hotNewsApi } from '../api/index';
 import PixelCard from '../components/effects/PixelCard'
 import Crosshair from '../components/effects/Crosshair'
 

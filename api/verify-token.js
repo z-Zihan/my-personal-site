@@ -4,9 +4,6 @@ export const config = {
   runtime: 'edge',
 }
 
-// 简单的 token 验证（生产环境应使用数据库或 Redis 存储）
-const validTokens = new Map()
-
 export default async function handler(req) {
   if (req.method === 'OPTIONS') {
     return optionsResponse()

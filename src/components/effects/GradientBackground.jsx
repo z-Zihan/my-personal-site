@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion'
-
 export default function GradientBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { articlesApi } from '../utils/api'
+import { articleApi } from '../api/index'
 
 export function useArticles(initialParams = {}) {
   const [articles, setArticles] = useState([])
@@ -16,7 +16,7 @@ export function useArticles(initialParams = {}) {
     setLoading(true)
     setError(null)
     try {
-      const { data } = await articlesApi.getList({ ...initialParams, ...params })
+      const { data } = await articleApi.getList({ ...initialParams, ...params })
       setArticles(data.data || [])
       setPagination(data.pagination || pagination)
     } catch (err) {

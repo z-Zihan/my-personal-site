@@ -62,7 +62,7 @@ async function fetchFromRSS() {
 
   const data = await response.json()
 
-  return data.items.slice(0, 10).map((item, index) => ({
+  return data.items.slice(0, 10).map((item) => ({
     title: item.title,
     link: item.link,
     source: data.feed?.title || 'Tech News',
@@ -135,7 +135,7 @@ export default async function handler(req) {
 
       // 更新缓存
       await updateCache(newsData)
-    } catch (rssError) {
+    } catch {
       console.log('Using fallback news data (RSS unavailable)')
       // 使用 fallback 数据
     }

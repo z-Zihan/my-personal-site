@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, Button, Card, Space, Tag, Popconfirm, message, Switch, Modal, InputNumber, Drawer } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CommentOutlined, StarOutlined, DragOutlined } from '@ant-design/icons';
-import { articlesApi, commentsApi } from '../../utils/api';
+import { articleApi, commentApi } from '../../api/index';
 import { formatDate } from '../../utils/helpers';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -62,8 +62,8 @@ function ArticleManager() {
   const fetchArticles = async () => {
     setLoading(true);
     try {
-      const { data } = await articlesApi.getList({ limit: 100 });
-      setArticles(data?.data || []);
+      const { data } = await articleApi.getList({ limit: 100 });
+      setArticles(data || []);
     } catch (error) {
       message.error('加载文章失败');
     } finally {
@@ -73,7 +73,7 @@ function ArticleManager() {
 
   const fetchRecommendedArticles = async () => {
     try {
-      const { data } = await articlesApi.getList({ recommended: true, limit: 50 });
+      const { data } = await articleApi.getList({ recommended: true, limit: 50 });
       // 按 recommend_order 排序
       const sorted = (data?.data || []).sort((a, b) => (a.recommend_order ?? 0) - (b.recommend_order ?? 0));
       setRecommendedArticles(sorted);
@@ -89,7 +89,7 @@ function ArticleManager() {
 
   const handleDelete = async (id) => {
     try {
-      await articlesApi.delete(id)
+      await articleApi.delete(id)
       message.success('删除成功')
       fetchArticles()
     } catch (error) {
@@ -101,7 +101,7 @@ function ArticleManager() {
     setStatusChangingId(id);
     const newStatus = currentStatus === 'published' ? 'draft' : 'published'
     try {
-      await articlesApi.toggleStatus({ id, status: currentStatus })
+      await articleApi.toggleStatus({ id, status: currentStatus })
       message.success(`文章已${newStatus === 'published' ? '发布' : '设为草稿'}`)
       fetchArticles()
     } catch (error) {
@@ -114,7 +114,7 @@ function ArticleManager() {
   const handleToggleRecommend = async (id, isRecommended) => {
     setRecommendChangingId(id);
     try {
-      await articlesApi.updateRecommend({ id, is_recommended: !isRecommended, recommend_order: !isRecommended ? 0 : undefined })
+      await articleApi.updateRecommend({ id, is_recommended: !isRecommended, recommend_order: !isRecommended ? 0 : undefined })
       message.success(isRecommended ? '已取消推荐' : '已设为推荐')
       fetchArticles()
     } catch (error) {
@@ -144,7 +144,7 @@ function ArticleManager() {
 
       // 并行发送更新请求
       await Promise.all(updates.map(update =>
-        articlesApi.updateRecommend({ id: update.id, recommend_order: update.recommend_order })
+        articleApi.updateRecommend({ id: update.id, recommend_order: update.recommend_order })
       ));
 
       message.success('排序已更新');
@@ -158,7 +158,7 @@ function ArticleManager() {
   const handleBatchRecommend = async (selectedRowKeys) => {
     try {
       for (let i = 0; i < selectedRowKeys.length; i++) {
-        await articlesApi.updateRecommend({ id: selectedRowKeys[i], is_recommended: true, recommend_order: i })
+        await articleApi.updateRecommend({ id: selectedRowKeys[i], is_recommended: true, recommend_order: i })
       }
       message.success(`已批量设置 ${selectedRowKeys.length} 篇文章为推荐`)
       fetchArticles()
@@ -174,7 +174,7 @@ function ArticleManager() {
     setCommentsModalVisible(true);
     setCommentsLoading(true);
     try {
-      const { data } = await commentsApi.getList({ article_id: article.id });
+      const { data } = await commentApi.getList({ article_id: article.id });
       setComments(data?.data || []);
     } catch (error) {
       message.error('加载评论失败');
@@ -185,7 +185,7 @@ function ArticleManager() {
 
   const handleDeleteComment = async (id) => {
     try {
-      await commentsApi.delete(id);
+      await commentApi.delete(id);
       message.success('删除成功');
       handleShowComments(currentArticle); // 刷新评论列表
     } catch (error) {
@@ -199,7 +199,7 @@ function ArticleManager() {
       return;
     }
     try {
-      await commentsApi.batchDelete(selectedCommentKeys);
+      await commentApi.batchDelete(selectedCommentKeys);
       message.success(`成功删除 ${selectedCommentKeys.length} 条评论`);
       setSelectedCommentKeys([]);
       handleShowComments(currentArticle); // 刷新评论列表

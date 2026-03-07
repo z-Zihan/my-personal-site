@@ -19,6 +19,17 @@ function BlogList() {
     category_id: selectedCategory !== "all" ? selectedCategory : undefined,
   });
 
+  const fetchCategories = async () => {
+    try {
+      const { data } = await get('/api/categories');
+      if (data && data.length > 0) {
+        setCategories([{ id: "all", name: "全部" }, ...data]);
+      }
+    } catch (error) {
+      console.error("Fetch categories error:", error);
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -30,17 +41,6 @@ function BlogList() {
       category_id: selectedCategory !== "all" ? selectedCategory : undefined,
     });
   }, [selectedCategory]);
-
-  const fetchCategories = async () => {
-    try {
-      const { data } = await get('/api/categories');
-      if (data && data.length > 0) {
-        setCategories([{ id: "all", name: "全部" }, ...data]);
-      }
-    } catch (error) {
-      console.error("Fetch categories error:", error);
-    }
-  };
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
