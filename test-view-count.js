@@ -2,7 +2,7 @@
 // 在浏览器控制台中运行此代码来测试 API
 
 async function testViewCount() {
-  const testArticleId = 1; // 替换为你的文章 ID
+  const testArticleId = "286d7135-8d05-46c2-a60d-713ed8f49769"; // 替换为你的文章 ID
 
   console.log('🔍 开始测试浏览量更新...');
 

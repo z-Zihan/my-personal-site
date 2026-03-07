@@ -44,11 +44,9 @@ export default async function handler(req) {
       return errorResponse('Article ID is required', 400)
     }
 
-    const newStatus = status === 'published' ? 'draft' : 'published'
-
     const { data: article, error } = await supabase
       .from('articles')
-      .update({ status: newStatus })
+      .update({ status })
       .eq('id', id)
       .select()
       .single()
