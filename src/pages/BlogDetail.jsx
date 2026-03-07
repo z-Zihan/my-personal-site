@@ -9,6 +9,7 @@ import ShareButtons from "../components/common/ShareButtons";
 import LikeButton from "../components/common/LikeButton";
 import ReadingTime from "../components/common/ReadingTime";
 import CommentSection from "../components/common/CommentSection";
+import { trackEvent } from "../utils/analytics";
 
 export default function BlogDetail() {
   const { id } = useParams();
@@ -26,6 +27,17 @@ export default function BlogDetail() {
     }
     fetchArticle();
   }, [id]);
+
+  // 文章加载成功后，记录浏览埋点
+  useEffect(() => {
+    if (article) {
+      trackEvent('article_view', 'engagement', {
+        article_id: article.id,
+        article_title: article.title,
+        page_path: window.location.pathname,
+      });
+    }
+  }, [article]);
 
   const fetchArticle = async () => {
     try {

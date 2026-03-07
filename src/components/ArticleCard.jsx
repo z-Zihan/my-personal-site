@@ -4,6 +4,7 @@ import { getArticleCover } from "../utils/defaultCovers";
 import PixelCard from "./effects/PixelCard";
 import RandomTag from "./common/Tag";
 import { EyeIcon, HeartIcon } from "lucide-react";
+import { trackEvent } from "../utils/analytics";
 
 function ArticleCard({ article, isRecommended }) {
   const navigate = useNavigate();
@@ -16,7 +17,15 @@ function ArticleCard({ article, isRecommended }) {
     <PixelCard
       variant="purple"
       className="overflow-hidden cursor-pointer relative"
-      onClick={() => navigate(`/blog/${article.id}`)}
+      onClick={() => {
+        // 文章卡片点击埋点
+        trackEvent('article_card_click', 'engagement', {
+          article_id: article.id,
+          article_title: article.title,
+          page_path: window.location.pathname,
+        });
+        navigate(`/blog/${article.id}`);
+      }}
     >
       {isRecommended && (
         <div className="absolute top-2 right-2 z-10 bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-bold">

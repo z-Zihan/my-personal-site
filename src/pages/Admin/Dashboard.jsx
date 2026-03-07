@@ -10,10 +10,16 @@ import {
   LaptopOutlined,
   ClockCircleOutlined,
   StarOutlined,
+  BarChartOutlined,
+  GlobalOutlined,
+  MobileOutlined,
+  PieChartOutlined,
+  TrophyOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
+  PieChart, Pie,
   LineChart, Line,
 } from 'recharts'
 import { articleApi } from '../../api/article'
@@ -134,12 +140,12 @@ function Dashboard() {
 
   return (
     <div style={{ padding: '24px 0' }}>
-      <Title level={3} style={{ marginBottom: 24 }}>📊 数据仪表盘</Title>
+      <Title level={3} style={{ marginBottom: 24 }}><BarChartOutlined style={{ marginRight: 8 }} />数据仪表盘</Title>
 
       {/* 世界地图 - 移到最顶部 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24}>
-          <Card title="🌍 访客地域分布">
+          <Card title={<><GlobalOutlined style={{ marginRight: 8 }} />访客地域分布</>}>
             <VisitorMap />
           </Card>
         </Col>
@@ -148,42 +154,38 @@ function Dashboard() {
       {/* 核心指标 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card style={{ background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.55) 0%, rgba(118, 75, 162, 0.55) 100%)' }}>
             <Statistic
-              title="总访客数"
+              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总访客数</span>}
               value={analytics.totalVisitors || 0}
-              prefix={<UserOutlined />}
-              styles={{ content: { color: '#00f0ff' } }}
+              prefix={<UserOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card style={{ background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.55) 0%, rgba(0, 204, 255, 0.55) 100%)' }}>
             <Statistic
-              title="总浏览量"
+              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总浏览量</span>}
               value={analytics.totalPageViews || 0}
-              prefix={<EyeOutlined />}
-              styles={{ content: { color: '#7000ff' } }}
+              prefix={<EyeOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card style={{ background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.55) 0%, rgba(0, 204, 136, 0.55) 100%)' }}>
             <Statistic
-              title="总会话数"
+              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总会话数</span>}
               value={analytics.totalSessions || 0}
-              prefix={<LaptopOutlined />}
-              styles={{ content: { color: '#00ff88' } }}
+              prefix={<LaptopOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card style={{ background: 'linear-gradient(135deg, rgba(255, 102, 0, 0.55) 0%, rgba(255, 136, 0, 0.55) 100%)' }}>
             <Statistic
-              title="总事件数"
+              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总事件数</span>}
               value={analytics.totalEvents || 0}
-              prefix={<FireOutlined />}
-              styles={{ content: { color: '#ff6600' } }}
+              prefix={<ThunderboltOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
             />
           </Card>
         </Col>
@@ -192,32 +194,29 @@ function Dashboard() {
       {/* 原有统计 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={8}>
-          <Card>
+          <Card style={{ background: 'linear-gradient(135deg, rgba(255, 99, 132, 0.55) 0%, rgba(255, 159, 64, 0.55) 100%)' }}>
             <Statistic
-              title="总文章数"
+              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总文章数</span>}
               value={stats.totalArticles || 0}
-              prefix={<FileTextOutlined />}
-              styles={{ content: { color: '#00f0ff' } }}
+              prefix={<FileTextOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={8}>
-          <Card>
+          <Card style={{ background: 'linear-gradient(135deg, rgba(54, 162, 235, 0.55) 0%, rgba(75, 192, 192, 0.55) 100%)' }}>
             <Statistic
-              title="总留言数"
+              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总留言数</span>}
               value={stats.totalMessages || 0}
-              prefix={<MessageOutlined />}
-              styles={{ content: { color: '#00ff88' } }}
+              prefix={<MessageOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={8}>
-          <Card>
+          <Card style={{ background: 'linear-gradient(135deg, rgba(255, 205, 86, 0.55) 0%, rgba(255, 183, 77, 0.55) 100%)' }}>
             <Statistic
-              title="总热点数"
+              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总热点数</span>}
               value={stats.totalNews || 0}
-              prefix={<FireOutlined />}
-              styles={{ content: { color: '#ff6600' } }}
+              prefix={<FireOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
             />
           </Card>
         </Col>
@@ -284,7 +283,7 @@ function Dashboard() {
       {/* 最新文章模块 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24}>
-          <Card title={<><ClockCircleOutlined style={{ color: '#00f0ff', marginRight: 8 }} />最新文章（最多显示 6 篇）</>}>
+          <Card title={<><ClockCircleOutlined style={{ marginRight: 8 }} />最新文章（最多显示 6 篇）</>}>
             {latestArticles.length > 0 ? (
               <Table
                 dataSource={latestArticles}
@@ -353,21 +352,15 @@ function Dashboard() {
       <Row gutter={[16, 16]}>
         {/* 每日访问趋势 */}
         <Col xs={24} lg={12}>
-          <Card title="📈 近 7 天访问趋势" style={{ marginBottom: 24 }}>
+          <Card title={<><PieChartOutlined style={{ marginRight: 8 }} />近 7 天访问趋势</>} style={{ marginBottom: 24 }}>
             {analytics.daily && analytics.daily.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={analytics.daily}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
                   <XAxis dataKey="date" stroke="#666" />
                   <YAxis stroke="#666" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1a1a2e',
-                      border: '1px solid #00f0ff',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Line type="monotone" dataKey="views" stroke="#00f0ff" strokeWidth={2} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="views" stroke="#7000ff" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
@@ -378,12 +371,15 @@ function Dashboard() {
 
         {/* 设备分布 */}
         <Col xs={24} lg={12}>
-          <Card title="📱 设备分布" style={{ marginBottom: 24 }}>
+          <Card title={<><MobileOutlined style={{ marginRight: 8 }} />设备分布</>} style={{ marginBottom: 24 }}>
             {analytics.devices && analytics.devices.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={analytics.devices}
+                    data={analytics.devices.map((entry, index) => ({
+                      ...entry,
+                      fill: COLORS[index % COLORS.length]
+                    }))}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -392,9 +388,6 @@ function Dashboard() {
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {analytics.devices.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
                   </Pie>
                   <Tooltip />
                 </PieChart>
@@ -407,7 +400,7 @@ function Dashboard() {
 
         {/* 热门页面 */}
         <Col xs={24} lg={12}>
-          <Card title="🔥 热门页面 TOP 10" style={{ marginBottom: 24 }}>
+          <Card title={<><TrophyOutlined style={{ marginRight: 8 }} />热门页面 TOP 10</>} style={{ marginBottom: 24 }}>
             {analytics.pages && analytics.pages.length > 0 ? (
               <Table
                 dataSource={analytics.pages}
@@ -433,7 +426,7 @@ function Dashboard() {
                     render: (_, record) => {
                       const total = analytics.pages.reduce((sum, p) => sum + p.views, 0)
                       const percentage = total > 0 ? Math.round((record.views / total) * 100) : 0
-                      return <Progress percent={percentage} size="small" strokeColor="#00f0ff" />
+                      return <Progress percent={percentage} size="small" strokeColor="#1890ff" />
                     },
                   },
                 ]}
@@ -446,21 +439,15 @@ function Dashboard() {
 
         {/* 浏览器分布 */}
         <Col xs={24} lg={12}>
-          <Card title="🌐 浏览器分布" style={{ marginBottom: 24 }}>
+          <Card title={<><GlobalOutlined style={{ marginRight: 8 }} />浏览器分布</>} style={{ marginBottom: 24 }}>
             {analytics.browsers && analytics.browsers.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={analytics.browsers}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
                   <XAxis dataKey="name" stroke="#666" />
                   <YAxis stroke="#666" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1a1a2e',
-                      border: '1px solid #00f0ff',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Bar dataKey="value" fill="#7000ff" radius={[4, 4, 0, 0]} />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#1890ff" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
