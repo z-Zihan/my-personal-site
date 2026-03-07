@@ -49,7 +49,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors" suppressHydrationWarning>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors pb-24" suppressHydrationWarning>
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-600 to-cyan-600 py-32" suppressHydrationWarning>

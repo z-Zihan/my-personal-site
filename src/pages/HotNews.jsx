@@ -52,7 +52,7 @@ function HotNews() {
   }, [])
 
   return (
-    <div ref={containerRef} className="min-h-screen pt-20 pb-20">
+    <div ref={containerRef} className="min-h-screen pt-20 pb-24">
       <Crosshair color="#f97316" containerRef={containerRef} />
       <div className="max-w-4xl mx-auto px-4">
         <Motion.h1

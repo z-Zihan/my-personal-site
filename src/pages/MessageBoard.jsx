@@ -80,7 +80,7 @@ function MessageBoard() {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-12">
+    <div className="min-h-screen pt-20 pb-24">
       <div className="max-w-4xl mx-auto px-4">
         {/* 留言列表 - 固定高度，可滚动 */}
         <motion.div

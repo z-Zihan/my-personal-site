@@ -1,34 +1,38 @@
-import { useEffect, useState } from 'react'
-import { articleApi } from '../api/index'
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useState } from "react";
+import { articleApi } from "../api/index";
 
 export function useArticles(initialParams = {}) {
-  const [articles, setArticles] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: initialParams.limit || 18,
     total: 0,
     totalPages: 0,
-  })
+  });
 
   const fetchArticles = async (params = {}) => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const { data } = await articleApi.getList({ ...initialParams, ...params })
-      setArticles(data.data || [])
-      setPagination(data.pagination || pagination)
+      const { data, pagination } = await articleApi.getList({
+        ...initialParams,
+        ...params,
+      });
+      setArticles(data || []);
+      setPagination(pagination || pagination);
     } catch (err) {
-      setError(err.message)
+      setError(err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchArticles()
-  }, [initialParams.category_id, initialParams.limit])
+    fetchArticles();
+  }, [initialParams.category_id, initialParams.limit]);
 
-  return { articles, loading, error, pagination, refetch: fetchArticles }
+  return { articles, loading, error, pagination, refetch: fetchArticles };
 }

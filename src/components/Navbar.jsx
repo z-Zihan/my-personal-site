@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { motion } from 'framer-motion' // eslint-disable-line no-unused-vars
 import Avatar from './common/Avatar'
 import Magnet from './effects/Magnet'
 
@@ -13,10 +14,8 @@ function Navbar() {
     if (!vid) {
       vid = 'visitor_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9)
       localStorage.setItem('visitor_id', vid)
-      setVisitorId(vid)
-    } else {
-      setVisitorId(vid)
     }
+    setVisitorId(vid)
   }, [])
 
   const navLinks = [

@@ -91,7 +91,7 @@ export default function BlogDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors pb-24">
       <ReadingProgress />
       {/* <TableOfContents contentRef={contentRef} /> */}
 
