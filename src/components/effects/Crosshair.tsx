@@ -1,109 +1,114 @@
-import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
+import { useEffect, useRef } from 'react'
+import { gsap } from 'gsap'
 
-const lerp = (a, b, n) => (1 - n) * a + n * b;
+const lerp = (a: number, b: number, n: number) => (1 - n) * a + n * b
 
-const getMousePos = (e, container) => {
+const getMousePos = (e: MouseEvent, container: HTMLElement | null) => {
   if (container) {
-    const bounds = container.getBoundingClientRect();
+    const bounds = container.getBoundingClientRect()
     return {
       x: e.clientX - bounds.left,
       y: e.clientY - bounds.top
-    };
+    }
   }
-  return { x: e.clientX, y: e.clientY };
-};
+  return { x: e.clientX, y: e.clientY }
+}
 
-const Crosshair = ({ color = 'white', containerRef = null }) => {
-  const cursorRef = useRef(null);
-  const lineHorizontalRef = useRef(null);
-  const lineVerticalRef = useRef(null);
-  const filterXRef = useRef(null);
-  const filterYRef = useRef(null);
+interface CrosshairProps {
+  color?: string
+  containerRef?: React.RefObject<HTMLElement> | null
+}
 
-  let mouse = { x: 0, y: 0 };
+const Crosshair = ({ color = 'white', containerRef = null }: CrosshairProps) => {
+  const cursorRef = useRef<HTMLDivElement>(null)
+  const lineHorizontalRef = useRef<HTMLDivElement>(null)
+  const lineVerticalRef = useRef<HTMLDivElement>(null)
+  const filterXRef = useRef<SVGFElemenTurbulenceElement | null>(null)
+  const filterYRef = useRef<SVGFElemenTurbulenceElement | null>(null)
+
+  let mouse = { x: 0, y: 0 }
 
   useEffect(() => {
-    const handleMouseMove = ev => {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      mouse = getMousePos(ev, containerRef?.current);
+    const handleMouseMove = (ev: Event) => {
+      const mouseEvent = ev as MouseEvent
+      mouse = getMousePos(mouseEvent, containerRef?.current || null)
 
       if (containerRef?.current) {
-        const bounds = containerRef.current.getBoundingClientRect();
+        const bounds = containerRef.current.getBoundingClientRect()
         if (
-          ev.clientX < bounds.left ||
-          ev.clientX > bounds.right ||
-          ev.clientY < bounds.top ||
-          ev.clientY > bounds.bottom
+          mouseEvent.clientX < bounds.left ||
+          mouseEvent.clientX > bounds.right ||
+          mouseEvent.clientY < bounds.top ||
+          mouseEvent.clientY > bounds.bottom
         ) {
           if (lineHorizontalRef.current && lineVerticalRef.current) {
             gsap.to([lineHorizontalRef.current, lineVerticalRef.current], {
               opacity: 0
-            });
+            })
           }
         } else {
           if (lineHorizontalRef.current && lineVerticalRef.current) {
             gsap.to([lineHorizontalRef.current, lineVerticalRef.current], {
               opacity: 1
-            });
+            })
           }
         }
       }
-    };
+    }
 
-    const target = containerRef?.current || window;
-    target.addEventListener('mousemove', handleMouseMove);
+    const target = containerRef?.current || window
+    target.addEventListener('mousemove', handleMouseMove)
 
-    const renderedStyles = {
+    const renderedStyles: Record<string, { previous: number; current: number; amt: number }> = {
       tx: { previous: 0, current: 0, amt: 0.15 },
       ty: { previous: 0, current: 0, amt: 0.15 }
-    };
+    }
 
     if (lineHorizontalRef.current && lineVerticalRef.current) {
       gsap.set([lineHorizontalRef.current, lineVerticalRef.current], {
         opacity: 0
-      });
+      })
     }
 
     const onMouseMove = () => {
-      renderedStyles.tx.previous = renderedStyles.tx.current = mouse.x;
-      renderedStyles.ty.previous = renderedStyles.ty.current = mouse.y;
+      renderedStyles.tx.previous = renderedStyles.tx.current = mouse.x
+      renderedStyles.ty.previous = renderedStyles.ty.current = mouse.y
 
       if (lineHorizontalRef.current && lineVerticalRef.current) {
         gsap.to([lineHorizontalRef.current, lineVerticalRef.current], {
           duration: 0.9,
           ease: 'Power3.easeOut',
           opacity: 1
-        });
+        })
       }
 
-      requestAnimationFrame(render);
+      requestAnimationFrame(render)
 
-      target.removeEventListener('mousemove', onMouseMove);
-    };
+      target.removeEventListener('mousemove', onMouseMove)
+    }
 
-    target.addEventListener('mousemove', onMouseMove);
+    target.addEventListener('mousemove', onMouseMove)
 
-    const primitiveValues = { turbulence: 0 };
+    const primitiveValues = { turbulence: 0 }
 
     const tl = gsap
       .timeline({
         paused: true,
         onStart: () => {
           if (lineHorizontalRef.current && lineVerticalRef.current) {
-            lineHorizontalRef.current.style.filter = `url(#filter-noise-x)`;
-            lineVerticalRef.current.style.filter = `url(#filter-noise-y)`;
+            lineHorizontalRef.current.style.filter = `url(#filter-noise-x)`
+            lineVerticalRef.current.style.filter = `url(#filter-noise-y)`
           }
         },
         onUpdate: () => {
           if (filterXRef.current && filterYRef.current) {
-            filterXRef.current.setAttribute('baseFrequency', primitiveValues.turbulence);
-            filterYRef.current.setAttribute('baseFrequency', primitiveValues.turbulence);
+            filterXRef.current.setAttribute('baseFrequency', String(primitiveValues.turbulence))
+            filterYRef.current.setAttribute('baseFrequency', String(primitiveValues.turbulence))
           }
         },
         onComplete: () => {
           if (lineHorizontalRef.current && lineVerticalRef.current) {
-            lineHorizontalRef.current.style.filter = lineVerticalRef.current.style.filter = 'none';
+            lineHorizontalRef.current.style.filter = lineVerticalRef.current.style.filter = 'none'
           }
         }
       })
@@ -112,49 +117,49 @@ const Crosshair = ({ color = 'white', containerRef = null }) => {
         ease: 'power1',
         startAt: { turbulence: 1 },
         turbulence: 0
-      });
+      })
 
-    const enter = () => tl.restart();
-    const leave = () => tl.progress(1).kill();
+    const enter = () => tl.restart()
+    const leave = () => tl.progress(1).kill()
 
     const render = () => {
-      renderedStyles.tx.current = mouse.x;
-      renderedStyles.ty.current = mouse.y;
+      renderedStyles.tx.current = mouse.x
+      renderedStyles.ty.current = mouse.y
 
       for (const key in renderedStyles) {
         renderedStyles[key].previous = lerp(
           renderedStyles[key].previous,
           renderedStyles[key].current,
           renderedStyles[key].amt
-        );
+        )
       }
 
       if (lineVerticalRef.current) {
-        gsap.set(lineVerticalRef.current, { x: renderedStyles.tx.previous });
+        gsap.set(lineVerticalRef.current, { x: renderedStyles.tx.previous })
       }
       if (lineHorizontalRef.current) {
-        gsap.set(lineHorizontalRef.current, { y: renderedStyles.ty.previous });
+        gsap.set(lineHorizontalRef.current, { y: renderedStyles.ty.previous })
       }
 
-      requestAnimationFrame(render);
-    };
+      requestAnimationFrame(render)
+    }
 
-    const links = containerRef?.current ? containerRef.current.querySelectorAll('a') : document.querySelectorAll('a');
+    const links = containerRef?.current ? containerRef.current.querySelectorAll('a') : document.querySelectorAll('a')
 
-    links.forEach(link => {
-      link.addEventListener('mouseenter', enter);
-      link.addEventListener('mouseleave', leave);
-    });
+    links.forEach((link: Element) => {
+      link.addEventListener('mouseenter', enter)
+      link.addEventListener('mouseleave', leave)
+    })
 
     return () => {
-      target.removeEventListener('mousemove', handleMouseMove);
-      target.removeEventListener('mousemove', onMouseMove);
-      links.forEach(link => {
-        link.removeEventListener('mouseenter', enter);
-        link.removeEventListener('mouseleave', leave);
-      });
-    };
-  }, [containerRef]);
+      target.removeEventListener('mousemove', handleMouseMove)
+      target.removeEventListener('mousemove', onMouseMove)
+      links.forEach((link: Element) => {
+        link.removeEventListener('mouseenter', enter)
+        link.removeEventListener('mouseleave', leave)
+      })
+    }
+  }, [containerRef])
 
   return (
     <div
@@ -177,14 +182,14 @@ const Crosshair = ({ color = 'white', containerRef = null }) => {
         ref={lineHorizontalRef}
         className={`absolute w-full h-px pointer-events-none opacity-0 transform translate-y-1/2`}
         style={{ background: color }}
-      ></div>
+      />
       <div
         ref={lineVerticalRef}
         className={`absolute h-full w-px pointer-events-none opacity-0 transform translate-x-1/2`}
         style={{ background: color }}
-      ></div>
+      />
     </div>
-  );
-};
+  )
+}
 
-export default Crosshair;
+export default Crosshair

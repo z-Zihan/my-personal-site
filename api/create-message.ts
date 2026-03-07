@@ -1,10 +1,11 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import type { Message } from '../src/types/database'
 
 export const config = {
   runtime: 'edge',
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -14,7 +15,12 @@ export default async function handler(req) {
   }
 
   try {
-    const body = await req.json()
+    const body = await req.json() as {
+      visitor_id: string
+      content: string
+      visitor_name?: string
+      location?: string
+    }
     const { visitor_id, content, visitor_name, location } = body
 
     if (!visitor_id || !content) {
@@ -25,9 +31,16 @@ export default async function handler(req) {
       return errorResponse('Message content cannot be empty', 400)
     }
 
+    const insertData: Partial<Message> = {
+      visitor_id,
+      content: content.trim(),
+      visitor_name: visitor_name || null,
+      location: location || null
+    }
+
     const { data: message, error } = await supabase
       .from('messages')
-      .insert([{ visitor_id, content: content.trim(), visitor_name: visitor_name || null, location: location || null }])
+      .insert([insertData])
       .select()
       .single()
 

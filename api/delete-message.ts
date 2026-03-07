@@ -1,11 +1,11 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
 
 export const config = {
   runtime: 'edge',
 }
 
 // 简单的 token 验证函数（不查数据库）
-function validateToken(token) {
+function validateToken(token: string | null): boolean {
   if (!token || !token.startsWith('admin_')) {
     return false
   }
@@ -21,12 +21,12 @@ function validateToken(token) {
   return Date.now() < expiresAt
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
 
-  if (req.method !== 'POST') {
+  if (req.method !== 'DELETE') {
     return errorResponse('Method not allowed', 405)
   }
 
@@ -44,26 +44,26 @@ export default async function handler(req) {
       return errorResponse('Invalid or expired token', 401)
     }
 
-    // 解析请求体
-    const { ids } = await req.json()
+    // 删除留言
+    const url = new URL(req.url)
+    const id = url.searchParams.get('id')
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return errorResponse('Comment IDs are required', 400)
+    if (!id) {
+      return errorResponse('Message ID is required', 400)
     }
 
-    // 批量删除评论
     const { error } = await supabase
-      .from('comments')
+      .from('messages')
       .delete()
-      .in('id', ids)
+      .eq('id', id)
 
     if (error) {
       return errorResponse(error.message, 500)
     }
 
-    return jsonResponse({ data: { deleted: true, count: ids.length } })
+    return jsonResponse({ data: { deleted: true } })
   } catch (error) {
-    console.error('Error batch deleting comments:', error)
+    console.error('Error deleting message:', error)
     return errorResponse('Internal server error', 500)
   }
 }

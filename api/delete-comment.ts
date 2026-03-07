@@ -1,10 +1,10 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
 
 export const config = {
   runtime: 'edge',
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }

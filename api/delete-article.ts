@@ -1,11 +1,11 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
 
 export const config = {
   runtime: 'edge',
 }
 
 // 简单的 token 验证函数 - 只验证时间戳格式
-function validateToken(token) {
+function validateToken(token: string | null): boolean {
   if (!token || !token.startsWith('admin_')) {
     return false
   }
@@ -13,12 +13,12 @@ function validateToken(token) {
   return timestamp && !isNaN(parseInt(timestamp))
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
 
-  if (req.method !== 'PUT') {
+  if (req.method !== 'DELETE') {
     return errorResponse('Method not allowed', 405)
   }
 
@@ -36,38 +36,26 @@ export default async function handler(req) {
       return errorResponse('Invalid or expired token', 401)
     }
 
-    // 更新文章
-    const body = await req.json()
-    const { id, title, content, summary, cover, status, category_id } = body
+    // 删除文章
+    const url = new URL(req.url)
+    const id = url.searchParams.get('id')
 
     if (!id) {
       return errorResponse('Article ID is required', 400)
     }
 
-    const updateData = {}
-    if (title !== undefined) updateData.title = title
-    if (content !== undefined) updateData.content = content
-    if (summary !== undefined) updateData.summary = summary
-    if (cover !== undefined) updateData.cover = cover
-    if (status !== undefined) updateData.status = status
-    if (category_id !== undefined) updateData.category_id = category_id
-    // 添加最后修改时间
-    updateData.updated_at = new Date().toISOString()
-
-    const { data: article, error } = await supabase
+    const { error } = await supabase
       .from('articles')
-      .update(updateData)
+      .delete()
       .eq('id', id)
-      .select()
-      .single()
 
     if (error) {
       return errorResponse(error.message, 500)
     }
 
-    return jsonResponse({ data: article })
+    return jsonResponse({ data: { deleted: true } })
   } catch (error) {
-    console.error('Error updating article:', error)
+    console.error('Error deleting article:', error)
     return errorResponse('Internal server error', 500)
   }
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { articleApi } from "../api/article";
+import { articleApi, Article } from "../api/article";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -12,13 +12,13 @@ import CommentSection from "../components/common/CommentSection";
 import { trackEvent } from "../utils/analytics";
 
 export default function BlogDetail() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [article, setArticle] = useState(null);
+  const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [headerVisible, setHeaderVisible] = useState(true);
-  const contentRef = useRef(null);
+  const contentRef = useRef<HTMLElement>(null);
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
 
@@ -80,15 +80,15 @@ export default function BlogDetail() {
     try {
       setLoading(true);
       setError(null);
-      const res = await articleApi.getDetail(id);
-      if ( res.data) {
-        setArticle(res.data);
+      const articleData = await articleApi.getDetail(Number(id));
+      if (articleData) {
+        setArticle(articleData);
       } else {
         setError("文章不存在");
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Fetch article error:", err);
-      if (err.response?.status === 404) {
+      if ((err as any)?.response?.status === 404) {
         setError("文章不存在");
       } else {
         setError("加载失败，请稍后重试");
@@ -191,13 +191,13 @@ export default function BlogDetail() {
         {/* Actions */}
         <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <LikeButton articleId={id} initialLikes={article.likes} />
+            <LikeButton articleId={Number(id)} initialLikes={article.likes} />
             <ShareButtons title={article.title} url={window.location.href} />
           </div>
         </div>
 
         {/* Comments */}
-        <CommentSection articleId={id} />
+        <CommentSection articleId={Number(id)} />
       </main>
     </div>
   );

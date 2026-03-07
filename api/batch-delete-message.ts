@@ -1,11 +1,11 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
 
 export const config = {
   runtime: 'edge',
 }
 
 // 简单的 token 验证函数（不查数据库）
-function validateToken(token) {
+function validateToken(token: string | null): boolean {
   if (!token || !token.startsWith('admin_')) {
     return false
   }
@@ -21,7 +21,7 @@ function validateToken(token) {
   return Date.now() < expiresAt
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -45,7 +45,7 @@ export default async function handler(req) {
     }
 
     // 解析请求体
-    const { ids } = await req.json()
+    const { ids } = await req.json() as { ids: string[] }
 
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return errorResponse('Message IDs are required', 400)

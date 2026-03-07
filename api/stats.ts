@@ -1,10 +1,10 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
 
 export const config = {
   runtime: 'edge',
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -35,7 +35,7 @@ export default async function handler(req) {
       supabase.from('articles').select('*', { count: 'exact', head: true }).eq('status', 'published')
     ])
 
-    const totalViews = viewsData?.reduce((sum, a) => sum + a.views, 0) || 0
+    const totalViews = viewsData?.reduce((sum: number, a: { views: number }) => sum + a.views, 0) || 0
 
     return jsonResponse({
       data: {

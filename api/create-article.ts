@@ -1,11 +1,12 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import type { Article } from '../src/types/database'
 
 export const config = {
   runtime: 'edge',
 }
 
 // 简单的 token 验证函数 - 只验证时间戳格式
-function validateToken(token) {
+function validateToken(token: string | null): boolean {
   if (!token || !token.startsWith('admin_')) {
     return false
   }
@@ -13,7 +14,7 @@ function validateToken(token) {
   return timestamp && !isNaN(parseInt(timestamp))
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -37,14 +38,21 @@ export default async function handler(req) {
     }
 
     // 创建文章
-    const body = await req.json()
+    const body = await req.json() as {
+      title: string
+      content: string
+      summary?: string
+      cover?: string
+      status?: 'published' | 'draft' | 'scheduled'
+      category_id?: string
+    }
     const { title, content, summary, cover, status = 'draft', category_id } = body
 
     if (!title || !content) {
       return errorResponse('Title and content are required', 400)
     }
 
-    const insertData = {
+    const insertData: Partial<Article> = {
       title,
       content,
       summary: summary || '',

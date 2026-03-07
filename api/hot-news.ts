@@ -1,4 +1,5 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import type { HotNews } from '../src/types/database'
 
 export const config = {
   runtime: 'edge',
@@ -18,7 +19,7 @@ const RSS_FEEDS = [
 ]
 
 // 模拟热点数据（作为 fallback）
-const FALLBACK_NEWS = [
+const FALLBACK_NEWS: HotNews[] = [
   {
     title: 'GitHub 今日 trending 项目推荐',
     link: 'https://github.com/trending',
@@ -46,8 +47,18 @@ const FALLBACK_NEWS = [
   },
 ]
 
+interface RSSItem {
+  title: string
+  link: string
+}
+
+interface RSSData {
+  feed?: { title: string }
+  items: RSSItem[]
+}
+
 // 从 RSS 获取真实热点数据
-async function fetchFromRSS() {
+async function fetchFromRSS(): Promise<HotNews[]> {
   // 随机选择一个 RSS 源
   const feedUrl = RSS_FEEDS[Math.floor(Math.random() * RSS_FEEDS.length)]
   const response = await fetch(`${RSS_TO_JSON_API}${encodeURIComponent(feedUrl)}`, {
@@ -60,7 +71,7 @@ async function fetchFromRSS() {
     throw new Error('RSS fetch failed')
   }
 
-  const data = await response.json()
+  const data: RSSData = await response.json()
 
   return data.items.slice(0, 10).map((item) => ({
     title: item.title,
@@ -70,7 +81,7 @@ async function fetchFromRSS() {
 }
 
 // 获取缓存的新闻数据
-async function getCachedNews() {
+async function getCachedNews(): Promise<HotNews[] | null> {
   const { data, error } = await supabase
     .from('hot_news_cache')
     .select('*')
@@ -86,14 +97,14 @@ async function getCachedNews() {
   const now = Date.now()
 
   if (now - cacheTime < CACHE_DURATION * 1000) {
-    return JSON.parse(data.news_data)
+    return JSON.parse(data.news_data) as HotNews[]
   }
 
   return null
 }
 
 // 更新缓存
-async function updateCache(newsData) {
+async function updateCache(newsData: HotNews[]): Promise<void> {
   try {
     // 先清空旧缓存
     await supabase.from('hot_news_cache').update({ is_valid: false }).eq('is_valid', true)
@@ -109,7 +120,7 @@ async function updateCache(newsData) {
   }
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }

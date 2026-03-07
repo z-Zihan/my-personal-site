@@ -1,4 +1,13 @@
-import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+
+interface GlitchTextProps {
+  children: string
+  speed?: number
+  enableShadows?: boolean
+  enableOnHover?: boolean
+  className?: string
+}
 
 const GlitchText = ({
   children,
@@ -6,27 +15,27 @@ const GlitchText = ({
   enableShadows = true,
   enableOnHover = false,
   className = '',
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [glitching, setGlitching] = useState(false);
+}: GlitchTextProps) => {
+  const [isHovered, setIsHovered] = useState(false)
+  const [glitching, setGlitching] = useState(false)
 
-  const shouldGlitch = enableOnHover ? isHovered : true;
+  const shouldGlitch = enableOnHover ? isHovered : true
 
   useEffect(() => {
     if (shouldGlitch) {
       const interval = setInterval(() => {
-        setGlitching(true);
-        setTimeout(() => setGlitching(false), 100 + Math.random() * 200);
-      }, 2000 / speed);
+        setGlitching(true)
+        setTimeout(() => setGlitching(false), 100 + Math.random() * 200)
+      }, 2000 / speed)
 
-      return () => clearInterval(interval);
+      return () => clearInterval(interval)
     }
-  }, [shouldGlitch, speed]);
+  }, [shouldGlitch, speed])
 
-  const glitchChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+  const glitchChars = '!@#$%^&*()_+-=[]{}|;:,.<>?'
 
   const generateGlitchText = () => {
-    if (!shouldGlitch || !glitching) return children;
+    if (!shouldGlitch || !glitching) return children
     return children
       .split('')
       .map((char) =>
@@ -34,8 +43,8 @@ const GlitchText = ({
           ? ' '
           : glitchChars[Math.floor(Math.random() * glitchChars.length)]
       )
-      .join('');
-  };
+      .join('')
+  }
 
   return (
     <motion.span
@@ -91,7 +100,7 @@ const GlitchText = ({
         />
       )}
     </motion.span>
-  );
-};
+  )
+}
 
-export default GlitchText;
+export default GlitchText

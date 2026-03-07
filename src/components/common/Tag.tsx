@@ -27,7 +27,7 @@ function RandomTag({ children, color, variant }: RandomTagProps) {
   )
 
   return (
-    <Tag color={tagConfig.randomColor} variant={tagConfig.randomVariant}>
+    <Tag color={tagConfig.randomColor} variant={tagConfig.randomVariant as 'filled' | 'solid' | 'outlined'}>
       {children}
     </Tag>
   )

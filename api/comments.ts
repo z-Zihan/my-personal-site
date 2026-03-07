@@ -1,10 +1,11 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import type { Comment } from '../src/types/database'
 
 export const config = {
   runtime: 'edge',
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -34,7 +35,7 @@ export default async function handler(req) {
       if (error) throw error
 
       // 格式化数据
-      const formattedData = data.map(item => ({
+      const formattedData = data.map((item: Comment & { articles: { title: string } }) => ({
         ...item,
         article_title: item.articles.title
       }))

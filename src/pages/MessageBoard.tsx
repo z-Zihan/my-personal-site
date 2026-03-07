@@ -11,9 +11,9 @@ import { useGeolocation } from "../hooks/useGeolocation";
 import { cleanUserInput, inputRules } from "../utils/sanitize";
 
 function MessageBoard() {
-  const [messages, setMessages] = useState([]);
-  const [content, setContent] = useState("");
-  const [location, setLocation] = useState("");
+  const [messages, setMessages] = useState<any[]>([]);
+  const [content, setContent] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const { visitorId, initVisitor, getVisitorName } = useVisitorStore();
@@ -49,7 +49,7 @@ function MessageBoard() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
 
@@ -81,7 +81,7 @@ function MessageBoard() {
     }
   };
 
-  const handleGetLocation = async () => {
+  const handleGetLocation = async (): Promise<void> => {
     try {
       await getLocation().then(setLocation);
     } catch (err) {

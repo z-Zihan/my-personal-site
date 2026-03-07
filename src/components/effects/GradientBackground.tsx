@@ -1,6 +1,12 @@
-export default function GradientBackground() {
+import { motion } from 'framer-motion'
+
+interface GradientBackgroundProps {
+  className?: string
+}
+
+export default function GradientBackground({ className }: GradientBackgroundProps) {
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div className={`absolute inset-0 overflow-hidden ${className || ''}`}>
       {/* 动态渐变球 */}
       <motion.div
         className="absolute -top-1/2 -left-1/4 w-full h-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full blur-3xl"

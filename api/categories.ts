@@ -1,11 +1,12 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import type { Category } from '../src/types/database'
 
 export const config = {
   runtime: 'edge',
 }
 
 // 简单的 token 验证函数 - 只验证时间戳格式
-function validateToken(token) {
+function validateToken(token: string | null): boolean {
   if (!token || !token.startsWith('admin_')) {
     return false
   }
@@ -13,7 +14,7 @@ function validateToken(token) {
   return timestamp && !isNaN(parseInt(timestamp))
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -53,7 +54,7 @@ export default async function handler(req) {
   // POST - 创建新分类
   if (req.method === 'POST') {
     try {
-      const { name } = await req.json()
+      const { name } = await req.json() as { name: string }
 
       if (!name || !name.trim()) {
         return errorResponse('Category name is required', 400)
@@ -101,7 +102,7 @@ export default async function handler(req) {
   // PUT - 更新分类
   if (req.method === 'PUT') {
     try {
-      const { id, name } = await req.json()
+      const { id, name } = await req.json() as { id: string; name: string }
 
       if (!id) {
         return errorResponse('Category ID is required', 400)

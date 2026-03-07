@@ -1,5 +1,13 @@
 import { motion } from 'framer-motion'
 
+interface FloatingOrbsProps {
+  colors?: string[]
+  count?: number
+  blur?: string
+  opacity?: number
+  speed?: 'slow' | 'medium' | 'fast'
+}
+
 /**
  * 浮动光球背景 - 适用于文章页面
  * 创建柔和的浮动光球效果，营造沉浸式阅读氛围
@@ -10,8 +18,8 @@ export default function FloatingOrbs({
   blur = 'blur-3xl',
   opacity = 0.15,
   speed = 'slow'
-}) {
-  const durationMap = {
+}: FloatingOrbsProps) {
+  const durationMap: Record<string, number> = {
     slow: 25,
     medium: 18,
     fast: 12

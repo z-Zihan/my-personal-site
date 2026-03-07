@@ -1,10 +1,11 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import type { Comment } from '../src/types/database'
 
 export const config = {
   runtime: 'edge',
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -14,16 +15,30 @@ export default async function handler(req) {
   }
 
   try {
-    const body = await req.json()
+    const body = await req.json() as {
+      article_id: string
+      visitor_id: string
+      content: string
+      visitor_name?: string
+      location?: string
+    }
     const { article_id, visitor_id, content, visitor_name, location } = body
 
     if (!article_id || !visitor_id || !content) {
       return errorResponse('Missing required fields', 400)
     }
 
+    const insertData: Partial<Comment> = {
+      article_id,
+      visitor_id,
+      content,
+      visitor_name,
+      location
+    }
+
     const { data, error } = await supabase
       .from('comments')
-      .insert({ article_id, visitor_id, content, visitor_name, location })
+      .insert(insertData)
       .select()
       .single()
 

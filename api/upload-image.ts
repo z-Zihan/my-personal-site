@@ -1,11 +1,12 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import type { ImageUploadResponse } from '../src/types/database'
 
 export const config = {
   runtime: 'edge',
 }
 
 // 检查并创建 bucket（如果不存在）- 需要 service role key
-async function ensureBucketExists() {
+async function ensureBucketExists(): Promise<boolean> {
   try {
     const { data: buckets, error } = await supabase.storage.listBuckets()
 
@@ -38,7 +39,7 @@ async function ensureBucketExists() {
   }
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -46,7 +47,7 @@ export default async function handler(req) {
   if (req.method === 'POST') {
     try {
       const formData = await req.formData()
-      const file = formData.get('image')
+      const file = formData.get('image') as File | null
 
       if (!file) {
         return errorResponse('No image provided', 400)
@@ -97,15 +98,17 @@ export default async function handler(req) {
         .from('image')
         .getPublicUrl(fileName)
 
-      return jsonResponse({
+      const response: ImageUploadResponse = {
         success: true,
         url: publicUrl,
         fileName,
         size: file.size,
-      })
+      }
+
+      return jsonResponse({ ...response })
     } catch (error) {
       console.error('Upload error:', error)
-      return errorResponse('Upload failed: ' + error.message, 500)
+      return errorResponse('Upload failed: ' + (error as Error).message, 500)
     }
   }
 

@@ -7,10 +7,10 @@ import Crosshair from "../components/effects/Crosshair";
 import { categoryApi } from "../api/category";
 
 function BlogList() {
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [categories, setCategories] = useState([{ id: "all", name: "全部" }]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [categories, setCategories] = useState<Array<{ id: string | number; name: string }>>([{ id: "all", name: "全部" }]);
   const { articles, loading, pagination, refetch } = useArticles({
     status: "published",
     limit: 18,
@@ -40,7 +40,7 @@ function BlogList() {
     });
   }, [selectedCategory]);
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       setPage(newPage);
       refetch({ page: newPage });

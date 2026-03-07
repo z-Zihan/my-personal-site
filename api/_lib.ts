@@ -1,11 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-// eslint-disable-next-line no-undef
-const supabaseUrl = process.env.SUPABASE_URL
-// eslint-disable-next-line no-undef
-const supabaseKey = process.env.SUPABASE_ANON_KEY
-// eslint-disable-next-line no-undef
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const supabaseUrl = process.env.SUPABASE_URL as string
+const supabaseKey = process.env.SUPABASE_ANON_KEY as string
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string
 
 console.log('[Supabase Client] URL:', supabaseUrl ? 'configured' : 'MISSING')
 console.log('[Supabase Client] Anon Key:', supabaseKey ? 'configured' : 'MISSING')
@@ -17,14 +14,20 @@ const finalKey = supabaseServiceKey || supabaseKey
 
 console.log('[Supabase Client] Using key:', supabaseServiceKey ? 'SERVICE_ROLE' : 'ANON')
 
-export const supabase = createClient(supabaseUrl, finalKey, {
+export const supabase: SupabaseClient = createClient(supabaseUrl, finalKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
   }
 })
 
-export function corsHeaders() {
+export interface CorsHeaders {
+  'Access-Control-Allow-Origin': string
+  'Access-Control-Allow-Headers': string
+  'Access-Control-Allow-Methods': string
+}
+
+export function corsHeaders(): CorsHeaders {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Authorization, Content-Type',
@@ -32,7 +35,11 @@ export function corsHeaders() {
   }
 }
 
-export function jsonResponse(data, status = 200, headers = {}) {
+export interface ResponseHeaders extends CorsHeaders {
+  'Content-Type': string
+}
+
+export function jsonResponse<T = unknown>(data: T, status = 200, headers: Partial<ResponseHeaders> = {}): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
@@ -43,11 +50,11 @@ export function jsonResponse(data, status = 200, headers = {}) {
   })
 }
 
-export function errorResponse(message, status = 400) {
+export function errorResponse(message: string, status = 400): Response {
   return jsonResponse({ error: message }, status)
 }
 
-export function optionsResponse() {
+export function optionsResponse(): Response {
   return new Response(null, {
     status: 204,
     headers: corsHeaders(),

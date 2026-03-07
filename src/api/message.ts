@@ -29,5 +29,5 @@ export const messageApi = {
    * 删除留言
    * @param id - 留言 ID
    */
-  delete: (id: number) => del(`/api/delete-message?id=${id}`),
+  delete: (id: number) => del(API_ENDPOINTS.DELETE_MESSAGE, {}, { params: { id } }),
 };

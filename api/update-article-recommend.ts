@@ -1,11 +1,11 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
 
 export const config = {
   runtime: 'edge',
 }
 
 // 简单的 token 验证函数 - 只验证时间戳格式
-function validateToken(token) {
+function validateToken(token: string | null): boolean {
   if (!token || !token.startsWith('admin_')) {
     return false
   }
@@ -13,7 +13,7 @@ function validateToken(token) {
   return timestamp && !isNaN(parseInt(timestamp))
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -36,14 +36,18 @@ export default async function handler(req) {
       return errorResponse('Invalid or expired token', 401)
     }
 
-    const body = await req.json()
+    const body = await req.json() as {
+      id: string
+      is_recommended?: boolean
+      recommend_order?: number
+    }
     const { id, is_recommended, recommend_order } = body
 
     if (!id) {
       return errorResponse('Article ID is required', 400)
     }
 
-    const updateData = {}
+    const updateData: { is_recommended?: boolean; recommend_order?: number } = {}
     if (is_recommended !== undefined) updateData.is_recommended = is_recommended
     if (recommend_order !== undefined) updateData.recommend_order = recommend_order
 

@@ -15,10 +15,10 @@ import CountUpNumber from '../components/effects/CountUp';
 
 export default function Home() {
   const navigate = useNavigate();
-  const [articles, setArticles] = useState([]);
-  const [recommendedArticles, setRecommendedArticles] = useState([]);
-  const [hotNews, setHotNews] = useState([]);
-  const [stats, setStats] = useState(null);
+  const [articles, setArticles] = useState<any[]>([]);
+  const [recommendedArticles, setRecommendedArticles] = useState<any[]>([]);
+  const [hotNews, setHotNews] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -14,9 +14,10 @@ const STORAGE_KEY = 'article_likes'
  * 获取本地存储的点赞记录
  * @returns {Object} { articleId: timestamp }
  */
-const getLikedArticles = () => {
+const getLikedArticles = (): Record<string, number> => {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}
+    const item = localStorage.getItem(STORAGE_KEY)
+    return item ? (JSON.parse(item) as Record<string, number>) : {}
   } catch {
     return {}
   }
@@ -90,24 +91,26 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
       if (newLikeStatus) {
         // 点赞 - 使用 POST 请求
         const res = await articleApi.like({
-          article_id: articleId as any,
+          article_id: Number(articleId),
           visitor_id: visitorId,
         })
         // 使用后端返回的实际点赞数
-        if ((res?.data as LikeData)?.likes !== undefined) {
-          setLikes((res?.data as LikeData).likes as number)
+        const likeData = res as unknown as { likes?: number }
+        if (likeData?.likes !== undefined) {
+          setLikes(likeData.likes)
         }
         setLikeStatus(articleId)
         toast.success('点赞成功')
       } else {
         // 取消点赞 - 使用 DELETE 请求，同一个接口
         const res = await articleApi.unlike({
-          article_id: articleId as any,
+          article_id: Number(articleId),
           visitor_id: visitorId,
         })
         // 使用后端返回的实际点赞数
-        if ((res?.data as LikeData)?.likes !== undefined) {
-          setLikes((res?.data as LikeData).likes as number)
+        const likeData = res as unknown as { likes?: number }
+        if (likeData?.likes !== undefined) {
+          setLikes(likeData.likes)
         }
         removeLikeStatus(articleId)
         toast.success('已取消点赞')

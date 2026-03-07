@@ -9,8 +9,8 @@ const CLIENT_CACHE_DURATION = 5 * 60 * 1000;
 const CACHE_KEY = "hot_news_cache";
 
 function HotNews() {
-  const containerRef = useRef(null);
-  const [news, setNews] = useState([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [news, setNews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

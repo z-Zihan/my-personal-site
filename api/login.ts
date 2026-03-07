@@ -1,14 +1,15 @@
-import { jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import type { LoginRequest, LoginResponse } from '../src/types/database'
 
 export const config = {
   runtime: 'edge',
 }
 
-const loginAttempts = new Map()
+const loginAttempts = new Map<string, { count: number; lastAttempt: number }>()
 const MAX_ATTEMPTS = 5
 const LOCKOUT_TIME = 15 * 60 * 1000
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -18,18 +19,18 @@ export default async function handler(req) {
   }
 
   try {
-    const body = await req.json()
+    const body = await req.json() as LoginRequest
     const { username, password } = body
 
     // 速率限制
     const ip = req.headers.get('x-forwarded-for') || 'unknown'
     const attempts = loginAttempts.get(ip) || { count: 0, lastAttempt: 0 }
-    
+
     if (attempts.count >= MAX_ATTEMPTS && Date.now() - attempts.lastAttempt < LOCKOUT_TIME) {
       const remainingTime = Math.ceil((LOCKOUT_TIME - (Date.now() - attempts.lastAttempt)) / 60000)
       return errorResponse(`尝试次数过多，请${remainingTime}分钟后再试`, 429)
     }
-    
+
     if (attempts.count >= MAX_ATTEMPTS && Date.now() - attempts.lastAttempt >= LOCKOUT_TIME) {
       attempts.count = 0
     }
@@ -58,13 +59,13 @@ export default async function handler(req) {
     const token = `admin_${Date.now()}_${Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 天后过期
 
-    return jsonResponse({
-      data: {
-        token,
-        expires_at: expiresAt.toISOString(),
-        user: { username: 'admin' },
-      },
-    })
+    const response: LoginResponse = {
+      token,
+      expires_at: expiresAt.toISOString(),
+      user: { username: 'admin' },
+    }
+
+    return jsonResponse({ data: response })
   } catch (error) {
     console.error('Login error:', error)
     return errorResponse('服务器错误', 500)

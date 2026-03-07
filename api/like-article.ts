@@ -1,10 +1,11 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import type { Like } from '../src/types/database'
 
 export const config = {
   runtime: 'edge',
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -38,7 +39,7 @@ export default async function handler(req) {
     }
 
     // 解析请求体
-    let body = {}
+    let body: { article_id?: string; visitor_id?: string } = {}
     if (req.method === 'POST' || req.method === 'DELETE') {
       try {
         body = await req.json()

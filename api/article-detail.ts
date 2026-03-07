@@ -1,10 +1,11 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import type { Article, Like } from '../src/types/database'
 
 export const config = {
   runtime: 'edge',
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -37,7 +38,6 @@ export default async function handler(req) {
     const newViewCount = (article.views || 0) + 1
 
     // 3. 更新浏览量（异步，不阻塞响应）
-    // 使用 wait/continue 模式，即使失败也不影响返回
     const updatePromise = supabase
       .from('articles')
       .update({ views: newViewCount })
@@ -83,7 +83,7 @@ export default async function handler(req) {
       .eq('article_id', article.id)
 
     // 6. 返回文章数据（使用新的浏览量）
-    const articleWithLikes = {
+    const articleWithLikes: Article & { likes: number } = {
       ...article,
       views: newViewCount,
       likes: likeCount || 0
@@ -92,6 +92,6 @@ export default async function handler(req) {
     return jsonResponse({ data: articleWithLikes })
   } catch (error) {
     console.error('Error fetching article:', error)
-    return errorResponse('Internal server error: ' + error.message, 500)
+    return errorResponse('Internal server error: ' + (error as Error).message, 500)
   }
 }

@@ -1,10 +1,11 @@
-import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib.js'
+import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import type { Article, Tag, Comment, Like } from '../src/types/database'
 
 export const config = {
   runtime: 'edge',
 }
 
-export default async function handler(req) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -57,10 +58,10 @@ export default async function handler(req) {
     }
 
     // 批量获取点赞数和评论数（优化 N+1 查询）
-    const articleIds = data.map(article => article.id)
+    const articleIds = data.map((article: Article) => article.id)
 
     // 批量查询点赞数
-    let likeCounts = {}
+    let likeCounts: Record<string, number> = {}
     if (articleIds.length > 0) {
       const { data: fallbackData } = await supabase
         .from('likes')
@@ -68,14 +69,14 @@ export default async function handler(req) {
         .in('article_id', articleIds)
 
       // 统计每个文章的点赞数
-      likeCounts = fallbackData?.reduce((acc, like) => {
+      likeCounts = fallbackData?.reduce((acc: Record<string, number>, like: Like) => {
         acc[like.article_id] = (acc[like.article_id] || 0) + 1
         return acc
       }, {}) || {}
     }
 
     // 批量查询评论数
-    let commentCounts = []
+    let commentCounts: Record<string, number> = {}
     if (articleIds.length > 0) {
       const { data: commentData } = await supabase
         .from('comments')
@@ -83,14 +84,14 @@ export default async function handler(req) {
         .in('article_id', articleIds)
 
       // 统计每个文章的评论数
-      commentCounts = commentData?.reduce((acc, comment) => {
+      commentCounts = commentData?.reduce((acc: Record<string, number>, comment: Comment) => {
         acc[comment.article_id] = (acc[comment.article_id] || 0) + 1
         return acc
       }, {}) || {}
     }
 
     // 合并统计数据
-    const articlesWithStats = data.map(article => ({
+    const articlesWithStats = data.map((article: Article) => ({
       ...article,
       likes: likeCounts[article.id] || 0,
       comment_count: commentCounts[article.id] || 0
@@ -101,8 +102,8 @@ export default async function handler(req) {
       pagination: {
         page,
         limit,
-        total: count,
-        totalPages: Math.ceil(count / limit),
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit),
       },
     })
   } catch (error) {

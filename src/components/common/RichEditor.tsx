@@ -78,9 +78,9 @@ export default function RichEditor({ value, onChange, height = 400 }: RichEditor
         backgroundColor: fullscreen ? '#fff' : 'transparent',
       }}
     >
-      <Toolbar editor={editorInstance} defaultConfig={toolbarConfig} mode="default" style={{ borderBottom: '1px solid #d9d9d9' }} />
+      <Toolbar editor={editorInstance as unknown as typeof Editor.prototype} defaultConfig={toolbarConfig} mode="default" style={{ borderBottom: '1px solid #d9d9d9' }} />
       <Editor
-        defaultConfig={editorConfig}
+        defaultConfig={editorConfig as unknown as Record<string, unknown>}
         onCreated={(editor: EditorInstance) => {
           editorRef.current = editor
           setEditorInstance(editor)
