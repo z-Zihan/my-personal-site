@@ -89,20 +89,14 @@ export const articleApi = {
   checkLikeStatus: (params: { article_id: number; visitor_id: string }) => get(API_ENDPOINTS.LIKE_ARTICLE, params),
 
   /**
+   * 点赞文章
+   * @param data - { article_id, visitor_id }
+   */
+  like: (data: { article_id: number; visitor_id: string }) => post(API_ENDPOINTS.LIKE_ARTICLE, data),
+
+  /**
    * 取消点赞
    * @param params - { article_id, visitor_id }
    */
-  deleteLike: (params: { article_id: number; visitor_id: string }) => del(API_ENDPOINTS.LIKE_ARTICLE, params),
+  unlike: (params: { article_id: number; visitor_id: string }) => del(API_ENDPOINTS.LIKE_ARTICLE, params),
 };
-
-/**
- * 点赞文章
- * @param data - { article_id, visitor_id }
- */
-export const likeArticle = (data: { article_id: number; visitor_id: string }) => post(API_ENDPOINTS.LIKE_ARTICLE, data);
-
-/**
- * 取消点赞
- * @param params - { article_id, visitor_id }
- */
-export const unlikeArticle = (params: { article_id: number; visitor_id: string }) => del(API_ENDPOINTS.LIKE_ARTICLE, params);

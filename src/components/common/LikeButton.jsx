@@ -78,19 +78,27 @@ export default function LikeButton({ articleId, initialLikes }) {
 
     try {
       if (newLikeStatus) {
-        // 点赞
-        await articleApi.checkLikeStatus({
+        // 点赞 - 使用 POST 请求
+        const res = await articleApi.like({
           article_id: articleId,
           visitor_id: visitorId
         });
+        // 使用后端返回的实际点赞数
+        if (res?.data?.likes !== undefined) {
+          setLikes(res.data.likes);
+        }
         setLikeStatus(articleId);
         toast.success('点赞成功');
       } else {
-        // 取消点赞
-        await articleApi.deleteLike({
+        // 取消点赞 - 使用 DELETE 请求，同一个接口
+        const res = await articleApi.unlike({
           article_id: articleId,
           visitor_id: visitorId
         });
+        // 使用后端返回的实际点赞数
+        if (res?.data?.likes !== undefined) {
+          setLikes(res.data.likes);
+        }
         removeLikeStatus(articleId);
         toast.success('已取消点赞');
       }

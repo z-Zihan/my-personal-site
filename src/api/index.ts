@@ -1,5 +1,5 @@
 // API 统一导出
-export { articleApi, likeArticle, unlikeArticle } from './article';
+export { articleApi } from './article';
 export type { Article, ArticleListParams, ArticleListResponse } from './article';
 
 export { messageApi } from './message';
