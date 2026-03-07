@@ -218,7 +218,7 @@ export default function Home() {
                     alt={article.title}
                     className="w-full h-48 object-cover"
                     loading="lazy"
-                    onError={(e) => {
+                    onError={(e: React.ChangeEvent<HTMLImageElement>) => {
                       e.target.src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop'
                     }}
                   />

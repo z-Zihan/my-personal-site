@@ -30,4 +30,10 @@ export const messageApi = {
    * @param id - 留言 ID
    */
   delete: (id: number) => del(API_ENDPOINTS.DELETE_MESSAGE, {}, { params: { id } }),
+
+  /**
+   * 批量删除留言
+   * @param ids - 留言 ID 数组
+   */
+  batchDelete: (ids: number[]) => post(API_ENDPOINTS.BATCH_DELETE_MESSAGE, { ids }),
 };

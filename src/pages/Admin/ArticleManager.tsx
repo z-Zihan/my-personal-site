@@ -12,6 +12,8 @@ import {
   Drawer,
   Typography,
 } from "antd";
+import type { Key } from "antd/es/table/interface";
+import type { ColumnType } from "antd/es/table";
 import {
   PlusOutlined,
   EditOutlined,
@@ -22,7 +24,7 @@ import {
   DragOutlined,
   CopyOutlined,
 } from "@ant-design/icons";
-import { articleApi, commentApi } from "../../api/index";
+import { articleApi, commentApi, Article, Comment as CommentType } from "../../api/index";
 import { formatDate } from "../../utils/helpers";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
@@ -33,15 +35,18 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+interface SortableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
+  "data-row-key": string | number;
+}
+
 // 可排序的行组件
-function SortableRow(props) {
-  const { setNodeRef, attributes, listeners, transform, transition, style } =
+function SortableRow(props: SortableRowProps) {
+  const { setNodeRef, attributes, listeners, transform, transition } =
     useSortable({
       id: props["data-row-key"],
     });
 
-  const sortableStyle = {
-    ...style,
+  const sortableStyle: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition,
     cursor: "move",
@@ -59,20 +64,27 @@ function SortableRow(props) {
   );
 }
 
+interface ArticleWithExtra extends Article {
+  is_recommended?: boolean;
+  recommend_order?: number;
+  comment_count?: number;
+  categories?: { name?: string };
+}
+
 function ArticleManager() {
   const navigate = useNavigate();
-  const [articles, setArticles] = useState([]);
-  const [recommendedArticles, setRecommendedArticles] = useState([]);
+  const [articles, setArticles] = useState<ArticleWithExtra[]>([]);
+  const [recommendedArticles, setRecommendedArticles] = useState<ArticleWithExtra[]>([]);
   const [loading, setLoading] = useState(false);
-  const [statusChangingId, setStatusChangingId] = useState(null);
-  const [recommendChangingId, setRecommendChangingId] = useState(null);
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [statusChangingId, setStatusChangingId] = useState<number | null>(null);
+  const [recommendChangingId, setRecommendChangingId] = useState<number | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
   const [commentsModalVisible, setCommentsModalVisible] = useState(false);
-  const [currentArticle, setCurrentArticle] = useState(null);
-  const [comments, setComments] = useState([]);
+  const [currentArticle, setCurrentArticle] = useState<ArticleWithExtra | null>(null);
+  const [comments, setComments] = useState<CommentType[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [recommendDrawerVisible, setRecommendDrawerVisible] = useState(false);
-  const [selectedCommentKeys, setSelectedCommentKeys] = useState([]);
+  const [selectedCommentKeys, setSelectedCommentKeys] = useState<Key[]>([]);
 
   useEffect(() => {
     fetchArticles();
@@ -82,8 +94,8 @@ function ArticleManager() {
     setLoading(true);
     try {
       const { data } = await articleApi.getList({ limit: 100 });
-      setArticles(data || []);
-    } catch (error) {
+      setArticles((data?.articles as ArticleWithExtra[]) || []);
+    } catch {
       message.error("加载文章失败");
     } finally {
       setLoading(false);
@@ -99,12 +111,12 @@ function ArticleManager() {
         limit: 50,
       });
       // 按 recommend_order 排序
-      const sorted = (data?.data || []).sort(
+      const sorted = ((data?.articles as ArticleWithExtra[]) || []).sort(
         (a, b) => (a.recommend_order ?? 0) - (b.recommend_order ?? 0),
       );
       setRecommendedArticles(sorted);
-    } catch (error) {
-      console.error("加载推荐文章失败:", error);
+    } catch {
+      console.error("加载推荐文章失败");
     }
   };
 
@@ -113,17 +125,18 @@ function ArticleManager() {
     setRecommendDrawerVisible(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     try {
       await articleApi.delete(id);
       message.success("删除成功");
       fetchArticles();
-    } catch (error) {
-      message.error(error.response?.data?.error || "删除失败");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } }
+      message.error(err.response?.data?.error || "删除失败");
     }
   };
 
-  const handleToggleStatus = async (id, currentStatus, isRecommended) => {
+  const handleToggleStatus = async (id: number, currentStatus: string, isRecommended: boolean) => {
     setStatusChangingId(id);
     const newStatus = currentStatus === "published" ? "draft" : "published";
     try {
@@ -133,7 +146,7 @@ function ArticleManager() {
         newStatus === "draft" &&
         isRecommended
       ) {
-        await articleApi.updateRecommend({ id, is_recommended: false });
+        await articleApi.updateRecommend({ id, recommended: false });
         message.success("文章已设为草稿，并自动取消推荐");
       }
       await articleApi.toggleStatus({ id, status: newStatus });
@@ -141,14 +154,15 @@ function ArticleManager() {
         `文章已${newStatus === "published" ? "发布" : "设为草稿"}`,
       );
       fetchArticles();
-    } catch (error) {
-      message.error(error.response?.data?.error || "状态更新失败");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } }
+      message.error(err.response?.data?.error || "状态更新失败");
     } finally {
       setStatusChangingId(null);
     }
   };
 
-  const handleToggleRecommend = async (id, isRecommended, status) => {
+  const handleToggleRecommend = async (id: number, isRecommended: boolean, status: string) => {
     // 草稿文章不能设置推荐
     if (!isRecommended && status === "draft") {
       message.warning("未发布文章不能设置推荐");
@@ -158,19 +172,20 @@ function ArticleManager() {
     try {
       await articleApi.updateRecommend({
         id,
-        is_recommended: !isRecommended,
+        recommended: !isRecommended,
         recommend_order: !isRecommended ? 0 : undefined,
       });
       message.success(isRecommended ? "已取消推荐" : "已设为推荐");
       fetchArticles();
-    } catch (error) {
-      message.error(error.response?.data?.error || "推荐状态更新失败");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } }
+      message.error(err.response?.data?.error || "推荐状态更新失败");
     } finally {
       setRecommendChangingId(null);
     }
   };
 
-  const handleDragEnd = async (event) => {
+  const handleDragEnd = async (event: { active: { id: string | number }; over: { id: string | number } | null }) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -188,7 +203,7 @@ function ArticleManager() {
     // 批量更新顺序到后端
     try {
       const updates = newOrder.map((item, index) => ({
-        id: item.id,
+        id: item.id as number,
         recommend_order: index,
       }));
 
@@ -197,36 +212,38 @@ function ArticleManager() {
         updates.map((update) =>
           articleApi.updateRecommend({
             id: update.id,
+            recommended: true,
             recommend_order: update.recommend_order,
           }),
         ),
       );
 
       message.success("排序已更新");
-    } catch (error) {
+    } catch {
       message.error("排序更新失败");
       // 失败后重新加载
       fetchRecommendedArticles();
     }
   };
 
-  const handleBatchRecommend = async (selectedRowKeys) => {
+  const handleBatchRecommend = async (selectedRowKeys: Key[]) => {
     try {
       for (let i = 0; i < selectedRowKeys.length; i++) {
         await articleApi.updateRecommend({
-          id: selectedRowKeys[i],
-          is_recommended: true,
+          id: selectedRowKeys[i] as number,
+          recommended: true,
           recommend_order: i,
         });
       }
       message.success(`已批量设置 ${selectedRowKeys.length} 篇文章为推荐`);
       fetchArticles();
-    } catch (error) {
-      message.error(error.response?.data?.error || "批量设置失败");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } }
+      message.error(err.response?.data?.error || "批量设置失败");
     }
   };
 
-  const handleShowComments = async (article) => {
+  const handleShowComments = async (article: ArticleWithExtra) => {
     if (!article.comment_count || article.comment_count === 0) return;
 
     setCurrentArticle(article);
@@ -234,8 +251,8 @@ function ArticleManager() {
     setCommentsLoading(true);
     try {
       const { data } = await commentApi.getList({ article_id: article.id });
-      setComments(data || []);
-    } catch (error) {
+      setComments((data?.comments as CommentType[]) || []);
+    } catch {
       message.error("加载评论失败");
     } finally {
       setCommentsLoading(false);
@@ -249,20 +266,23 @@ function ArticleManager() {
     fetchArticles(); // 关闭后重新请求文章管理数据
   };
 
-  const handleDeleteComment = async (id) => {
+  const handleDeleteComment = async (id: number) => {
     try {
       await commentApi.delete(id);
       message.success("删除成功");
       // 刷新评论列表
-      const { data } = await commentApi.getList({ article_id: currentArticle.id });
-      setComments(data || []);
-      // 如果评论数量为 0，自动关闭弹窗
-      if (!data || data.length === 0) {
-        message.info("评论已全部删除");
-        handleCloseCommentsModal();
+      if (currentArticle?.id) {
+        const { data } = await commentApi.getList({ article_id: currentArticle.id });
+        setComments((data?.comments as CommentType[]) || []);
+        // 如果评论数量为 0，自动关闭弹窗
+        if (!data?.comments || data.comments.length === 0) {
+          message.info("评论已全部删除");
+          handleCloseCommentsModal();
+        }
       }
-    } catch (error) {
-      message.error(error.response?.data?.error || "删除失败");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } }
+      message.error(err.response?.data?.error || "删除失败");
     }
   };
 
@@ -272,25 +292,28 @@ function ArticleManager() {
       return;
     }
     try {
-      await commentApi.batchDelete(selectedCommentKeys);
+      await commentApi.batchDelete(selectedCommentKeys as number[]);
       message.success(`成功删除 ${selectedCommentKeys.length} 条评论`);
       setSelectedCommentKeys([]);
       // 刷新评论列表
-      const { data } = await commentApi.getList({ article_id: currentArticle.id });
-      setComments(data || []);
-      // 如果评论数量为 0，自动关闭弹窗
-      if (!data || data.length === 0) {
-        message.info("评论已全部删除");
-        handleCloseCommentsModal();
+      if (currentArticle?.id) {
+        const { data } = await commentApi.getList({ article_id: currentArticle.id });
+        setComments((data?.comments as CommentType[]) || []);
+        // 如果评论数量为 0，自动关闭弹窗
+        if (!data?.comments || data.comments.length === 0) {
+          message.info("评论已全部删除");
+          handleCloseCommentsModal();
+        }
       }
-    } catch (error) {
-      message.error(error.response?.data?.error || "批量删除失败");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } }
+      message.error(err.response?.data?.error || "批量删除失败");
     }
   };
 
-  const handleCopyId = (id) => {
+  const handleCopyId = (id: number) => {
     navigator.clipboard
-      .writeText(id)
+      .writeText(id.toString())
       .then(() => {
         message.success(`文章 ID ${id} 已复制到剪切板`);
       })
@@ -299,7 +322,7 @@ function ArticleManager() {
       });
   };
 
-  const handleCopyLink = (id) => {
+  const handleCopyLink = (id: number) => {
     const link = `${window.location.origin}/blog/${id}`;
     navigator.clipboard
       .writeText(link)
@@ -311,23 +334,23 @@ function ArticleManager() {
       });
   };
 
-  const columns = [
+  const columns: ColumnType<ArticleWithExtra>[] = [
     {
       title: "标题",
       dataIndex: "title",
       key: "title",
       ellipsis: true,
-      render: (title, record) => (
+      render: (_title, record) => (
         <Space>
           <Typography.Link
-            onClick={() => handleCopyId(record.id)}
+            onClick={() => handleCopyId(record.id as number)}
             style={{ cursor: "pointer", maxWidth: 400 }}
           >
-            {title}
+            {record.title}
           </Typography.Link>
           <CopyOutlined
             style={{ cursor: "pointer", color: "#1890ff" }}
-            onClick={() => handleCopyId(record.id)}
+            onClick={() => handleCopyId(record.id as number)}
             title="复制文章 ID"
           />
         </Space>
@@ -351,7 +374,7 @@ function ArticleManager() {
           unCheckedChildren=""
           loading={recommendChangingId === record.id}
           onChange={() =>
-            handleToggleRecommend(record.id, isRecommended, record.status)
+            handleToggleRecommend(record.id as number, isRecommended, record.status as string)
           }
         />
       ),
@@ -368,7 +391,7 @@ function ArticleManager() {
           unCheckedChildren="草稿"
           loading={statusChangingId === record.id}
           onChange={() =>
-            handleToggleStatus(record.id, status, record.is_recommended)
+            handleToggleStatus(record.id as number, status as string, record.is_recommended || false)
           }
         />
       ),
@@ -378,18 +401,18 @@ function ArticleManager() {
       dataIndex: "comment_count",
       key: "comment_count",
       width: 80,
-      render: (count, record) => (
+      render: (_count, record) => (
         <Button
           type="link"
           onClick={() => handleShowComments(record)}
-          disabled={!count || count === 0}
+          disabled={!record.comment_count || record.comment_count === 0}
           style={{
             padding: 0,
-            color: !count || count === 0 ? "rgba(0,0,0,0.25)" : undefined,
-            cursor: !count || count === 0 ? "not-allowed" : undefined,
+            color: !record.comment_count || record.comment_count === 0 ? "rgba(0,0,0,0.25)" : undefined,
+            cursor: !record.comment_count || record.comment_count === 0 ? "not-allowed" : undefined,
           }}
         >
-          <CommentOutlined /> {count || 0}
+          <CommentOutlined /> {record.comment_count || 0}
         </Button>
       ),
     },
@@ -410,7 +433,7 @@ function ArticleManager() {
       dataIndex: "created_at",
       key: "created_at",
       width: 180,
-      render: (date) => {
+      render: (date: string) => {
         const d = new Date(date);
         return d.toLocaleString("zh-CN", {
           year: "numeric",
@@ -427,7 +450,7 @@ function ArticleManager() {
       dataIndex: "updated_at",
       key: "updated_at",
       width: 180,
-      render: (date) => {
+      render: (date: string) => {
         if (!date) return "-";
         const d = new Date(date);
         return d.toLocaleString("zh-CN", {
@@ -444,7 +467,7 @@ function ArticleManager() {
       title: "操作",
       key: "action",
       width: 200,
-      fixed: "right",
+      fixed: "right" as const,
       render: (_, record) => (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Space>
@@ -464,13 +487,13 @@ function ArticleManager() {
           <Space>
             <Button
               icon={<CopyOutlined />}
-              onClick={() => handleCopyLink(record.id)}
+              onClick={() => handleCopyLink(record.id as number)}
             >
               复制
             </Button>
             <Popconfirm
               title="确定删除吗？"
-              onConfirm={() => handleDelete(record.id)}
+              onConfirm={() => handleDelete(record.id as number)}
             >
               <Button icon={<DeleteOutlined />} danger>
                 删除
@@ -482,7 +505,7 @@ function ArticleManager() {
     },
   ];
 
-  const recommendedColumns = [
+  const recommendedColumns: ColumnType<ArticleWithExtra>[] = [
     {
       title: "排序",
       key: "drag",
@@ -523,9 +546,13 @@ function ArticleManager() {
       dataIndex: "recommend_order",
       key: "recommend_order",
       width: 100,
-      render: (order) => order ?? 0,
+      render: (order: number) => order ?? 0,
     },
   ];
+
+  const handleRowSelectionChange = (newSelectedRowKeys: Key[]) => {
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
 
   return (
     <div>
@@ -559,7 +586,7 @@ function ArticleManager() {
           scroll={{ x: 1800 }}
           rowSelection={{
             selectedRowKeys,
-            onChange: setSelectedRowKeys,
+            onChange: handleRowSelectionChange,
           }}
         />
       </Card>
@@ -641,38 +668,38 @@ function ArticleManager() {
               dataIndex: "content",
               key: "content",
               ellipsis: true,
-            },
+            } as const,
             {
               title: "访客昵称",
               dataIndex: "visitor_name",
               key: "visitor_name",
               width: 120,
-              render: (name, record) =>
-                name || `访客 ${record.visitor_id?.slice(-6)}`,
-            },
+              render: (name: unknown, record: CommentType) =>
+                (name as string) || `访客 ${String(record.visitor_id || '').slice(-6)}`,
+            } as const,
             {
               title: "评论时间",
               dataIndex: "created_at",
               key: "created_at",
               width: 160,
-              render: (date) => formatDate(date),
-            },
+              render: (date: string) => formatDate(date),
+            } as const,
             {
               title: "地理位置",
               dataIndex: "location",
               key: "location",
               width: 120,
-              render: (location) => location || "-",
-            },
+              render: (location: string) => location || "-",
+            } as const,
             {
               title: "操作",
               key: "action",
               width: 80,
-              fixed: "right",
-              render: (_, record) => (
+              fixed: "right" as const,
+              render: (_: unknown, record: CommentType) => (
                 <Popconfirm
                   title="确定删除吗？"
-                  onConfirm={() => handleDeleteComment(record.id)}
+                  onConfirm={() => handleDeleteComment(record.id as number)}
                   okText="确定"
                   cancelText="取消"
                 >
@@ -681,7 +708,7 @@ function ArticleManager() {
                   </Button>
                 </Popconfirm>
               ),
-            },
+            } as const,
           ]}
         />
       </Modal>
@@ -721,7 +748,7 @@ function ArticleManager() {
           onDragEnd={handleDragEnd}
         >
           <SortableContext
-            items={recommendedArticles.map((item) => item.id)}
+            items={recommendedArticles.map((item) => item.id as number)}
             strategy={verticalListSortingStrategy}
           >
             <Table

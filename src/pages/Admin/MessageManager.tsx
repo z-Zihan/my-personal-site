@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
-import { messageApi } from '../../api/index'
+import { messageApi, Message } from '../../api/index'
 import { Table, Button, Popconfirm, message, Typography, Popover, Space } from 'antd'
+import type { Key } from 'antd/es/table/interface'
 import { DeleteOutlined } from '@ant-design/icons'
 import { formatDate } from '../../utils/helpers'
 
 const { Title } = Typography
 
 function MessageManager() {
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
-  const [selectedRowKeys, setSelectedRowKeys] = useState([])
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
 
   useEffect(() => {
     fetchMessages()
@@ -27,7 +28,7 @@ function MessageManager() {
     }
   }
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     try {
       await messageApi.delete(id)
       message.success('删除成功')
@@ -43,7 +44,7 @@ function MessageManager() {
       return
     }
     try {
-      await messageApi.batchDelete(selectedRowKeys)
+      await messageApi.batchDelete(selectedRowKeys as number[])
       message.success(`成功删除 ${selectedRowKeys.length} 条留言`)
       setSelectedRowKeys([])
       fetchMessages()
@@ -54,7 +55,7 @@ function MessageManager() {
 
   const rowSelection = {
     selectedRowKeys,
-    onChange: (newSelectedRowKeys) => {
+    onChange: (newSelectedRowKeys: Key[]) => {
       setSelectedRowKeys(newSelectedRowKeys)
     },
   }
@@ -65,42 +66,42 @@ function MessageManager() {
       dataIndex: 'content',
       key: 'content',
       ellipsis: true,
-    },
+    } as const,
     {
       title: '位置',
       dataIndex: 'location',
       key: 'location',
       width: 150,
       ellipsis: true,
-      render: (location) => location ? (
+      render: (location: string) => location ? (
         <Popover content={location} title="地理位置">
           <span style={{ cursor: 'pointer', color: '#1890ff' }}>{location}</span>
         </Popover>
       ) : '-',
-    },
+    } as const,
     {
       title: '访客 ID',
       dataIndex: 'visitor_id',
       key: 'visitor_id',
       width: 150,
-      render: (id) => `...${id?.slice(-8)}`,
-    },
+      render: (id: string) => `...${id?.slice(-8)}`,
+    } as const,
     {
       title: '创建时间',
       dataIndex: 'created_at',
       key: 'created_at',
       width: 180,
-      render: (date) => formatDate(date),
-    },
+      render: (date: string) => formatDate(date),
+    } as const,
     {
       title: '操作',
       key: 'action',
       width: 100,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_: unknown, record: Message) => (
         <Popconfirm
           title="确定删除吗？"
-          onConfirm={() => handleDelete(record.id)}
+          onConfirm={() => handleDelete(record.id as number)}
           okText="确定"
           cancelText="取消"
         >
@@ -109,7 +110,7 @@ function MessageManager() {
           </Button>
         </Popconfirm>
       ),
-    },
+    } as const,
   ]
 
   return (

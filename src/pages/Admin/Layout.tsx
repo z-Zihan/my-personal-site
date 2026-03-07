@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Layout as AntLayout, Menu, Switch, Popover, Button } from 'antd'
+import type { MenuProps } from 'antd'
 import {
   DashboardOutlined,
   FileTextOutlined,
@@ -15,6 +16,8 @@ import {
 import useAuthStore from '../../store/authStore'
 
 const { Sider, Content, Header } = AntLayout
+
+type MenuItem = Required<MenuProps>['items'][number]
 
 function AdminLayout() {
   const [loading, setLoading] = useState(true)
@@ -120,7 +123,7 @@ function AdminLayout() {
     </div>
   )
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     {
       key: '/admin/dashboard',
       icon: <DashboardOutlined style={{ fontSize: 18 }} />,
@@ -137,7 +140,7 @@ function AdminLayout() {
       label: <span style={{ fontSize: 15, fontWeight: 500 }}>留言管理</span>,
     },
     {
-      type: 'divider',
+      type: 'divider' as const,
     },
     // Menu Footer - 设置（弹出卡片）
     {
@@ -153,9 +156,9 @@ function AdminLayout() {
           overlayStyle={{ maxWidth: 250 }}
           arrow={false}
         >
-          <span 
-            style={{ 
-              fontSize: 15, 
+          <span
+            style={{
+              fontSize: 15,
               fontWeight: 500,
               display: 'flex',
               alignItems: 'center',
@@ -176,7 +179,7 @@ function AdminLayout() {
     },
   ]
 
-  const handleMenuClick = (e) => {
+  const handleMenuClick: MenuProps['onClick'] = (e) => {
     if (e.key === 'settings') {
       // 不跳转
     } else {
@@ -232,10 +235,6 @@ function AdminLayout() {
             style={{
               borderRight: 0,
               flex: 1,
-            }}
-            itemstyle={{
-              height: 56,
-              margin: '4px 8px',
             }}
           />
         </div>

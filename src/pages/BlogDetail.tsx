@@ -81,7 +81,7 @@ export default function BlogDetail() {
     try {
       setLoading(true);
       setError(null);
-      const response = await articleApi.getDetail(id);
+      const response = await articleApi.getDetail(Number(id));
       const articleData = (response as { data?: Article }).data;
       if (articleData) {
         setArticle(articleData);
@@ -195,13 +195,13 @@ export default function BlogDetail() {
         {/* Actions */}
         <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <LikeButton articleId={id} initialLikes={article.likes} />
+            <LikeButton articleId={id || ''} initialLikes={article.likes || 0} />
             <ShareButtons title={article.title} url={window.location.href} />
           </div>
         </div>
 
         {/* Comments */}
-        <CommentSection articleId={id} />
+        <CommentSection articleId={Number(id) || 0} />
       </main>
     </div>
   );

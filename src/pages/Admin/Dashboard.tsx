@@ -62,9 +62,11 @@ function Dashboard() {
       ])
       setStats(statsRes?.data || null)
       setAnalytics(analyticsRes?.data || null)
-      setLatestArticles((latestRes as { data?: Array<{ id: number; title: string; status: string; views: number; likes: number; comment_count: number; created_at: string; updated_at?: string }> }).data || [])
+      const articlesData = ((latestRes as unknown as { data?: Array<{ id: number; title: string; status: string; views: number; likes: number; comment_count: number; created_at: string; updated_at?: string }> }).data) || []
+      setLatestArticles(articlesData)
       // 推荐文章必须是已发布的文章
-      setRecommendedArticles(((latestRes as { data?: Array<{ id: number; title: string; status: string; is_recommended?: boolean; views: number; likes: number; recommend_order?: number; created_at: string }> }).data || []).filter(a => a.is_recommended && a.status === 'published').slice(0, 10) || [])
+      const recommendedData = articlesData.filter(a => (a as unknown as { is_recommended?: boolean }).is_recommended && a.status === 'published').slice(0, 10)
+      setRecommendedArticles(recommendedData as Array<{ id: number; title: string; views: number; likes: number; recommend_order?: number; created_at: string }>)
 
       // 获取详细统计数据
       const [daily, pages, devices, browsers] = await Promise.all([
@@ -75,14 +77,14 @@ function Dashboard() {
       ])
 
       // 确保数据是数组
-      const safeArray = (data) => Array.isArray(data) ? data : []
+      const safeArray = (data: unknown) => Array.isArray(data) ? data : []
 
       setAnalytics(prev => ({
         ...prev,
-        daily: safeArray(daily.data?.data || daily.data),
-        pages: safeArray(pages.data?.data || pages.data),
-        devices: safeArray(devices.data?.data || devices.data),
-        browsers: safeArray(browsers.data?.data || browsers.data),
+        daily: safeArray((daily as { data?: unknown })?.data || daily.data),
+        pages: safeArray((pages as { data?: unknown })?.data || pages.data),
+        devices: safeArray((devices as { data?: unknown })?.data || devices.data),
+        browsers: safeArray((browsers as { data?: unknown })?.data || browsers.data),
       }))
     } catch (error) {
       console.error('Fetch data error:', error)
@@ -453,27 +455,27 @@ function Dashboard() {
               <Table
                 dataSource={analytics.pages}
                 pagination={false}
-                rowKey={(record) => `page_${record.path}_`}
+                rowKey={(record: unknown) => `page_${(record as { path?: string }).path || ''}_`}
                 size="small"
                 columns={[
                   {
                     title: '页面',
                     dataIndex: 'path',
                     key: 'path',
-                    render: (path) => <code style={{ fontSize: 12 }}>{path}</code>,
+                    render: (path: unknown) => <code style={{ fontSize: 12 }}>{String(path)}</code>,
                   },
                   {
                     title: '浏览量',
                     dataIndex: 'views',
                     key: 'views',
-                    sorter: (a, b) => b.views - a.views,
+                    sorter: (a: unknown, b: unknown) => (b as { views: number }).views - (a as { views: number }).views,
                   },
                   {
                     title: '占比',
                     key: 'percentage',
-                    render: (_, record) => {
-                      const total = analytics.pages.reduce((sum, p) => sum + p.views, 0)
-                      const percentage = total > 0 ? Math.round((record.views / total) * 100) : 0
+                    render: (_: unknown, record: unknown) => {
+                      const total = (analytics.pages || []).reduce((sum, p) => sum + (p as { views: number }).views, 0)
+                      const percentage = total > 0 ? Math.round((((record as { views: number }).views || 0) / total) * 100) : 0
                       return <Progress percent={percentage} size="small" strokeColor="#1890ff" />
                     },
                   },

@@ -34,6 +34,7 @@ export const API_ENDPOINTS = {
   // 消息相关
   CREATE_MESSAGE: '/api/create-message',
   DELETE_MESSAGE: '/api/delete-message',
+  BATCH_DELETE_MESSAGE: '/api/batch-delete-message',
 
   // 认证相关
   LOGIN: '/api/login',

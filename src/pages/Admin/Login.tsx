@@ -2,8 +2,8 @@ import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Form, Input, Button, Card, message, Typography } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
-import { authApi } from '../../api/index'
-import useAuthStore from '../../store/authStore'
+import { authApi, LoginResponse } from '../../api/index'
+import useAuthStore, { type User } from '../../store/authStore'
 
 const { Title } = Typography
 
@@ -46,11 +46,17 @@ function AdminLogin() {
     try {
       const { data } = await authApi.login(values)
       const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString()
-      login(data?.token, data?.user, expiresAt)
-      message.success('登录成功')
-      navigate('/admin/dashboard')
+      if (data?.token) {
+        const user: User = data?.user as User || { username: values.username }
+        login(data.token, user, expiresAt)
+        message.success('登录成功')
+        navigate('/admin/dashboard')
+      } else {
+        message.error('登录失败：未获取到 token')
+      }
     } catch (err: unknown) {
-      message.error((err as { response?: { data?: { error?: string } }; message?: string }).response?.data?.error || '登录失败')
+      const error = err as { response?: { data?: { error?: string } }; message?: string }
+      message.error(error.response?.data?.error || error.message || '登录失败')
     }
   }
 

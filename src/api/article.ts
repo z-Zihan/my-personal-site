@@ -78,9 +78,9 @@ export const articleApi = {
 
   /**
    * 更新文章推荐状态
-   * @param data - { id, recommended }
+   * @param data - { id, recommended, recommend_order? }
    */
-  updateRecommend: (data: { id: number; recommended: boolean }) => post(API_ENDPOINTS.UPDATE_ARTICLE_RECOMMEND, data),
+  updateRecommend: (data: { id: number; recommended: boolean; recommend_order?: number }) => post(API_ENDPOINTS.UPDATE_ARTICLE_RECOMMEND, data),
 
   /**
    * 检查用户是否已点赞
