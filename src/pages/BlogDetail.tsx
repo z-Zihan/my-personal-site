@@ -81,7 +81,7 @@ export default function BlogDetail() {
     try {
       setLoading(true);
       setError(null);
-      const response = await articleApi.getDetail(Number(id));
+      const response = await articleApi.getDetail(id!);
       const articleData = (response as { data?: Article }).data;
       if (articleData) {
         setArticle(articleData);
@@ -201,7 +201,7 @@ export default function BlogDetail() {
         </div>
 
         {/* Comments */}
-        <CommentSection articleId={Number(id) || 0} />
+        <CommentSection articleId={id || ''} />
       </main>
     </div>
   );

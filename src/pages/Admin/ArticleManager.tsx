@@ -76,8 +76,8 @@ function ArticleManager() {
   const [articles, setArticles] = useState<ArticleWithExtra[]>([]);
   const [recommendedArticles, setRecommendedArticles] = useState<ArticleWithExtra[]>([]);
   const [loading, setLoading] = useState(false);
-  const [statusChangingId, setStatusChangingId] = useState<number | null>(null);
-  const [recommendChangingId, setRecommendChangingId] = useState<number | null>(null);
+  const [statusChangingId, setStatusChangingId] = useState<string | null>(null);
+  const [recommendChangingId, setRecommendChangingId] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
   const [commentsModalVisible, setCommentsModalVisible] = useState(false);
   const [currentArticle, setCurrentArticle] = useState<ArticleWithExtra | null>(null);
@@ -125,7 +125,7 @@ function ArticleManager() {
     setRecommendDrawerVisible(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
       await articleApi.delete(id);
       message.success("删除成功");
@@ -136,7 +136,7 @@ function ArticleManager() {
     }
   };
 
-  const handleToggleStatus = async (id: number, currentStatus: string, isRecommended: boolean) => {
+  const handleToggleStatus = async (id: string, currentStatus: string, isRecommended: boolean) => {
     setStatusChangingId(id);
     const newStatus = currentStatus === "published" ? "draft" : "published";
     try {
@@ -162,7 +162,7 @@ function ArticleManager() {
     }
   };
 
-  const handleToggleRecommend = async (id: number, isRecommended: boolean, status: string) => {
+  const handleToggleRecommend = async (id: string, isRecommended: boolean, status: string) => {
     // 草稿文章不能设置推荐
     if (!isRecommended && status === "draft") {
       message.warning("未发布文章不能设置推荐");
@@ -203,7 +203,7 @@ function ArticleManager() {
     // 批量更新顺序到后端
     try {
       const updates = newOrder.map((item, index) => ({
-        id: item.id as number,
+        id: item.id as string,
         recommend_order: index,
       }));
 
@@ -230,7 +230,7 @@ function ArticleManager() {
     try {
       for (let i = 0; i < selectedRowKeys.length; i++) {
         await articleApi.updateRecommend({
-          id: selectedRowKeys[i] as number,
+          id: selectedRowKeys[i] as string,
           recommended: true,
           recommend_order: i,
         });
@@ -311,7 +311,7 @@ function ArticleManager() {
     }
   };
 
-  const handleCopyId = (id: number) => {
+  const handleCopyId = (id: string) => {
     navigator.clipboard
       .writeText(id.toString())
       .then(() => {
@@ -322,7 +322,7 @@ function ArticleManager() {
       });
   };
 
-  const handleCopyLink = (id: number) => {
+  const handleCopyLink = (id: string) => {
     const link = `${window.location.origin}/blog/${id}`;
     navigator.clipboard
       .writeText(link)
@@ -343,14 +343,14 @@ function ArticleManager() {
       render: (_title, record) => (
         <Space>
           <Typography.Link
-            onClick={() => handleCopyId(record.id as number)}
+            onClick={() => handleCopyId(record.id as string)}
             style={{ cursor: "pointer", maxWidth: 400 }}
           >
             {record.title}
           </Typography.Link>
           <CopyOutlined
             style={{ cursor: "pointer", color: "#1890ff" }}
-            onClick={() => handleCopyId(record.id as number)}
+            onClick={() => handleCopyId(record.id as string)}
             title="复制文章 ID"
           />
         </Space>
@@ -374,7 +374,7 @@ function ArticleManager() {
           unCheckedChildren=""
           loading={recommendChangingId === record.id}
           onChange={() =>
-            handleToggleRecommend(record.id as number, isRecommended, record.status as string)
+            handleToggleRecommend(record.id as string, isRecommended, record.status as string)
           }
         />
       ),
@@ -391,7 +391,7 @@ function ArticleManager() {
           unCheckedChildren="草稿"
           loading={statusChangingId === record.id}
           onChange={() =>
-            handleToggleStatus(record.id as number, status as string, record.is_recommended || false)
+            handleToggleStatus(record.id as string, status as string, record.is_recommended || false)
           }
         />
       ),
@@ -487,13 +487,13 @@ function ArticleManager() {
           <Space>
             <Button
               icon={<CopyOutlined />}
-              onClick={() => handleCopyLink(record.id as number)}
+              onClick={() => handleCopyLink(record.id as string)}
             >
               复制
             </Button>
             <Popconfirm
               title="确定删除吗？"
-              onConfirm={() => handleDelete(record.id as number)}
+              onConfirm={() => handleDelete(record.id as string)}
             >
               <Button icon={<DeleteOutlined />} danger>
                 删除
@@ -748,7 +748,7 @@ function ArticleManager() {
           onDragEnd={handleDragEnd}
         >
           <SortableContext
-            items={recommendedArticles.map((item) => item.id as number)}
+            items={recommendedArticles.map((item) => item.id as string)}
             strategy={verticalListSortingStrategy}
           >
             <Table

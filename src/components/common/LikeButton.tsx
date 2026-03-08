@@ -26,18 +26,18 @@ const getLikedArticles = (): Record<string, number> => {
 
 /**
  * 检查是否已点赞
- * @param {string|number} articleId - 文章 ID
+ * @param {string} articleId - 文章 ID
  */
-const hasLiked = (articleId: string | number) => {
+const hasLiked = (articleId: string) => {
   const liked = getLikedArticles()
   return !!liked[articleId]
 }
 
 /**
  * 设置点赞状态
- * @param {string|number} articleId - 文章 ID
+ * @param {string} articleId - 文章 ID
  */
-const setLikeStatus = (articleId: string | number) => {
+const setLikeStatus = (articleId: string) => {
   const liked = getLikedArticles()
   liked[articleId] = Date.now()
   localStorage.setItem(STORAGE_KEY, JSON.stringify(liked))
@@ -45,16 +45,16 @@ const setLikeStatus = (articleId: string | number) => {
 
 /**
  * 取消点赞状态
- * @param {string|number} articleId - 文章 ID
+ * @param {string} articleId - 文章 ID
  */
-const removeLikeStatus = (articleId: string | number) => {
+const removeLikeStatus = (articleId: string) => {
   const liked = getLikedArticles()
   delete liked[articleId]
   localStorage.setItem(STORAGE_KEY, JSON.stringify(liked))
 }
 
 interface LikeButtonProps {
-  articleId: string | number
+  articleId: string
   initialLikes?: number
 }
 
@@ -92,7 +92,7 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
       if (newLikeStatus) {
         // 点赞 - 使用 POST 请求
         const res = await articleApi.like({
-          article_id: Number(articleId),
+          article_id: articleId,
           visitor_id: visitorId,
         })
         // 使用后端返回的实际点赞数
@@ -105,7 +105,7 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
       } else {
         // 取消点赞 - 使用 DELETE 请求，同一个接口
         const res = await articleApi.unlike({
-          article_id: Number(articleId),
+          article_id: articleId,
           visitor_id: visitorId,
         })
         // 使用后端返回的实际点赞数

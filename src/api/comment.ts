@@ -3,7 +3,7 @@ import { API_ENDPOINTS } from '../constants/apiConstants';
 
 export interface Comment {
   id?: number;
-  article_id?: number;
+  article_id?: string;
   content: string;
   author?: string;
   email?: string;
@@ -16,7 +16,7 @@ export interface Comment {
 export interface CommentListParams {
   page?: number;
   limit?: number;
-  article_id?: number;
+  article_id?: string;
   status?: string;
   [key: string]: unknown;
 }

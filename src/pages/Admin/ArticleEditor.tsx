@@ -31,7 +31,7 @@ function ArticleEditor() {
 
   const fetchArticle = async () => {
     try {
-      const { data } = await articleApi.getDetail(Number(id));
+      const { data } = await articleApi.getDetail(id!);
       const article = data;
       form.setFieldsValue({
         title: article.title,
@@ -163,11 +163,11 @@ function ArticleEditor() {
         (submitData as { is_recommended?: boolean }).is_recommended = false;
       }
 
-      const articleData = submitData as { id?: number; title?: string; content?: string; summary?: string; category_id?: number; cover?: string; status?: 'draft' | 'published' | 'archived'; is_recommended?: boolean };
+      const articleData = submitData as { id?: string; title?: string; content?: string; summary?: string; category_id?: string; cover?: string; status?: 'draft' | 'published' | 'archived'; is_recommended?: boolean };
 
       if (id) {
         // 更新
-        await articleApi.update({ id: Number(id), ...articleData });
+        await articleApi.update({ id, ...articleData });
         message.success('文章更新成功');
       } else {
         // 创建

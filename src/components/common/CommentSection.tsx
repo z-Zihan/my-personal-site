@@ -6,7 +6,7 @@ import { cleanUserInput, inputRules } from '../../utils/sanitize'
 
 interface Comment {
   id: number
-  article_id: number
+  article_id: string
   visitor_id: string
   visitor_name?: string
   content: string
@@ -16,7 +16,7 @@ interface Comment {
 }
 
 interface CommentSectionProps {
-  articleId: number
+  articleId: string
 }
 
 export default function CommentSection({ articleId }: CommentSectionProps) {
