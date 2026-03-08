@@ -16,7 +16,7 @@ export const categoryApi = {
   /**
    * 获取分类列表
    */
-  getList: () => get<Category[]>(API_ENDPOINTS.CATEGORIES),
+  getList: () => get<Category[]>(API_ENDPOINTS.CATEGORIES, {}, { skipAuth: true }),
 
   /**
    * 创建分类

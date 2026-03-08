@@ -1,5 +1,10 @@
-import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_BASE } from '../constants/apiConstants';
+
+// 扩展 AxiosRequestConfig 支持 skipAuth 选项
+interface CustomAxiosRequestConfig extends AxiosRequestConfig {
+  skipAuth?: boolean;
+}
 
 // 创建 axios 实例
 const request = axios.create({
@@ -12,11 +17,13 @@ const request = axios.create({
 
 // 请求拦截器
 request.interceptors.request.use(
-  (config) => {
-    // 自动添加 token
-    const token = localStorage.getItem('admin_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  (config: InternalAxiosRequestConfig & { skipAuth?: boolean }) => {
+    // 自动添加 token（除非明确指定 skipAuth）
+    if (!config.skipAuth) {
+      const token = localStorage.getItem('admin_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -45,7 +52,7 @@ request.interceptors.response.use(
  * @param config - 其他配置
  * @returns Promise
  */
-export function get<T = unknown>(url: string, params: Record<string, unknown> | URLSearchParams = {}, config: AxiosRequestConfig = {}) {
+export function get<T = unknown>(url: string, params: Record<string, unknown> | URLSearchParams = {}, config: CustomAxiosRequestConfig = {}) {
   return request.get<T>(url, { params, ...config });
 }
 

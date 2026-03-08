@@ -19,7 +19,7 @@ function BlogList() {
 
   const fetchCategories = async () => {
     try {
-      const { data } = await categoryApi.getList();
+      const data = await categoryApi.getList();
       if (data && data.length > 0) {
         setCategories([{ id: "all", name: "全部" } as unknown as Category, ...data]);
       }
