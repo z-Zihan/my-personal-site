@@ -62,7 +62,7 @@ export default async function handler(req: Request): Promise<Response> {
       return errorResponse(error.message, 500)
     }
 
-    return jsonResponse({ data: article })
+    return jsonResponse({ success: true, is_recommended: article?.is_recommended })
   } catch (error) {
     console.error('Error updating article recommend:', error)
     return errorResponse('Internal server error', 500)

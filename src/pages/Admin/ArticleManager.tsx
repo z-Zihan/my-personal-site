@@ -73,7 +73,7 @@ interface ArticleWithExtra extends Article {
   is_recommended?: boolean;
   recommend_order?: number;
   comment_count?: number;
-  categories?: { name?: string };
+  categories?: { name: string; id: string };
 }
 
 function ArticleManager() {
@@ -122,7 +122,7 @@ function ArticleManager() {
         limit: 50,
       });
       // 按 recommend_order 排序
-      const sorted = ((data?.articles as ArticleWithExtra[]) || []).sort(
+      const sorted = ((data?.data as ArticleWithExtra[]) || []).sort(
         (a, b) => (a.recommend_order ?? 0) - (b.recommend_order ?? 0),
       );
       setRecommendedArticles(sorted);
@@ -324,9 +324,9 @@ function ArticleManager() {
         const { data } = await commentApi.getList({
           article_id: currentArticle.id,
         });
-        setComments((data?.comments as CommentType[]) || []);
+        setComments((data as unknown as CommentType[]) || []);
         // 如果评论数量为 0，自动关闭弹窗
-        if (!data?.comments || data.comments.length === 0) {
+        if (!(data as unknown as CommentType[]) || (data as unknown as CommentType[]).length === 0) {
           message.info("评论已全部删除");
           handleCloseCommentsModal();
         }

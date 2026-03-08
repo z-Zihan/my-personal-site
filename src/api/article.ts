@@ -20,8 +20,8 @@ export interface ArticleListParams {
   categoryId?: number;
 }
 
-export interface ArticleListResponse {
-  articles?: Article[];
+export interface ArticleListResponse extends Array<Article> {
+  data?: Article[];
   total?: number;
   page?: number;
   limit?: number;

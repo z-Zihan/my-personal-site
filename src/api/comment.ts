@@ -21,8 +21,8 @@ export interface CommentListParams {
   [key: string]: unknown;
 }
 
-export interface CommentListResponse {
-  comments?: Comment[];
+export interface CommentListResponse extends Array<Comment> {
+  data?: Comment[];
   total?: number;
   page?: number;
   limit?: number;
