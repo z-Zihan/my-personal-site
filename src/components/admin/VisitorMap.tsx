@@ -3,6 +3,7 @@ import ReactECharts from 'echarts-for-react'
 import * as echarts from 'echarts'
 import { analyticsApi } from '../../api/analytics'
 import worldMapData from '../../data/maps/countries.geo.json'
+import type { GeoJSON } from 'echarts/types/src/coord/geo/geoTypes'
 
 interface CountryData {
   name: string
@@ -14,6 +15,11 @@ interface AnalyticsCountry {
   country?: string
   visitors?: number
   value?: number
+}
+
+interface EChartsTooltipParams {
+  name: string
+  value: number | string
 }
 
 export default function VisitorMap() {
@@ -30,10 +36,9 @@ export default function VisitorMap() {
   const registerWorldMap = async () => {
     try {
       if (worldMapData && worldMapData.features && worldMapData.features.length > 0) {
-        echarts.registerMap('world', worldMapData as any)
+        echarts.registerMap('world', worldMapData as unknown as GeoJSON)
         setMapRegistered(true)
       } else {
-        console.warn('Local map data invalid, using empty fallback')
         echarts.registerMap('world', {
           type: 'FeatureCollection',
           features: [],
@@ -41,7 +46,6 @@ export default function VisitorMap() {
         setMapRegistered(true)
       }
     } catch (error) {
-      console.error('Map register failed:', error)
       echarts.registerMap('world', {
         type: 'FeatureCollection',
         features: [],
@@ -84,7 +88,6 @@ export default function VisitorMap() {
 
       setCountryData(formattedData)
     } catch (error) {
-      console.error('Fetch country data error:', error)
       // 使用模拟数据用于演示
       setCountryData([
         { name: 'China', value: 150 },
@@ -133,9 +136,10 @@ export default function VisitorMap() {
       },
       tooltip: {
         trigger: 'item',
-        formatter: (params: any) => {
-          if (!params.value || params.value === 0) return `${params.name}: 暂无数据`
-          return `${params.name}<br/>访客数：${params.value}`
+        formatter: (params: unknown) => {
+          const p = params as EChartsTooltipParams
+          if (!p.value || p.value === 0) return `${p.name}: 暂无数据`
+          return `${p.name}<br/>访客数：${p.value}`
         },
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         borderColor: '#7000ff',

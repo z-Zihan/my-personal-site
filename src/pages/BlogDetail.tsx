@@ -89,7 +89,6 @@ export default function BlogDetail() {
         setError("文章不存在");
       }
     } catch (err: unknown) {
-      console.error("Fetch article error:", err);
       if ((err as { response?: { status?: number } })?.response?.status === 404) {
         setError("文章不存在");
       } else {

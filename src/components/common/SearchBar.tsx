@@ -34,7 +34,6 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
             onSearchResults(searchResults)
           }
         } catch (error) {
-          console.error('Search error:', error)
           setResults([])
         } finally {
           setLoading(false)

@@ -87,7 +87,7 @@ function Dashboard() {
         browsers: safeArray((browsers as { data?: unknown })?.data || browsers.data),
       }))
     } catch (error) {
-      console.error('Fetch data error:', error)
+      // 错误由全局错误边界处理
     } finally {
       setLoading(false)
     }

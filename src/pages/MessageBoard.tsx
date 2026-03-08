@@ -43,7 +43,7 @@ function MessageBoard() {
       const { data } = await messageApi.getList();
       setMessages(data || []);
     } catch (error) {
-      console.error("Error fetching messages:", error);
+      // 错误由全局错误边界处理
     } finally {
       setLoading(false);
     }

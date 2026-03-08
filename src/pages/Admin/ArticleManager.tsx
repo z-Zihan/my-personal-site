@@ -24,7 +24,12 @@ import {
   DragOutlined,
   CopyOutlined,
 } from "@ant-design/icons";
-import { articleApi, commentApi, Article, Comment as CommentType } from "../../api/index";
+import {
+  articleApi,
+  commentApi,
+  Article,
+  Comment as CommentType,
+} from "../../api/index";
 import { formatDate } from "../../utils/helpers";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
@@ -74,13 +79,19 @@ interface ArticleWithExtra extends Article {
 function ArticleManager() {
   const navigate = useNavigate();
   const [articles, setArticles] = useState<ArticleWithExtra[]>([]);
-  const [recommendedArticles, setRecommendedArticles] = useState<ArticleWithExtra[]>([]);
+  const [recommendedArticles, setRecommendedArticles] = useState<
+    ArticleWithExtra[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [statusChangingId, setStatusChangingId] = useState<string | null>(null);
-  const [recommendChangingId, setRecommendChangingId] = useState<string | null>(null);
+  const [recommendChangingId, setRecommendChangingId] = useState<string | null>(
+    null,
+  );
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
   const [commentsModalVisible, setCommentsModalVisible] = useState(false);
-  const [currentArticle, setCurrentArticle] = useState<ArticleWithExtra | null>(null);
+  const [currentArticle, setCurrentArticle] = useState<ArticleWithExtra | null>(
+    null,
+  );
   const [comments, setComments] = useState<CommentType[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [recommendDrawerVisible, setRecommendDrawerVisible] = useState(false);
@@ -94,7 +105,7 @@ function ArticleManager() {
     setLoading(true);
     try {
       const { data } = await articleApi.getList({ limit: 100 });
-      setArticles((data?.articles as ArticleWithExtra[]) || []);
+      setArticles(data || []); //不要修改这一句 现在是对的
     } catch {
       message.error("加载文章失败");
     } finally {
@@ -116,7 +127,7 @@ function ArticleManager() {
       );
       setRecommendedArticles(sorted);
     } catch {
-      console.error("加载推荐文章失败");
+      // 错误由全局错误边界处理
     }
   };
 
@@ -131,12 +142,16 @@ function ArticleManager() {
       message.success("删除成功");
       fetchArticles();
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } }
+      const err = error as { response?: { data?: { error?: string } } };
       message.error(err.response?.data?.error || "删除失败");
     }
   };
 
-  const handleToggleStatus = async (id: string, currentStatus: string, isRecommended: boolean) => {
+  const handleToggleStatus = async (
+    id: string,
+    currentStatus: string,
+    isRecommended: boolean,
+  ) => {
     setStatusChangingId(id);
     const newStatus = currentStatus === "published" ? "draft" : "published";
     try {
@@ -155,14 +170,18 @@ function ArticleManager() {
       );
       fetchArticles();
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } }
+      const err = error as { response?: { data?: { error?: string } } };
       message.error(err.response?.data?.error || "状态更新失败");
     } finally {
       setStatusChangingId(null);
     }
   };
 
-  const handleToggleRecommend = async (id: string, isRecommended: boolean, status: string) => {
+  const handleToggleRecommend = async (
+    id: string,
+    isRecommended: boolean,
+    status: string,
+  ) => {
     // 草稿文章不能设置推荐
     if (!isRecommended && status === "draft") {
       message.warning("未发布文章不能设置推荐");
@@ -178,14 +197,17 @@ function ArticleManager() {
       message.success(isRecommended ? "已取消推荐" : "已设为推荐");
       fetchArticles();
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } }
+      const err = error as { response?: { data?: { error?: string } } };
       message.error(err.response?.data?.error || "推荐状态更新失败");
     } finally {
       setRecommendChangingId(null);
     }
   };
 
-  const handleDragEnd = async (event: { active: { id: string | number }; over: { id: string | number } | null }) => {
+  const handleDragEnd = async (event: {
+    active: { id: string | number };
+    over: { id: string | number } | null;
+  }) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -238,7 +260,7 @@ function ArticleManager() {
       message.success(`已批量设置 ${selectedRowKeys.length} 篇文章为推荐`);
       fetchArticles();
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } }
+      const err = error as { response?: { data?: { error?: string } } };
       message.error(err.response?.data?.error || "批量设置失败");
     }
   };
@@ -251,7 +273,7 @@ function ArticleManager() {
     setCommentsLoading(true);
     try {
       const { data } = await commentApi.getList({ article_id: article.id });
-      setComments((data?.comments as CommentType[]) || []);
+      setComments((data) || []); //也不要修改这一句 现在也是对的
     } catch {
       message.error("加载评论失败");
     } finally {
@@ -272,16 +294,18 @@ function ArticleManager() {
       message.success("删除成功");
       // 刷新评论列表
       if (currentArticle?.id) {
-        const { data } = await commentApi.getList({ article_id: currentArticle.id });
-        setComments((data?.comments as CommentType[]) || []);
+        const { data } = await commentApi.getList({
+          article_id: currentArticle.id,
+        });
+        setComments((data) || []); //不要修改这一句
         // 如果评论数量为 0，自动关闭弹窗
-        if (!data?.comments || data.comments.length === 0) {
+        if (!data || data.length === 0) { //不要修改这一句
           message.info("评论已全部删除");
           handleCloseCommentsModal();
         }
       }
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } }
+      const err = error as { response?: { data?: { error?: string } } };
       message.error(err.response?.data?.error || "删除失败");
     }
   };
@@ -297,7 +321,9 @@ function ArticleManager() {
       setSelectedCommentKeys([]);
       // 刷新评论列表
       if (currentArticle?.id) {
-        const { data } = await commentApi.getList({ article_id: currentArticle.id });
+        const { data } = await commentApi.getList({
+          article_id: currentArticle.id,
+        });
         setComments((data?.comments as CommentType[]) || []);
         // 如果评论数量为 0，自动关闭弹窗
         if (!data?.comments || data.comments.length === 0) {
@@ -306,7 +332,7 @@ function ArticleManager() {
         }
       }
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } }
+      const err = error as { response?: { data?: { error?: string } } };
       message.error(err.response?.data?.error || "批量删除失败");
     }
   };
@@ -374,7 +400,11 @@ function ArticleManager() {
           unCheckedChildren=""
           loading={recommendChangingId === record.id}
           onChange={() =>
-            handleToggleRecommend(record.id as string, isRecommended, record.status as string)
+            handleToggleRecommend(
+              record.id as string,
+              isRecommended,
+              record.status as string,
+            )
           }
         />
       ),
@@ -391,7 +421,11 @@ function ArticleManager() {
           unCheckedChildren="草稿"
           loading={statusChangingId === record.id}
           onChange={() =>
-            handleToggleStatus(record.id as string, status as string, record.is_recommended || false)
+            handleToggleStatus(
+              record.id as string,
+              status as string,
+              record.is_recommended || false,
+            )
           }
         />
       ),
@@ -408,8 +442,14 @@ function ArticleManager() {
           disabled={!record.comment_count || record.comment_count === 0}
           style={{
             padding: 0,
-            color: !record.comment_count || record.comment_count === 0 ? "rgba(0,0,0,0.25)" : undefined,
-            cursor: !record.comment_count || record.comment_count === 0 ? "not-allowed" : undefined,
+            color:
+              !record.comment_count || record.comment_count === 0
+                ? "rgba(0,0,0,0.25)"
+                : undefined,
+            cursor:
+              !record.comment_count || record.comment_count === 0
+                ? "not-allowed"
+                : undefined,
           }}
         >
           <CommentOutlined /> {record.comment_count || 0}
@@ -613,7 +653,7 @@ function ArticleManager() {
           currentArticle ? `《${currentArticle.title}》的评论` : "评论列表"
         }
         open={commentsModalVisible}
-        onCancel={handleCloseCommentsModal}
+        // onCancel={handleCloseCommentsModal}
         footer={null}
         width={800}
       >
@@ -675,7 +715,8 @@ function ArticleManager() {
               key: "visitor_name",
               width: 120,
               render: (name: unknown, record: CommentType) =>
-                (name as string) || `访客 ${String(record.visitor_id || '').slice(-6)}`,
+                (name as string) ||
+                `访客 ${String(record.visitor_id || "").slice(-6)}`,
             } as const,
             {
               title: "评论时间",

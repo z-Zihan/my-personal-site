@@ -44,8 +44,7 @@ function ArticleEditor() {
       setContent(article.content || '');
       setCover(article.cover || '');
     } catch (error: unknown) {
-      console.error('加载文章失败:', error);
-      message.error('加载文章失败');
+      message.error('加载文章失败')
     }
   };
 
@@ -55,7 +54,6 @@ function ArticleEditor() {
       const list = Array.isArray(res) ? res : (res as { data?: { id: number; name: string }[] }).data || []
       setCategories(list.map(cat => ({ id: cat.id as number, name: cat.name })))
     } catch (error) {
-      console.error('Fetch categories error:', error)
       message.error('加载分类失败')
       setCategories([])
     }
@@ -69,7 +67,6 @@ function ArticleEditor() {
     setCategoryLoading(true)
     try {
       const { data } = await categoryApi.create({ name: newCategoryName.trim() })
-      console.log('Add category response:', data)
       // 重新获取分类列表
       await fetchCategories()
       message.success('分类添加成功')

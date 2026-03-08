@@ -23,7 +23,6 @@ function HotNewsPage() {
         if (Date.now() - timestamp < CLIENT_CACHE_DURATION && data.length > 0) {
           setNews(data);
           setLoading(false);
-          console.log("Using client-side cached news");
           return;
         }
       }
@@ -42,7 +41,6 @@ function HotNewsPage() {
           }),
         );
       } catch (error) {
-        console.error("Error fetching news:", error);
         // 如果请求失败，使用旧缓存（如果有）
         if (cached) {
           const { data } = JSON.parse(cached);

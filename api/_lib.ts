@@ -4,15 +4,9 @@ const supabaseUrl = process.env.SUPABASE_URL as string
 const supabaseKey = process.env.SUPABASE_ANON_KEY as string
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string
 
-console.log('[Supabase Client] URL:', supabaseUrl ? 'configured' : 'MISSING')
-console.log('[Supabase Client] Anon Key:', supabaseKey ? 'configured' : 'MISSING')
-console.log('[Supabase Client] Service Key:', supabaseServiceKey ? 'configured' : 'MISSING')
-
 // 使用 service role key（绕过 RLS）用于后端 API 操作
 // 如果没有配置 service role key，则使用 anon key（但需要确保 RLS 策略允许匿名写入）
 const finalKey = supabaseServiceKey || supabaseKey
-
-console.log('[Supabase Client] Using key:', supabaseServiceKey ? 'SERVICE_ROLE' : 'ANON')
 
 export const supabase: SupabaseClient = createClient(supabaseUrl, finalKey, {
   auth: {

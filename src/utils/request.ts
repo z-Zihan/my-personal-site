@@ -40,7 +40,6 @@ request.interceptors.response.use(
   },
   (error: AxiosError) => {
     // 统一处理错误
-    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );

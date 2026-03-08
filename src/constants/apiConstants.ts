@@ -1,5 +1,7 @@
 // API 基础配置
-export const API_BASE = 'https://zzihanaini.vercel.app';
+// 使用环境变量，允许在不同环境中自定义 API 地址
+// 如果没有配置环境变量，则使用默认值
+export const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://zzihanaini.vercel.app';
 
 // API 端点常量
 export const API_ENDPOINTS = {

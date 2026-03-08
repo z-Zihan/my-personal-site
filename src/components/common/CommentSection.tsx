@@ -3,6 +3,7 @@ import { commentApi } from '../../api/comment'
 import { toast } from '../../utils/toast'
 import Avatar from './Avatar'
 import { cleanUserInput, inputRules } from '../../utils/sanitize'
+import useVisitorStore from '../../store/visitorStore'
 
 interface Comment {
   id: number
@@ -23,21 +24,15 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
   const [loading, setLoading] = useState(false)
+  const { getVisitorId, getVisitorName, initVisitor } = useVisitorStore()
   const [visitorId, setVisitorId] = useState('')
   const [visitorName, setVisitorName] = useState('')
 
   useEffect(() => {
-    let vid = localStorage.getItem('visitor_id')
-    if (!vid) {
-      vid =
-        'visitor_' +
-        Date.now().toString(36) +
-        '_' +
-        Math.random().toString(36).substr(2, 9)
-      localStorage.setItem('visitor_id', vid)
-    }
+    // 初始化访客信息
+    const vid = initVisitor()
     setVisitorId(vid)
-    setVisitorName(localStorage.getItem('userName') || '')
+    setVisitorName(getVisitorName() || '')
     fetchComments()
   }, [articleId])
 
@@ -47,7 +42,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
       const commentData = res as unknown as { comments?: Comment[] }
       setComments(commentData.comments || [])
     } catch (error) {
-      console.error('Fetch comments error:', error)
+      // 错误由全局错误边界处理
     }
   }
 

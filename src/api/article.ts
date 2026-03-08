@@ -1,22 +1,15 @@
 import { get, post, put, del, patch } from '../utils/request';
 import { API_ENDPOINTS } from '../constants/apiConstants';
+import type { Article as DatabaseArticle } from '../types/database';
 
-export interface Article {
-  id?: string;
-  title: string;
-  content?: string;
-  summary?: string;
-  category_id?: string;
-  category_name?: string;
-  cover?: string;
-  author?: string;
-  status?: 'draft' | 'published' | 'archived';
-  recommended?: boolean;
-  views?: number;
+// 扩展 Article 类型，包含额外的 API 返回字段
+export interface Article extends DatabaseArticle {
   likes?: number;
-  created_at?: string;
-  updated_at?: string;
-  [key: string]: unknown;
+  comment_count?: number;
+  categories?: { name: string; id: string };
+  category_name?: string;
+  author?: string;
+  recommended?: boolean;
 }
 
 export interface ArticleListParams {
@@ -25,7 +18,6 @@ export interface ArticleListParams {
   status?: string;
   recommended?: boolean;
   categoryId?: number;
-  [key: string]: unknown;
 }
 
 export interface ArticleListResponse {
@@ -33,7 +25,6 @@ export interface ArticleListResponse {
   total?: number;
   page?: number;
   limit?: number;
-  [key: string]: unknown;
 }
 
 /**

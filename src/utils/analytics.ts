@@ -108,7 +108,6 @@ const flushEvents = async () => {
       keepalive: true,
     })
   } catch (error) {
-    console.error('Analytics flush error:', error)
     // 失败时把事件放回队列
     eventQueue = [...events, ...eventQueue]
   }
@@ -214,8 +213,6 @@ export const initAnalytics = () => {
     if (flushTimer) clearTimeout(flushTimer)
     flushEvents()
   })
-
-  console.log('📊 Analytics initialized')
 }
 
 export default {

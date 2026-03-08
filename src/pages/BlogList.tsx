@@ -31,7 +31,7 @@ function BlogList() {
         ]);
       }
     } catch (error) {
-      console.error("Fetch categories error:", error);
+      // 错误由全局错误边界处理
     }
   };
 

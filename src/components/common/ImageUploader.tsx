@@ -49,7 +49,6 @@ export default function ImageUploader({ onChange, value, accept = 'image/*' }: I
         toast.success('上传成功')
       }
     } catch (error) {
-      console.error('Upload error:', error)
       toast.error((error as any).response?.data?.error || '上传失败')
     } finally {
       setUploading(false)

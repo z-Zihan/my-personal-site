@@ -24,9 +24,9 @@ export interface Article {
   content: string
   summary?: string
   cover?: string
-  status: 'published' | 'draft' | 'scheduled'
-  views: number
-  reading_time: number
+  status: 'published' | 'draft' | 'archived' | 'scheduled'
+  views?: number
+  reading_time?: number
   category_id?: string
   scheduled_at?: string
   created_at?: string

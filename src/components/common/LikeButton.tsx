@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Heart } from 'lucide-react'
 import { articleApi } from '../../api/article'
 import { toast } from '../../utils/toast'
+import useVisitorStore from '../../store/visitorStore'
 
 interface LikeData {
   likes: number
@@ -62,6 +63,7 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
   const [likes, setLikes] = useState(initialLikes || 0)
   const [isLiked, setIsLiked] = useState(false)
   const [loading, setLoading] = useState(false)
+  const { getVisitorId } = useVisitorStore()
 
   // 初始化时检查是否已点赞
   useEffect(() => {
@@ -75,13 +77,8 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
 
     setLoading(true)
 
-    // 获取或创建访客 ID
-    let visitorId = localStorage.getItem('visitor_id')
-    if (!visitorId) {
-      visitorId = 'visitor_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9)
-      localStorage.setItem('visitor_id', visitorId)
-    }
-
+    // 使用 visitorStore 获取访客 ID
+    const visitorId = getVisitorId()
     const newLikeStatus = !isLiked
 
     // 乐观更新 UI
@@ -117,7 +114,6 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
         toast.success('已取消点赞')
       }
     } catch (error) {
-      console.error('Like error:', error)
       // 回滚 UI
       setLikes((prev) => (newLikeStatus ? prev - 1 : prev + 1))
       setIsLiked(!newLikeStatus)
