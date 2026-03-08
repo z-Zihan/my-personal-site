@@ -9,8 +9,12 @@ import { categoryApi, Category } from "../api/category";
 function BlogList() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
-  const [categories, setCategories] = useState<Category[]>([{ id: "all", name: "全部" } as unknown as Category]);
+  const [selectedCategory, setSelectedCategory] = useState<number | "all">(
+    "all",
+  );
+  const [categories, setCategories] = useState<Category[]>([
+    { id: "all", name: "全部" } as unknown as Category,
+  ]);
   const { articles, loading, pagination, refetch } = useArticles({
     status: "published",
     limit: 18,
@@ -19,9 +23,12 @@ function BlogList() {
 
   const fetchCategories = async () => {
     try {
-      const data = await categoryApi.getList();
+      const { data } = await categoryApi.getList();
       if (data && data.length > 0) {
-        setCategories([{ id: "all", name: "全部" } as unknown as Category, ...data]);
+        setCategories([
+          { id: "all", name: "全部" } as unknown as Category,
+          ...data,
+        ]);
       }
     } catch (error) {
       console.error("Fetch categories error:", error);
@@ -52,7 +59,10 @@ function BlogList() {
       ref={containerRef}
       className="min-h-screen pt-20 pb-24 relative overflow-hidden"
     >
-      <Crosshair color="#dc25d0" containerRef={containerRef as unknown as React.RefObject<HTMLElement>} />
+      <Crosshair
+        color="#dc25d0"
+        containerRef={containerRef as unknown as React.RefObject<HTMLElement>}
+      />
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <h1 className="text-5xl font-bold text-center mb-12 neon-text">
           全部文章
@@ -112,23 +122,40 @@ function BlogList() {
               </svg>
 
               {/* 浮动小点装饰 */}
-              <div className="absolute top-0 right-0 w-2 h-2 bg-cyan-400 rounded-full animate-ping" style={{ animationDelay: '0s' }} />
-              <div className="absolute bottom-4 left-4 w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
-              <div className="absolute top-1/2 -right-4 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
+              <div
+                className="absolute top-0 right-0 w-2 h-2 bg-cyan-400 rounded-full animate-ping"
+                style={{ animationDelay: "0s" }}
+              />
+              <div
+                className="absolute bottom-4 left-4 w-2 h-2 bg-purple-400 rounded-full animate-ping"
+                style={{ animationDelay: "0.5s" }}
+              />
+              <div
+                className="absolute top-1/2 -right-4 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping"
+                style={{ animationDelay: "1s" }}
+              />
             </div>
 
-            <h3 className="text-2xl font-semibold text-gray-600 mb-3">暂无文章</h3>
+            <h3 className="text-2xl font-semibold text-gray-600 mb-3">
+              暂无文章
+            </h3>
             <p className="text-gray-500 text-center max-w-md">
               这里还没有任何文章
               <br />
-              <span className="text-sm opacity-70">待博主更新后，精彩内容将在这里展示</span>
+              <span className="text-sm opacity-70">
+                待博主更新后，精彩内容将在这里展示
+              </span>
             </p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {articles.map((article: Article) => (
-                <ArticleCard key={article.id} article={{ ...article, summary: article.summary || '' }} isRecommended={false} />
+                <ArticleCard
+                  key={article.id}
+                  article={{ ...article, summary: article.summary || "" }}
+                  isRecommended={false}
+                />
               ))}
             </div>
 
