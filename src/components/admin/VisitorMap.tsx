@@ -3,7 +3,21 @@ import ReactECharts from 'echarts-for-react'
 import * as echarts from 'echarts'
 import { analyticsApi } from '../../api/analytics'
 import worldMapData from '../../data/maps/countries.geo.json'
-import type { GeoJSON } from 'echarts/types/src/coord/geo/geoTypes'
+
+// 兼容 echarts GeoJSON 类型
+interface GeoJSONFeature {
+  type: 'Feature'
+  geometry: {
+    type: 'Polygon' | 'MultiPolygon'
+    coordinates: unknown
+  }
+  properties: Record<string, unknown>
+}
+
+interface GeoJSON {
+  type: 'FeatureCollection'
+  features: GeoJSONFeature[]
+}
 
 interface CountryData {
   name: string
@@ -36,9 +50,11 @@ export default function VisitorMap() {
   const registerWorldMap = async () => {
     try {
       if (worldMapData && worldMapData.features && worldMapData.features.length > 0) {
-        echarts.registerMap('world', worldMapData as unknown as GeoJSON)
+        // @ts-ignore - echarts registerMap 类型定义过于严格
+        echarts.registerMap('world', worldMapData)
         setMapRegistered(true)
       } else {
+        // @ts-ignore
         echarts.registerMap('world', {
           type: 'FeatureCollection',
           features: [],
@@ -46,6 +62,7 @@ export default function VisitorMap() {
         setMapRegistered(true)
       }
     } catch (error) {
+      // @ts-ignore
       echarts.registerMap('world', {
         type: 'FeatureCollection',
         features: [],

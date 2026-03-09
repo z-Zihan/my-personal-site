@@ -257,47 +257,127 @@ export default function Home() {
 
       {/* Hot News */}
       {hotNews.length > 0 && (
-        <section className="bg-gray-100 dark:bg-gray-800 py-16">
+        <section className="py-16 overflow-hidden">
           <div className="max-w-6xl mx-auto px-4">
-            <motion.h2
-              className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center"
+            <motion.div
+              className="text-center mb-10"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <TrendingUp className="inline w-6 h-6 mr-2" /> 热点资讯
-            </motion.h2>
-            <div className="grid md:grid-cols-2 gap-4">
+              <motion.div
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-full mb-4"
+                initial={{ scale: 0.9, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                </span>
+                <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">实时更新</span>
+              </motion.div>
+              <motion.h2
+                className="text-3xl font-bold text-gray-900 dark:text-white"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <TrendingUp className="inline w-6 h-6 mr-2 text-orange-500" />
+                热点资讯
+              </motion.h2>
+              <p className="text-gray-500 dark:text-gray-400 mt-2">追踪最新技术动态，把握行业脉搏</p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {hotNews.slice(0, 6).map((news, index) => (
                 <motion.a
                   key={`hot-news-${news.id || news.title}${index}`}
                   href={news.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-white dark:bg-gray-700 p-4 rounded-lg hover:shadow-lg transition-all flex items-center gap-4 group"
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  className="relative group"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  whileHover={{ x: 10, backgroundColor: 'rgba(139, 92, 246, 0.1)' }}
+                  transition={{ duration: 0.4, delay: index * 0.08 }}
                 >
-                  <motion.span
-                    className="text-2xl"
-                    whileHover={{ rotate: 360, scale: 1.2 }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    <Newspaper className="w-8 h-8" />
-                  </motion.span>
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-purple-500 transition-colors">
-                      {news.title}
-                    </h4>
-                    <span className="text-sm text-gray-500">{news.source || ''}</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
+                  <div className="relative bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 group-hover:border-orange-200 dark:group-hover:border-orange-800 transition-all duration-300 h-full flex items-start gap-4 group-hover:shadow-lg group-hover:shadow-orange-500/10">
+                    {/* 排名徽章 */}
+                    <motion.div
+                      className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${
+                        index === 0
+                          ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white'
+                          : index === 1
+                          ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white'
+                          : index === 2
+                          ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                      }`}
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                    >
+                      {index + 1}
+                    </motion.div>
+
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-orange-500 transition-colors leading-relaxed">
+                        {news.title}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-2">
+                        {news.source && (
+                          <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded">
+                            {news.source}
+                          </span>
+                        )}
+                        <Newspaper className="w-3 h-3 text-gray-400" />
+                      </div>
+                    </div>
+
+                    {/* 箭头指示 */}
+                    <motion.div
+                      className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      initial={{ x: -10 }}
+                      whileHover={{ x: 0 }}
+                    >
+                      <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </motion.div>
                   </div>
                 </motion.a>
               ))}
             </div>
+
+            {/* 查看更多按钮 */}
+            <motion.div
+              className="text-center mt-10"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5 }}
+            >
+              <Magnet padding={100} strength={0.3}>
+                <motion.button
+                  onClick={() => navigate('/hot-news')}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full font-medium hover:shadow-lg hover:shadow-orange-500/25 transition-all duration-300"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  去热点资讯
+                  <motion.span
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    →
+                  </motion.span>
+                </motion.button>
+              </Magnet>
+            </motion.div>
           </div>
         </section>
       )}

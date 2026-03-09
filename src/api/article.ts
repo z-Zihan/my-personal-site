@@ -10,6 +10,7 @@ export interface Article extends DatabaseArticle {
   category_name?: string;
   author?: string;
   recommended?: boolean;
+  [key: string]: unknown;
 }
 
 export interface ArticleListParams {
@@ -18,6 +19,7 @@ export interface ArticleListParams {
   status?: string;
   recommended?: boolean;
   categoryId?: number;
+  [key: string]: unknown;
 }
 
 export interface ArticleListResponse extends Array<Article> {

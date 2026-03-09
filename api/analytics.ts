@@ -204,7 +204,7 @@ async function handleStats(req: Request): Promise<Response> {
               .order('created_at', { ascending: false })
               .limit(100)
             const pageStats: Record<string, PageStats> = {}
-            (pagesResult.data || []).forEach((pv: { page_path: string; page_title?: string }) => {
+            ;(pagesResult.data || []).forEach((pv: { page_path: string; page_title?: string }) => {
               if (!pageStats[pv.page_path]) {
                 pageStats[pv.page_path] = {
                   path: pv.page_path,
@@ -212,7 +212,9 @@ async function handleStats(req: Request): Promise<Response> {
                   views: 0,
                 }
               }
-              pageStats[pv.page_path].views++
+              if (pageStats[pv.page_path]) {
+                pageStats[pv.page_path].views++
+              }
             })
             data = Object.values(pageStats)
               .sort((a, b) => b.views - a.views)
@@ -236,7 +238,7 @@ async function handleStats(req: Request): Promise<Response> {
             .select('device_type')
             .gte('created_at', startDate)
           const deviceStats: Record<string, number> = {}
-          (deviceResult.data || []).forEach((pv: { device_type?: string }) => {
+          ;(deviceResult.data || []).forEach((pv: { device_type?: string }) => {
             const type = pv.device_type || 'unknown'
             deviceStats[type] = (deviceStats[type] || 0) + 1
           })
@@ -261,7 +263,7 @@ async function handleStats(req: Request): Promise<Response> {
             .select('browser')
             .gte('created_at', startDate)
           const browserStats: Record<string, number> = {}
-          (browserResult.data || []).forEach((pv: { browser?: string }) => {
+          ;(browserResult.data || []).forEach((pv: { browser?: string }) => {
             const browser = pv.browser || 'Unknown'
             browserStats[browser] = (browserStats[browser] || 0) + 1
           })
@@ -288,7 +290,7 @@ async function handleStats(req: Request): Promise<Response> {
             .select('country')
             .gte('created_at', startDate)
           const countryStats: Record<string, number> = {}
-          (countryResult.data || []).forEach((v: { country?: string }) => {
+          ;(countryResult.data || []).forEach((v: { country?: string }) => {
             const country = v.country || 'Unknown'
             countryStats[country] = (countryStats[country] || 0) + 1
           })

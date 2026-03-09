@@ -280,13 +280,13 @@ const GradualBlur: React.FC<GradualBlurProps> = (props) => {
     };
 
     if (isVertical) {
-      baseStyle.height = responsiveHeight;
-      baseStyle.width = responsiveWidth || "100%";
+      baseStyle.height = responsiveHeight as string | number | undefined;
+      baseStyle.width = (responsiveWidth as string | number | undefined) || "100%";
       baseStyle[config.position] = 0;
       baseStyle.left = 0;
       baseStyle.right = 0;
     } else if (isHorizontal) {
-      baseStyle.width = responsiveWidth || responsiveHeight;
+      baseStyle.width = (responsiveWidth as string | number | undefined) || (responsiveHeight as string | number | undefined);
       baseStyle.height = "100%";
       baseStyle[config.position] = 0;
       baseStyle.top = 0;
@@ -326,14 +326,15 @@ const GradualBlurMemo = React.memo(GradualBlur);
 GradualBlurMemo.displayName = "GradualBlur";
 
 // 附加静态属性
-interface GradualBlurMemoComponent extends React.FC<GradualBlurProps> {
+type GradualBlurMemoComponent = typeof GradualBlurMemo & {
   PRESETS: typeof PRESETS;
   CURVE_FUNCTIONS: typeof CURVE_FUNCTIONS;
-}
+};
 
-(GradualBlurMemo as GradualBlurMemoComponent).PRESETS = PRESETS;
-(GradualBlurMemo as GradualBlurMemoComponent).CURVE_FUNCTIONS = CURVE_FUNCTIONS;
-export default GradualBlurMemo;
+const GradualBlurMemoWithProps = GradualBlurMemo as GradualBlurMemoComponent;
+GradualBlurMemoWithProps.PRESETS = PRESETS;
+GradualBlurMemoWithProps.CURVE_FUNCTIONS = CURVE_FUNCTIONS;
+export default GradualBlurMemoWithProps;
 
 const injectStyles = () => {
   if (typeof document === "undefined") return;

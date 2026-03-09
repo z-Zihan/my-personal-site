@@ -90,7 +90,7 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
         // 点赞 - 使用 POST 请求
         const res = await articleApi.like({
           article_id: articleId,
-          visitor_id: visitorId,
+          visitor_id: visitorId || '',
         })
         // 使用后端返回的实际点赞数
         const likeData = res as unknown as { likes?: number }
@@ -103,7 +103,7 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
         // 取消点赞 - 使用 DELETE 请求，同一个接口
         const res = await articleApi.unlike({
           article_id: articleId,
-          visitor_id: visitorId,
+          visitor_id: visitorId || '',
         })
         // 使用后端返回的实际点赞数
         const likeData = res as unknown as { likes?: number }
