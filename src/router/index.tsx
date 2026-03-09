@@ -15,6 +15,7 @@ import ArticleManager from '../pages/Admin/ArticleManager'
 import ArticleEditor from '../pages/Admin/ArticleEditor'
 import MessageManager from '../pages/Admin/MessageManager'
 import EventManager from '../pages/Admin/EventManager'
+import MockDataGenerator from '../pages/Admin/MockDataGenerator'
 
 const router = createBrowserRouter([
   // 前台路由
@@ -72,6 +73,10 @@ const router = createBrowserRouter([
       {
         path: 'events',
         element: <EventManager />,
+      },
+      {
+        path: 'mock-data',
+        element: <MockDataGenerator />,
       },
     ],
   },

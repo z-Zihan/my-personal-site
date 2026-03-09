@@ -13,6 +13,7 @@ import {
   SunOutlined,
   UserOutlined,
   ThunderboltOutlined,
+  DatabaseOutlined,
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
 
@@ -146,6 +147,11 @@ function AdminLayout() {
       label: <span style={{ fontSize: 15, fontWeight: 500 }}>埋点管理</span>,
     },
     {
+      key: '/admin/mock-data',
+      icon: <DatabaseOutlined style={{ fontSize: 18 }} />,
+      label: <span style={{ fontSize: 15, fontWeight: 500 }}>数据生成</span>,
+    },
+    {
       type: 'divider' as const,
     },
     // Menu Footer - 设置（弹出卡片）
@@ -199,6 +205,7 @@ function AdminLayout() {
     if (path.includes('articles')) return '/admin/articles'
     if (path.includes('messages')) return '/admin/messages'
     if (path.includes('events')) return '/admin/events'
+    if (path.includes('mock-data')) return '/admin/mock-data'
     return '/admin/dashboard'
   }
 
