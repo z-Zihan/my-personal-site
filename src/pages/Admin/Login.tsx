@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Form, Input, Button, Card, message, Typography } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
@@ -11,6 +11,7 @@ function AdminLogin() {
   const navigate = useNavigate()
   const location = useLocation()
   const { login, isAuthenticated } = useAuthStore()
+  const [submitting, setSubmitting] = useState(false)
 
   // 检查是否是开发模式
   const isDev = new URLSearchParams(location.search).get('dev') === '1'
@@ -43,6 +44,9 @@ function AdminLogin() {
   }, [isDev, isAuthenticated, login, navigate])
 
   const handleSubmit = async (values: { username: string; password: string }) => {
+    if (submitting) return // 防止重复提交
+
+    setSubmitting(true)
     try {
       const { data } = await authApi.login(values)
       const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString()
@@ -57,6 +61,8 @@ function AdminLogin() {
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } }; message?: string }
       message.error(error.response?.data?.error || error.message || '登录失败')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -146,6 +152,8 @@ function AdminLogin() {
               type="primary"
               htmlType="submit"
               size="large"
+              loading={submitting}
+              disabled={submitting}
               style={{
                 width: '100%',
                 height: 44,
