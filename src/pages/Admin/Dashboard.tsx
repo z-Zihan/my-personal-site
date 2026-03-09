@@ -103,7 +103,7 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div style={{ padding: 48, textAlign: 'center', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', minHeight: '100vh' }}>
+      <div style={{ padding: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', minHeight: '100vh' }}>
         {/* 科技风 Loading 动画 */}
         <div className="relative inline-block">
           {/* 外环 */}

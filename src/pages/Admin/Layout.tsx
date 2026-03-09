@@ -107,8 +107,8 @@ function AdminLayout() {
             size="small"
             checked={isDark}
             onChange={handleToggleTheme}
-            checkedChildren="🌙"
-            unCheckedChildren="☀️"
+            checkedChildren={<MoonOutlined />}
+            unCheckedChildren={<SunOutlined />}
           />
         </div>
       </div>

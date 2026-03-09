@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { messageApi } from '../api/index';
 import { toast } from "../utils/toast";
@@ -9,13 +9,33 @@ import PixelCard from "../components/effects/PixelCard";
 import ElectricBorder from "../components/effects/ElectricBorder";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { cleanUserInput, inputRules } from "../utils/sanitize";
+import { Switch, Spin } from 'antd';
+import { SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons';
+
+// 每页显示的留言数量
+const PAGE_SIZE = 10;
+
+// Fisher-Yates 洗牌算法
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
 
 function MessageBoard() {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [allMessages, setAllMessages] = useState<any[]>([]);
+  const [displayMessages, setDisplayMessages] = useState<any[]>([]);
   const [content, setContent] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isOrdered, setIsOrdered] = useState(false); // 默认乱序
+  const [loadingMore, setLoadingMore] = useState(false);
   const { visitorId, initVisitor, getVisitorName } = useVisitorStore();
   const {
     location: geoLocation,
@@ -23,6 +43,9 @@ function MessageBoard() {
     error: locationError,
     getLocation,
   } = useGeolocation();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     initVisitor();
@@ -38,10 +61,81 @@ function MessageBoard() {
     }
   }, [geoLocation]);
 
+  // 当排序模式或原始数据变化时，重新计算显示数据
+  useEffect(() => {
+    if (allMessages.length > 0) {
+      const sortedMessages = isOrdered
+        ? [...allMessages].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        : shuffleArray(allMessages);
+      setAllMessages(prev => {
+        // 保持原始顺序，只在显示时乱序
+        return prev;
+      });
+      // 重置分页
+      setCurrentPage(1);
+      const firstPage = sortedMessages.slice(0, PAGE_SIZE);
+      setDisplayMessages(firstPage);
+      setHasMore(sortedMessages.length > PAGE_SIZE);
+    }
+  }, [isOrdered, allMessages.length]);
+
+  // 处理显示数据的更新
+  useEffect(() => {
+    const sortedMessages = isOrdered
+      ? [...allMessages].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      : shuffleArray(allMessages);
+    const pageData = sortedMessages.slice(0, currentPage * PAGE_SIZE);
+    setDisplayMessages(pageData);
+    setHasMore(pageData.length < sortedMessages.length);
+  }, [currentPage, isOrdered, allMessages]);
+
+  // 设置 Intersection Observer 实现无限滚动
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, loadingMore, isOrdered, allMessages]);
+
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    // 模拟加载延迟
+    setTimeout(() => {
+      setCurrentPage(prev => prev + 1);
+      setLoadingMore(false);
+    }, 300);
+  }, [loadingMore, hasMore]);
+
   const fetchMessages = async () => {
     try {
       const { data } = await messageApi.getList();
-      setMessages(data || []);
+      const messages = data || [];
+      setAllMessages(messages);
+      // 初始显示乱序的第一页
+      const shuffled = shuffleArray(messages);
+      const firstPage = shuffled.slice(0, PAGE_SIZE);
+      setDisplayMessages(firstPage);
+      setHasMore(messages.length > PAGE_SIZE);
+      setCurrentPage(1);
     } catch (error) {
       // 错误由全局错误边界处理
     } finally {
@@ -89,6 +183,22 @@ function MessageBoard() {
     }
   };
 
+  // 切换排序模式
+  const handleToggleOrder = (checked: boolean) => {
+    setIsOrdered(checked);
+  };
+
+  // 重新随机排序
+  const handleShuffle = () => {
+    if (!isOrdered && allMessages.length > 0) {
+      const shuffled = shuffleArray(allMessages);
+      const firstPage = shuffled.slice(0, PAGE_SIZE);
+      setDisplayMessages(firstPage);
+      setCurrentPage(1);
+      setHasMore(allMessages.length > PAGE_SIZE);
+    }
+  };
+
   return (
     <div className="min-h-screen pt-20 pb-24">
       <div className="max-w-4xl mx-auto px-4">
@@ -99,19 +209,48 @@ function MessageBoard() {
           transition={{ delay: 0.2 }}
           className="mb-8"
         >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-1 h-8 bg-gradient-to-b from-purple-400 to-cyan-400 rounded-full"></div>
-            <h2 className="text-2xl font-bold text-gray-800">所有留言</h2>
-            {messages.length > 0 && (
-              <span className="px-3 py-1 bg-purple-100 rounded-full text-sm text-purple-600">
-                {messages.length} 条
-              </span>
-            )}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-8 bg-gradient-to-b from-purple-400 to-cyan-400 rounded-full"></div>
+              <h2 className="text-2xl font-bold text-gray-800">所有留言</h2>
+              {allMessages.length > 0 && (
+                <span className="px-3 py-1 bg-purple-100 rounded-full text-sm text-purple-600">
+                  {allMessages.length} 条
+                </span>
+              )}
+            </div>
+
+            {/* 排序控制 */}
+            <div className="flex items-center gap-3">
+              {!isOrdered && (
+                <button
+                  onClick={handleShuffle}
+                  className="text-sm px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center gap-1 cursor-pointer"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  换一批
+                </button>
+              )}
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg">
+                <SortDescendingOutlined className={`text-lg ${!isOrdered ? 'text-purple-500' : 'text-gray-400'}`} />
+                <Switch
+                  checked={isOrdered}
+                  onChange={handleToggleOrder}
+                  size="small"
+                />
+                <SortAscendingOutlined className={`text-lg ${isOrdered ? 'text-purple-500' : 'text-gray-400'}`} />
+              </div>
+            </div>
+          </div>
+
+          <div className="text-xs text-gray-400 mb-2 px-1">
+            {isOrdered ? '按时间顺序显示' : '随机顺序显示'}
           </div>
 
           {/* 只有这个区域可以滚动 */}
-
-          <div className="h-[500px] overflow-y-auto overflow-x-hidden space-y-4 custom-scrollbar  px-8 py-4">
+          <div ref={scrollContainerRef} className="h-[500px] overflow-y-auto overflow-x-hidden space-y-4 custom-scrollbar px-8 py-4">
             <AnimatePresence>
               {loading ? (
                 <div className="flex flex-col items-center justify-center h-full">
@@ -131,7 +270,7 @@ function MessageBoard() {
                   </div>
                   <p className="text-lg text-gray-400 animate-pulse">正在加载留言...</p>
                 </div>
-              ) : messages.length === 0 ? (
+              ) : allMessages.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -171,56 +310,73 @@ function MessageBoard() {
                   </p>
                 </motion.div>
               ) : (
-                messages.map((message, index) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <PixelCard
-                      variant="cyan"
-                      className="p-6 bg-white/90 backdrop-blur-xl border border-purple-100 hover:shadow-lg hover:shadow-purple-200/20 transition-all duration-300"
+                <>
+                  {displayMessages.map((message, index) => (
+                    <motion.div
+                      key={message.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ delay: index * 0.05 }}
                     >
-                      <div className="flex items-start gap-4">
-                        <Avatar userId={message.visitor_id} size={48} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2 flex-wrap">
-                            <span className="font-semibold text-gray-700">
-                              {message.visitor_name ||
-                                `访客 ${message.visitor_id?.slice(-6)}`}
-                            </span>
-                            <span className="text-gray-400 text-sm">
-                              {formatDate(message.created_at)}
-                            </span>
-                            {message.location && (
-                              <div className="flex items-center gap-1 text-xs text-gray-500">
-                                <svg
-                                  className="w-3.5 h-3.5 text-purple-400"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                                <span className="truncate max-w-md">
-                                  {message.location}
-                                </span>
-                              </div>
-                            )}
+                      <PixelCard
+                        variant="cyan"
+                        className="p-6 bg-white/90 backdrop-blur-xl border border-purple-100 hover:shadow-lg hover:shadow-purple-200/20 transition-all duration-300"
+                      >
+                        <div className="flex items-start gap-4">
+                          <Avatar userId={message.visitor_id} size={48} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-2 flex-wrap">
+                              <span className="font-semibold text-gray-700">
+                                {message.visitor_name ||
+                                  `访客 ${message.visitor_id?.slice(-6)}`}
+                              </span>
+                              <span className="text-gray-400 text-sm">
+                                {formatDate(message.created_at)}
+                              </span>
+                              {message.location && (
+                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                  <svg
+                                    className="w-3.5 h-3.5 text-purple-400"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  <span className="truncate max-w-md">
+                                    {message.location}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-gray-700 leading-relaxed break-words text-lg mb-3">
+                              {message.content}
+                            </p>
                           </div>
-                          <p className="text-gray-700 leading-relaxed break-words text-lg mb-3">
-                            {message.content}
-                          </p>
                         </div>
+                      </PixelCard>
+                    </motion.div>
+                  ))}
+
+                  {/* 加载更多触发器 */}
+                  <div ref={loadMoreRef} className="py-4 flex justify-center">
+                    {loadingMore && (
+                      <div className="flex items-center gap-2 text-gray-400">
+                        <Spin size="small" />
+                        <span>加载更多...</span>
                       </div>
-                    </PixelCard>
-                  </motion.div>
-                ))
+                    )}
+                    {!hasMore && displayMessages.length > 0 && (
+                      <div className="text-gray-400 text-sm">
+                        已加载全部留言
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </AnimatePresence>
           </div>

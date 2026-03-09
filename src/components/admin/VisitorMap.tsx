@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import ReactECharts from 'echarts-for-react'
 import * as echarts from 'echarts'
+import { GlobalOutlined } from '@ant-design/icons'
 import { analyticsApi } from '../../api/analytics'
 import worldMapData from '../../data/maps/countries.geo.json'
 
@@ -128,7 +129,7 @@ export default function VisitorMap() {
     if (!mapRegistered) {
       return {
         title: {
-          text: '🌍 访客地域分布',
+          text: '访客地域分布',
           left: 'center',
           top: 'center',
           textStyle: {
@@ -142,7 +143,7 @@ export default function VisitorMap() {
 
     return {
       title: {
-        text: '🌍 访客地域分布',
+        text: '访客地域分布',
         left: 'center',
         top: 10,
         textStyle: {

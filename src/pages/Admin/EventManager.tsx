@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card, Table, Tag, Modal, Row, Col, Statistic, Typography, Progress, DatePicker, Button, Space } from 'antd'
+import { Card, Table, Tag, Row, Col, Statistic, Typography, Progress, DatePicker, Button, Space, Select, Pagination } from 'antd'
 import EmptyState from '../../components/common/EmptyState'
 import {
   EyeOutlined,
@@ -45,6 +45,47 @@ const EVENT_CONFIG: Record<string, { label: string; icon: React.ReactNode; color
   'click': { label: '点击', icon: <BarChartOutlined />, color: '#faad14', description: '用户点击操作' },
 }
 
+// 日期快捷选项
+const DATE_PRESETS = [
+  { label: '今天', value: 'today' },
+  { label: '昨天', value: 'yesterday' },
+  { label: '最近3天', value: 'last3days' },
+  { label: '最近7天', value: 'last7days' },
+  { label: '最近14天', value: 'last14days' },
+  { label: '最近30天', value: 'last30days' },
+  { label: '最近90天', value: 'last90days' },
+  { label: '本月', value: 'thisMonth' },
+  { label: '上月', value: 'lastMonth' },
+]
+
+// 根据预设值获取日期范围
+const getDateRangeFromPreset = (preset: string): [dayjs.Dayjs, dayjs.Dayjs] => {
+  const today = dayjs()
+  switch (preset) {
+    case 'today':
+      return [today.startOf('day'), today.endOf('day')]
+    case 'yesterday':
+      return [today.subtract(1, 'day').startOf('day'), today.subtract(1, 'day').endOf('day')]
+    case 'last3days':
+      return [today.subtract(2, 'day').startOf('day'), today.endOf('day')]
+    case 'last7days':
+      return [today.subtract(6, 'day').startOf('day'), today.endOf('day')]
+    case 'last14days':
+      return [today.subtract(13, 'day').startOf('day'), today.endOf('day')]
+    case 'last30days':
+      return [today.subtract(29, 'day').startOf('day'), today.endOf('day')]
+    case 'last90days':
+      return [today.subtract(89, 'day').startOf('day'), today.endOf('day')]
+    case 'thisMonth':
+      return [today.startOf('month'), today.endOf('day')]
+    case 'lastMonth':
+      const lastMonth = today.subtract(1, 'month')
+      return [lastMonth.startOf('month'), lastMonth.endOf('month')]
+    default:
+      return [today.subtract(6, 'day').startOf('day'), today.endOf('day')]
+  }
+}
+
 interface EventDetail {
   eventName: string
   totalCount: number
@@ -65,13 +106,13 @@ interface EventDetail {
 function EventManager() {
   const [events, setEvents] = useState<Array<{ event_name: string; count: number }>>([])
   const [loading, setLoading] = useState(true)
-  const [detailVisible, setDetailVisible] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'detail'>('list')
   const [selectedEvent, setSelectedEvent] = useState<EventDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
-  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
-    dayjs().subtract(7, 'days'),
-    dayjs(),
-  ])
+  const [datePreset, setDatePreset] = useState<string>('last7days')
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>(getDateRangeFromPreset('last7days'))
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   useEffect(() => {
     fetchEvents()
@@ -80,7 +121,7 @@ function EventManager() {
   const fetchEvents = async () => {
     setLoading(true)
     try {
-      const days = dateRange[1].diff(dateRange[0], 'day') || 7
+      const days = dateRange[1].diff(dateRange[0], 'day') + 1 || 7
       const res = await analyticsApi.getEvents(days)
       const data = (res as { data?: Array<{ event_name: string; count: number }> }).data || []
       setEvents(data)
@@ -93,9 +134,9 @@ function EventManager() {
 
   const fetchEventDetail = async (eventName: string) => {
     setDetailLoading(true)
-    setDetailVisible(true)
+    setViewMode('detail')
     try {
-      const days = dateRange[1].diff(dateRange[0], 'day') || 7
+      const days = dateRange[1].diff(dateRange[0], 'day') + 1 || 7
       const res = await analyticsApi.getEventDetail(eventName, days)
       const result = (res as { data?: {
         dailyTrend: Array<{ date: string; count: number }>;
@@ -124,10 +165,30 @@ function EventManager() {
           recentEvents: result.data.recentEvents || [],
         })
       }
+      // 重置分页
+      setCurrentPage(1)
     } catch (error) {
       console.error('Failed to fetch event detail:', error)
     } finally {
       setDetailLoading(false)
+    }
+  }
+
+  const handleBack = () => {
+    setViewMode('list')
+    setSelectedEvent(null)
+    setCurrentPage(1)
+  }
+
+  const handlePresetChange = (value: string) => {
+    setDatePreset(value)
+    setDateRange(getDateRangeFromPreset(value))
+  }
+
+  const handleRangeChange = (dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null) => {
+    if (dates && dates[0] && dates[1]) {
+      setDatePreset('custom')
+      setDateRange([dates[0], dates[1]])
     }
   }
 
@@ -140,6 +201,14 @@ function EventManager() {
       default:
         return <DesktopOutlined />
     }
+  }
+
+  // 获取当前页的最近触发记录
+  const getPaginatedRecentEvents = () => {
+    if (!selectedEvent?.recentEvents) return []
+    const start = (currentPage - 1) * pageSize
+    const end = start + pageSize
+    return selectedEvent.recentEvents.slice(start, end)
   }
 
   const columns = [
@@ -198,66 +267,36 @@ function EventManager() {
     },
   ]
 
-  return (
-    <div style={{ padding: '24px 0' }}>
-      <Title level={3} style={{ marginBottom: 24 }}>
-        <ThunderboltOutlined style={{ marginRight: 8, color: '#faad14' }} />
-        埋点事件管理
-      </Title>
-
-      {/* 筛选区域 */}
-      <Card style={{ marginBottom: 24 }}>
-        <Space size="large">
-          <span>
-            <CalendarOutlined style={{ marginRight: 8 }} />
-            时间范围：
-          </span>
-          <RangePicker
-            value={dateRange}
-            onChange={(dates) => dates && setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs])}
-            allowClear={false}
-          />
-          <Button type="primary" onClick={fetchEvents}>
-            查询
+  // 详情页面
+  if (viewMode === 'detail') {
+    return (
+      <div style={{ padding: '24px 0' }}>
+        {/* 返回按钮和标题 */}
+        <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
+          <Button
+            icon={<ArrowLeftOutlined />}
+            onClick={handleBack}
+            style={{ borderRadius: 8 }}
+          >
+            返回列表
           </Button>
-        </Space>
-      </Card>
+          <Title level={3} style={{ margin: 0 }}>
+            {selectedEvent && (
+              <>
+                <span style={{ color: EVENT_CONFIG[selectedEvent.eventName]?.color || '#666' }}>
+                  {EVENT_CONFIG[selectedEvent.eventName]?.icon}
+                </span>
+                <span style={{ marginLeft: 8 }}>
+                  {EVENT_CONFIG[selectedEvent.eventName]?.label || selectedEvent.eventName} - 详细分析
+                </span>
+              </>
+            )}
+          </Title>
+        </div>
 
-      {/* 事件列表 */}
-      <Card title={<><BarChartOutlined style={{ marginRight: 8 }} />事件列表</>}>
-        <Table
-          dataSource={events}
-          columns={columns}
-          rowKey="event_name"
-          loading={loading}
-          pagination={{ pageSize: 10 }}
-        />
-      </Card>
-
-      {/* 事件详情弹窗 */}
-      <Modal
-        title={
-          selectedEvent && (
-            <Space>
-              <Button
-                type="text"
-                icon={<ArrowLeftOutlined />}
-                onClick={() => setDetailVisible(false)}
-              />
-              {EVENT_CONFIG[selectedEvent.eventName]?.icon}
-              <span>{EVENT_CONFIG[selectedEvent.eventName]?.label || selectedEvent.eventName} - 详细分析</span>
-            </Space>
-          )
-        }
-        open={detailVisible}
-        onCancel={() => setDetailVisible(false)}
-        footer={null}
-        width={1200}
-        style={{ top: 20 }}
-      >
         {detailLoading ? (
-          <div style={{ textAlign: 'center', padding: 48 }}>
-            <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto" />
+          <div style={{ textAlign: 'center', padding: 100, background: '#fff', borderRadius: 8 }}>
+            <div className="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto" />
             <p style={{ marginTop: 16, color: '#666' }}>加载数据中...</p>
           </div>
         ) : selectedEvent ? (
@@ -278,7 +317,7 @@ function EventManager() {
                 <Card style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
                   <Statistic
                     title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>日均触发</span>}
-                    value={Math.round(selectedEvent.totalCount / (dateRange[1].diff(dateRange[0], 'day') || 1))}
+                    value={Math.round(selectedEvent.totalCount / (dateRange[1].diff(dateRange[0], 'day') + 1 || 1))}
                     prefix={<CalendarOutlined style={{ color: '#fff' }} />}
                     valueStyle={{ color: '#fff' }}
                   />
@@ -440,36 +479,58 @@ function EventManager() {
                 </Card>
               </Col>
 
-              {/* 最近事件记录 */}
+              {/* 最近事件记录 - 分页 */}
               <Col xs={24}>
                 <Card title={<><CalendarOutlined style={{ marginRight: 8 }} />最近触发记录</>}>
                   {selectedEvent.recentEvents.length > 0 ? (
-                    <Table
-                      dataSource={selectedEvent.recentEvents.slice(0, 20)}
-                      pagination={false}
-                      rowKey="id"
-                      size="small"
-                      columns={[
-                        {
-                          title: '访客ID',
-                          dataIndex: 'visitor_id',
-                          key: 'visitor_id',
-                          render: (id: string) => <Tag>{id?.slice(-8) || '-'}</Tag>,
-                        },
-                        {
-                          title: '页面路径',
-                          dataIndex: 'page_path',
-                          key: 'page_path',
-                          render: (path: string) => <code style={{ fontSize: 12 }}>{path}</code>,
-                        },
-                        {
-                          title: '时间',
-                          dataIndex: 'created_at',
-                          key: 'created_at',
-                          render: (date: string) => new Date(date).toLocaleString('zh-CN'),
-                        },
-                      ]}
-                    />
+                    <>
+                      <Table
+                        dataSource={getPaginatedRecentEvents()}
+                        pagination={false}
+                        rowKey="id"
+                        size="small"
+                        columns={[
+                          {
+                            title: '访客ID',
+                            dataIndex: 'visitor_id',
+                            key: 'visitor_id',
+                            width: 120,
+                            render: (id: string) => <Tag>{id?.slice(-8) || '-'}</Tag>,
+                          },
+                          {
+                            title: '页面路径',
+                            dataIndex: 'page_path',
+                            key: 'page_path',
+                            render: (path: string) => <code style={{ fontSize: 12 }}>{path}</code>,
+                          },
+                          {
+                            title: '时间',
+                            dataIndex: 'created_at',
+                            key: 'created_at',
+                            width: 180,
+                            render: (date: string) => new Date(date).toLocaleString('zh-CN'),
+                          },
+                        ]}
+                      />
+                      <div style={{ marginTop: 16, textAlign: 'right' }}>
+                        <Pagination
+                          current={currentPage}
+                          pageSize={pageSize}
+                          total={selectedEvent.recentEvents.length}
+                          showSizeChanger
+                          showQuickJumper
+                          showTotal={(total) => `共 ${total} 条记录`}
+                          onChange={(page, newPageSize) => {
+                            setCurrentPage(page)
+                            if (newPageSize !== pageSize) {
+                              setPageSize(newPageSize)
+                              setCurrentPage(1)
+                            }
+                          }}
+                          pageSizeOptions={['10', '20', '50', '100']}
+                        />
+                      </div>
+                    </>
                   ) : (
                     <EmptyState description="暂无事件记录" icon="data" />
                   )}
@@ -478,7 +539,53 @@ function EventManager() {
             </Row>
           </div>
         ) : null}
-      </Modal>
+      </div>
+    )
+  }
+
+  // 列表页面
+  return (
+    <div style={{ padding: '24px 0' }}>
+      <Title level={3} style={{ marginBottom: 24 }}>
+        <ThunderboltOutlined style={{ marginRight: 8, color: '#faad14' }} />
+        埋点事件管理
+      </Title>
+
+      {/* 筛选区域 */}
+      <Card style={{ marginBottom: 24 }}>
+        <Space size="middle" wrap>
+          <span>
+            <CalendarOutlined style={{ marginRight: 8 }} />
+            时间范围：
+          </span>
+          <Select
+            value={datePreset}
+            onChange={handlePresetChange}
+            style={{ width: 120 }}
+            options={DATE_PRESETS.map(p => ({ label: p.label, value: p.value }))}
+          />
+          <RangePicker
+            value={dateRange}
+            onChange={handleRangeChange}
+            allowClear={false}
+            placeholder={['开始日期', '结束日期']}
+          />
+          <Button type="primary" onClick={fetchEvents}>
+            查询
+          </Button>
+        </Space>
+      </Card>
+
+      {/* 事件列表 */}
+      <Card title={<><BarChartOutlined style={{ marginRight: 8 }} />事件列表</>}>
+        <Table
+          dataSource={events}
+          columns={columns}
+          rowKey="event_name"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+        />
+      </Card>
     </div>
   )
 }

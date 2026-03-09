@@ -1,4 +1,5 @@
 import React from 'react';
+import { SunOutlined, MoonOutlined } from '@ant-design/icons';
 import { useThemeStore } from '../../store/themeStore';
 
 export default function ThemeToggle() {
@@ -11,9 +12,9 @@ export default function ThemeToggle() {
       aria-label="切换主题"
     >
       {darkMode ? (
-        <span className="text-2xl">☀️</span>
+        <SunOutlined className="text-2xl text-amber-500" />
       ) : (
-        <span className="text-2xl">🌙</span>
+        <MoonOutlined className="text-2xl text-indigo-500" />
       )}
     </button>
   );
