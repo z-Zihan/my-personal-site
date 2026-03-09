@@ -38,7 +38,13 @@ export interface AnalyticsCountry {
   [key: string]: unknown;
 }
 
-type AnalyticsType = 'overview' | 'daily' | 'pages' | 'devices' | 'browsers' | 'countries';
+export interface AnalyticsEvent {
+  event_name: string;
+  count?: number;
+  [key: string]: unknown;
+}
+
+type AnalyticsType = 'overview' | 'daily' | 'pages' | 'devices' | 'browsers' | 'countries' | 'events';
 
 /**
  * 数据分析 API
@@ -78,4 +84,10 @@ export const analyticsApi = {
    * @param days - 天数
    */
   getCountries: (days = 30) => get<AnalyticsCountry[]>(API_ENDPOINTS.ANALYTICS, { type: 'countries' as AnalyticsType, days }),
+
+  /**
+   * 获取事件统计数据
+   * @param days - 天数
+   */
+  getEvents: (days = 7) => get<AnalyticsEvent[]>(API_ENDPOINTS.ANALYTICS, { type: 'events' as AnalyticsType, days }),
 };

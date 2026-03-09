@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchApi } from '../../api/search'
 import { sanitizeInput, inputRules } from '../../utils/sanitize'
+import { trackEvent } from '../../utils/analytics'
 
 interface SearchResult {
   id: number
@@ -48,6 +49,12 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
   }, [query, onSearchResults])
 
   const handleSelect = (articleId: number) => {
+    // 搜索结果点击埋点
+    trackEvent('search_click', 'engagement', {
+      article_id: articleId,
+      search_query: query,
+      page_path: window.location.pathname,
+    })
     setQuery('')
     setIsOpen(false)
     navigate(`/blog/${articleId}`)

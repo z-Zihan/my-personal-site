@@ -1,15 +1,22 @@
 import React from 'react'
 import { toast } from '../../utils/toast'
+import { trackEvent } from '../../utils/analytics'
 
 interface ShareButtonsProps {
   title: string
   url: string
+  articleId?: string
 }
 
-export default function ShareButtons({ title, url }: ShareButtonsProps) {
+export default function ShareButtons({ title, url, articleId }: ShareButtonsProps) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(url)
+      // 复制链接埋点
+      trackEvent('share_copy_link', 'engagement', {
+        article_id: articleId,
+        page_path: window.location.pathname,
+      })
       toast.success('链接已复制')
     } catch (err) {
       toast.error('复制失败')
@@ -21,6 +28,12 @@ export default function ShareButtons({ title, url }: ShareButtonsProps) {
       weibo: `https://service.weibo.com/share/share.php?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
     }
+    // 分享埋点
+    trackEvent('article_share', 'engagement', {
+      article_id: articleId,
+      platform: platform,
+      page_path: window.location.pathname,
+    })
     window.open(urls[platform], '_blank')
   }
 

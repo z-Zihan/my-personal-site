@@ -3,6 +3,7 @@ import { Heart } from 'lucide-react'
 import { articleApi } from '../../api/article'
 import { toast } from '../../utils/toast'
 import useVisitorStore from '../../store/visitorStore'
+import { trackEvent } from '../../utils/analytics'
 
 interface LikeData {
   likes: number
@@ -98,6 +99,12 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
           setLikes(Number(likeData.likes))
         }
         setLikeStatus(articleId)
+        // 点赞埋点
+        trackEvent('article_like', 'engagement', {
+          article_id: articleId,
+          action: 'like',
+          page_path: window.location.pathname,
+        })
         toast.success('点赞成功')
       } else {
         // 取消点赞 - 使用 DELETE 请求，同一个接口
@@ -111,6 +118,12 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
           setLikes(Number(likeData.likes))
         }
         removeLikeStatus(articleId)
+        // 取消点赞埋点
+        trackEvent('article_unlike', 'engagement', {
+          article_id: articleId,
+          action: 'unlike',
+          page_path: window.location.pathname,
+        })
         toast.success('已取消点赞')
       }
     } catch (error) {

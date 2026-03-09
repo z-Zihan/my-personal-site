@@ -303,6 +303,22 @@ async function handleStats(req: Request): Promise<Response> {
         break
       }
 
+      case 'events': {
+        // 获取事件统计
+        const eventsResult = await supabase
+          .from('events')
+          .select('event_name')
+          .gte('created_at', startDate)
+        const eventStats: Record<string, number> = {}
+        ;(eventsResult.data || []).forEach((e: { event_name: string }) => {
+          eventStats[e.event_name] = (eventStats[e.event_name] || 0) + 1
+        })
+        data = Object.entries(eventStats)
+          .map(([event_name, count]) => ({ event_name, count }))
+          .sort((a, b) => b.count - a.count)
+        break
+      }
+
       default:
         return errorResponse('Invalid stats type', 400)
     }

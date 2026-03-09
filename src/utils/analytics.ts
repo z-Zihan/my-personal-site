@@ -184,9 +184,17 @@ export const trackEvent = (eventName: string, eventType: string, eventData: Reco
   })
 }
 
+// 检查是否在后台管理页面
+const isAdminPage = (): boolean => {
+  return window.location.pathname.startsWith('/admin')
+}
+
 // 初始化埋点
 export const initAnalytics = () => {
   if (!ANALYTICS_CONFIG.enabled) return
+
+  // 后台管理页面不启用埋点
+  if (isAdminPage()) return
 
   // 自动追踪页面浏览
   trackPageView(window.location.pathname, document.title)
@@ -196,12 +204,17 @@ export const initAnalytics = () => {
   history.pushState = function (...args) {
     originalPushState.apply(this, args)
     setTimeout(() => {
-      trackPageView(window.location.pathname, document.title)
+      // 导航后检查是否进入后台页面
+      if (!isAdminPage()) {
+        trackPageView(window.location.pathname, document.title)
+      }
     }, 0)
   }
 
   // 自动追踪所有点击
   document.addEventListener('click', (e) => {
+    // 后台页面不追踪点击
+    if (isAdminPage()) return
     const target = (e.target as Element | null)?.closest('a, button, [role="button"]')
     if (target) {
       trackClick(target as HTMLElement, window.location.pathname)

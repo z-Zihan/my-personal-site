@@ -4,6 +4,7 @@ import { toast } from '../../utils/toast'
 import Avatar from './Avatar'
 import { cleanUserInput, inputRules } from '../../utils/sanitize'
 import useVisitorStore from '../../store/visitorStore'
+import { trackEvent } from '../../utils/analytics'
 
 interface Comment {
   id: number
@@ -87,6 +88,11 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
         content: cleanedComment,
         visitor_name: visitorName || undefined,
         location: location || undefined,
+      })
+      // 评论埋点
+      trackEvent('comment_submit', 'engagement', {
+        article_id: articleId,
+        page_path: window.location.pathname,
       })
       setNewComment('')
       fetchComments()

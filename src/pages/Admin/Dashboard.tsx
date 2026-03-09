@@ -16,6 +16,11 @@ import {
   PieChartOutlined,
   TrophyOutlined,
   ThunderboltOutlined,
+  HeartOutlined,
+  ShareAltOutlined,
+  CommentOutlined,
+  SearchOutlined,
+  ReadOutlined,
 } from '@ant-design/icons'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -44,6 +49,7 @@ function Dashboard() {
     pages?: Array<{ path: string; views: number }>
     devices?: Array<{ name: string; value: number }>
     browsers?: Array<{ name: string; value: number }>
+    events?: Array<{ event_name: string; count: number }>
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [latestArticles, setLatestArticles] = useState<Array<{ id: number; title: string; status: string; views: number; likes: number; comment_count: number; created_at: string; updated_at?: string }>>([])
@@ -69,11 +75,12 @@ function Dashboard() {
       setRecommendedArticles(recommendedData as Array<{ id: number; title: string; views: number; likes: number; recommend_order?: number; created_at: string }>)
 
       // 获取详细统计数据
-      const [daily, pages, devices, browsers] = await Promise.all([
+      const [daily, pages, devices, browsers, events] = await Promise.all([
         analyticsApi.getDaily(7),
         analyticsApi.getPages(7),
         analyticsApi.getDevices(7),
         analyticsApi.getBrowsers(7),
+        analyticsApi.getEvents(7),
       ])
 
       // 确保数据是数组
@@ -85,6 +92,7 @@ function Dashboard() {
         pages: safeArray((pages as { data?: unknown })?.data || pages.data),
         devices: safeArray((devices as { data?: unknown })?.data || devices.data),
         browsers: safeArray((browsers as { data?: unknown })?.data || browsers.data),
+        events: safeArray((events as { data?: unknown })?.data || events.data),
       }))
     } catch (error) {
       // 错误由全局错误边界处理
@@ -502,6 +510,56 @@ function Dashboard() {
               </ResponsiveContainer>
             ) : (
               <EmptyState description="暂无浏览器数据" icon="data" />
+            )}
+          </Card>
+        </Col>
+
+        {/* 用户行为事件统计 */}
+        <Col xs={24} lg={12}>
+          <Card title={<><ThunderboltOutlined style={{ marginRight: 8, color: '#faad14' }} />用户行为事件统计</>} style={{ marginBottom: 24 }}>
+            {analytics.events && analytics.events.length > 0 ? (
+              <Table
+                dataSource={analytics.events}
+                pagination={false}
+                rowKey="event_name"
+                size="small"
+                columns={[
+                  {
+                    title: '事件名称',
+                    dataIndex: 'event_name',
+                    key: 'event_name',
+                    render: (eventName: string) => {
+                      const eventConfig: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+                        'article_view': { label: '文章浏览', icon: <EyeOutlined />, color: '#1890ff' },
+                        'article_like': { label: '点赞', icon: <HeartOutlined />, color: '#eb2f96' },
+                        'article_unlike': { label: '取消点赞', icon: <HeartOutlined />, color: '#999' },
+                        'article_share': { label: '分享文章', icon: <ShareAltOutlined />, color: '#52c41a' },
+                        'share_copy_link': { label: '复制链接', icon: <ShareAltOutlined />, color: '#722ed1' },
+                        'comment_submit': { label: '提交评论', icon: <CommentOutlined />, color: '#fa8c16' },
+                        'search_click': { label: '搜索点击', icon: <SearchOutlined />, color: '#13c2c2' },
+                        'reading_progress': { label: '阅读进度', icon: <ReadOutlined />, color: '#2f54eb' },
+                        'reading_complete': { label: '阅读完成', icon: <ReadOutlined />, color: '#52c41a' },
+                        'click': { label: '点击', icon: <BarChartOutlined />, color: '#faad14' },
+                      }
+                      const config = eventConfig[eventName] || { label: eventName, icon: <BarChartOutlined />, color: '#666' }
+                      return (
+                        <span style={{ color: config.color }}>
+                          {config.icon} {config.label}
+                        </span>
+                      )
+                    },
+                  },
+                  {
+                    title: '次数',
+                    dataIndex: 'count',
+                    key: 'count',
+                    sorter: (a: { count: number }, b: { count: number }) => a.count - b.count,
+                    render: (count: number) => <Tag color="blue">{count}</Tag>,
+                  },
+                ]}
+              />
+            ) : (
+              <EmptyState description="暂无事件数据" icon="data" />
             )}
           </Card>
         </Col>
