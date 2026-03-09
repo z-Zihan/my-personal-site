@@ -39,10 +39,9 @@ export default async function handler(req: Request): Promise<Response> {
       return errorResponse('请输入用户名和密码', 400)
     }
 
-    // 简单的账号密码验证
-    // 默认账号：admin / admin
-    const validUsername = 'admin'
-    const validPassword = 'admin'
+    // 从环境变量读取管理员账号密码，默认值仅用于开发环境
+    const validUsername = process.env.ADMIN_USERNAME || 'admin'
+    const validPassword = process.env.ADMIN_PASSWORD || 'admin'
 
     if (username !== validUsername || password !== validPassword) {
       attempts.count += 1
@@ -53,11 +52,11 @@ export default async function handler(req: Request): Promise<Response> {
 
     loginAttempts.delete(ip)
 
-    // 生成 token（有效期 1 天）
+    // 生成 token（有效期 7 天，与 verify-token 一致）
     const randomBytes = new Uint8Array(32)
     crypto.getRandomValues(randomBytes)
     const token = `admin_${Date.now()}_${Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 天后过期
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 天后过期
 
     const response: LoginResponse = {
       token,

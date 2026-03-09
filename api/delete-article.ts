@@ -4,13 +4,21 @@ export const config = {
   runtime: 'edge',
 }
 
-// 简单的 token 验证函数 - 只验证时间戳格式
+// 简单的 token 验证函数
 function validateToken(token: string | null): boolean {
   if (!token || !token.startsWith('admin_')) {
     return false
   }
-  const timestamp = token.split('_')[1]
-  return timestamp && !isNaN(parseInt(timestamp))
+  const parts = token.split('_')
+  if (parts.length < 3) {
+    return false
+  }
+  const timestamp = parseInt(parts[1])
+  if (isNaN(timestamp)) {
+    return false
+  }
+  const expiresAt = timestamp + 7 * 24 * 60 * 60 * 1000
+  return Date.now() < expiresAt
 }
 
 export default async function handler(req: Request): Promise<Response> {

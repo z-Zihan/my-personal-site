@@ -37,52 +37,33 @@ export default async function handler(req: Request): Promise<Response> {
     // 2. 计算新的浏览量
     const newViewCount = (article.views || 0) + 1
 
-    // 3. 更新浏览量（异步，不阻塞响应）
-    const updatePromise = supabase
-      .from('articles')
-      .update({ views: newViewCount })
-      .eq('id', id)
-      .then(({ error }) => {
-        if (error) {
-          console.error('View update error:', error)
-        }
-      })
-      .catch(err => console.error('View update catch error:', err))
-
-    // 4. 同时更新每日访问量
+    // 3. 并行执行：更新浏览量 + 更新每日访问量 + 查询点赞数
     const today = new Date().toISOString().split('T')[0]
-    const dailyViewPromise = supabase
-      .from('daily_views')
-      .upsert({
-        date: today,
-        count: 1
-      }, {
-        onConflict: 'date'
-      })
-      .then(({ error }) => {
-        if (error) {
-          console.error('Daily view update error:', error)
-        }
-      })
-      .catch(err => console.error('Daily view catch error:', err))
 
-    // 等待两个更新操作（但不阻塞，如果太慢会超时）
-    try {
-      await Promise.race([
-        Promise.all([updatePromise, dailyViewPromise]),
-        new Promise(resolve => setTimeout(resolve, 500)) // 最多等 500ms
-      ])
-    } catch (e) {
-      console.error('Update timeout or error, but continuing...', e)
-    }
+    const [, , { count: likeCount }] = await Promise.all([
+      // 更新文章浏览量（不阻塞响应）
+      supabase
+        .from('articles')
+        .update({ views: newViewCount })
+        .eq('id', id)
+        .then(({ error }) => {
+          if (error) console.error('View update error:', error)
+        }),
+      // 更新每日访问量
+      supabase
+        .from('daily_views')
+        .upsert({ date: today, count: 1 }, { onConflict: 'date' })
+        .then(({ error }) => {
+          if (error) console.error('Daily view update error:', error)
+        }),
+      // 查询点赞数
+      supabase
+        .from('likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('article_id', article.id),
+    ])
 
-    // 5. 计算点赞数
-    const { count: likeCount } = await supabase
-      .from('likes')
-      .select('*', { count: 'exact', head: true })
-      .eq('article_id', article.id)
-
-    // 6. 返回文章数据（使用新的浏览量）
+    // 4. 返回文章数据
     const articleWithLikes: Article & { likes: number } = {
       ...article,
       views: newViewCount,

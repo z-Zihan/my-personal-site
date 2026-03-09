@@ -1,21 +1,31 @@
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
-import { ErrorBoundary, RouteErrorBoundary } from '../components/ErrorBoundary'
+import { lazy, Suspense } from 'react'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { RouteErrorBoundary } from '../components/ErrorBoundary'
 import App from '../App'
-import Home from '../pages/Home'
-import BlogList from '../pages/BlogList'
-import BlogDetail from '../pages/BlogDetail'
-import HotNews from '../pages/HotNews'
-import MessageBoard from '../pages/MessageBoard'
-import Profile from '../pages/Profile'
-import NotFound from '../pages/NotFound'
-import AdminLayout from '../pages/Admin/Layout'
-import AdminLogin from '../pages/Admin/Login'
-import Dashboard from '../pages/Admin/Dashboard'
-import ArticleManager from '../pages/Admin/ArticleManager'
-import ArticleEditor from '../pages/Admin/ArticleEditor'
-import MessageManager from '../pages/Admin/MessageManager'
-import EventManager from '../pages/Admin/EventManager'
-import MockDataGenerator from '../pages/Admin/MockDataGenerator'
+import LoadingSpinner from '../components/effects/LoadingSpinner'
+
+// 路由懒加载 - 减小首屏 bundle 体积
+const Home = lazy(() => import('../pages/Home'))
+const BlogList = lazy(() => import('../pages/BlogList'))
+const BlogDetail = lazy(() => import('../pages/BlogDetail'))
+const HotNews = lazy(() => import('../pages/HotNews'))
+const MessageBoard = lazy(() => import('../pages/MessageBoard'))
+const Profile = lazy(() => import('../pages/Profile'))
+const NotFound = lazy(() => import('../pages/NotFound'))
+
+// 后台页面懒加载
+const AdminLayout = lazy(() => import('../pages/Admin/Layout'))
+const AdminLogin = lazy(() => import('../pages/Admin/Login'))
+const Dashboard = lazy(() => import('../pages/Admin/Dashboard'))
+const ArticleManager = lazy(() => import('../pages/Admin/ArticleManager'))
+const ArticleEditor = lazy(() => import('../pages/Admin/ArticleEditor'))
+const MessageManager = lazy(() => import('../pages/Admin/MessageManager'))
+const EventManager = lazy(() => import('../pages/Admin/EventManager'))
+const MockDataGenerator = lazy(() => import('../pages/Admin/MockDataGenerator'))
+
+function LazyPage({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
+}
 
 const router = createBrowserRouter([
   // 前台路由
@@ -24,26 +34,26 @@ const router = createBrowserRouter([
     element: <App />,
     errorElement: <RouteErrorBoundary />,
     children: [
-      { index: true, element: <Home /> },
-      { path: 'blog', element: <BlogList /> },
-      { path: 'blog/:id', element: <BlogDetail /> },
-      { path: 'hot-news', element: <HotNews /> },
-      { path: 'message', element: <MessageBoard /> },
-      { path: 'profile', element: <Profile /> },
+      { index: true, element: <LazyPage><Home /></LazyPage> },
+      { path: 'blog', element: <LazyPage><BlogList /></LazyPage> },
+      { path: 'blog/:id', element: <LazyPage><BlogDetail /></LazyPage> },
+      { path: 'hot-news', element: <LazyPage><HotNews /></LazyPage> },
+      { path: 'message', element: <LazyPage><MessageBoard /></LazyPage> },
+      { path: 'profile', element: <LazyPage><Profile /></LazyPage> },
     ],
   },
 
   // 后台登录页面（独立）
   {
     path: '/admin/login',
-    element: <AdminLogin />,
+    element: <LazyPage><AdminLogin /></LazyPage>,
     errorElement: <RouteErrorBoundary />,
   },
 
   // 后台管理路由（需要认证）
   {
     path: '/admin',
-    element: <AdminLayout />,
+    element: <LazyPage><AdminLayout /></LazyPage>,
     errorElement: <RouteErrorBoundary />,
     children: [
       {
@@ -52,31 +62,31 @@ const router = createBrowserRouter([
       },
       {
         path: 'dashboard',
-        element: <Dashboard />,
+        element: <LazyPage><Dashboard /></LazyPage>,
       },
       {
         path: 'articles',
-        element: <ArticleManager />,
+        element: <LazyPage><ArticleManager /></LazyPage>,
       },
       {
         path: 'articles/new',
-        element: <ArticleEditor />,
+        element: <LazyPage><ArticleEditor /></LazyPage>,
       },
       {
         path: 'articles/:id',
-        element: <ArticleEditor />,
+        element: <LazyPage><ArticleEditor /></LazyPage>,
       },
       {
         path: 'messages',
-        element: <MessageManager />,
+        element: <LazyPage><MessageManager /></LazyPage>,
       },
       {
         path: 'events',
-        element: <EventManager />,
+        element: <LazyPage><EventManager /></LazyPage>,
       },
       {
         path: 'mock-data',
-        element: <MockDataGenerator />,
+        element: <LazyPage><MockDataGenerator /></LazyPage>,
       },
     ],
   },
@@ -84,7 +94,7 @@ const router = createBrowserRouter([
   // 404 页面 - 放在最后
   {
     path: '*',
-    element: <NotFound />,
+    element: <LazyPage><NotFound /></LazyPage>,
   },
 ])
 

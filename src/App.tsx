@@ -4,6 +4,7 @@ import GradualBlur from './components/effects/GradualBlur'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
 import Navbar from './components/Navbar'
+import BackToTop from './components/common/BackToTop'
 import { useState, useEffect } from 'react'
 
 interface HeaderVisibilityDetail {
@@ -43,6 +44,7 @@ function App() {
         <Outlet />
       </main>
       <Analytics />
+      <BackToTop />
 
       {/* Gradual Blur Effect at Bottom - 文章详情页向下滚动时隐藏 */}
       <div

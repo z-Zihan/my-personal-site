@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchApi } from '../../api/search'
 import { sanitizeInput, inputRules } from '../../utils/sanitize'
@@ -21,6 +21,23 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
   const [results, setResults] = useState<SearchResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Ctrl/Cmd + K 快捷键聚焦搜索框
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        inputRef.current?.focus()
+      }
+      if (e.key === 'Escape') {
+        setIsOpen(false)
+        inputRef.current?.blur()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -64,11 +81,12 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
     <div className="relative">
       <div className="relative">
         <input
+          ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(sanitizeInput(e.target.value))}
           onFocus={() => query.length >= 1 && setIsOpen(true)}
-          placeholder="搜索文章..."
+          placeholder="搜索文章... ⌘K"
           maxLength={inputRules.searchMaxLength}
           className="w-full md:w-64 px-4 py-2 pl-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
         />

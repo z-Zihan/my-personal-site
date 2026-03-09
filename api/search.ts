@@ -22,12 +22,15 @@ export default async function handler(req: Request): Promise<Response> {
       return jsonResponse({ data: [] })
     }
 
+    // 转义 PostgREST filter 特殊字符，防止注入
+    const safeQ = q.replace(/[%_\\(),."]/g, (ch: string) => `\\${ch}`)
+
     // 搜索标题和内容
     const { data, error } = await supabase
       .from('articles')
       .select('id, title, summary, cover, views, created_at')
       .eq('status', 'published')
-      .or(`title.ilike.%${q}%,content.ilike.%${q}%`)
+      .or(`title.ilike.%${safeQ}%,content.ilike.%${safeQ}%`)
       .order('created_at', { ascending: false })
       .limit(10)
 

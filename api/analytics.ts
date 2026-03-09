@@ -68,52 +68,56 @@ async function handleTrack(req: Request): Promise<Response> {
       return errorResponse('Invalid events data', 400)
     }
 
-    // 批量插入事件
-    for (const event of events) {
-      // 更新或创建访客
-      await supabase.from('visitors').upsert(
-        {
-          visitor_id: event.visitor_id,
-          ip_address: event.ip || null,
-          country: event.country || null,
-          region: event.region || null,
-          city: event.city || null,
-          language: event.language || null,
-          screen_resolution: event.screenResolution || null,
-          timezone: event.timezone || null,
-          last_seen_at: new Date().toISOString(),
-        },
-        { onConflict: 'visitor_id' },
-      )
+    // 按类型分组，使用批量插入代替逐条 await
+    const now = new Date().toISOString()
+    const visitorUpserts = events.map(event => ({
+      visitor_id: event.visitor_id,
+      ip_address: event.ip || null,
+      country: event.country || null,
+      region: event.region || null,
+      city: event.city || null,
+      language: event.language || null,
+      screen_resolution: event.screenResolution || null,
+      timezone: event.timezone || null,
+      last_seen_at: now,
+    }))
 
-      // 记录页面访问
-      if (event.event_name === 'page_view') {
-        await supabase.from('page_views').insert({
-          visitor_id: event.visitor_id,
-          session_id: event.session_id,
-          page_path: event.page_path,
-          page_title: event.page_title,
-          referrer: event.referrer,
-          device_type: event.deviceType,
-          browser: event.browser,
-          os: event.os,
-        })
-      }
+    const pageViewInserts = events
+      .filter(e => e.event_name === 'page_view')
+      .map(event => ({
+        visitor_id: event.visitor_id,
+        session_id: event.session_id,
+        page_path: event.page_path,
+        page_title: event.page_title,
+        referrer: event.referrer,
+        device_type: event.deviceType,
+        browser: event.browser,
+        os: event.os,
+      }))
 
-      // 记录事件
-      if (event.event_name !== 'page_view') {
-        await supabase.from('events').insert({
-          visitor_id: event.visitor_id,
-          session_id: event.session_id,
-          event_name: event.event_name,
-          event_type: event.event_type,
-          event_data: event.event_data || {},
-          page_path: event.page_path,
-          element_selector: event.element_selector,
-          element_text: event.element_text,
-        })
-      }
-    }
+    const eventInserts = events
+      .filter(e => e.event_name !== 'page_view')
+      .map(event => ({
+        visitor_id: event.visitor_id,
+        session_id: event.session_id,
+        event_name: event.event_name,
+        event_type: event.event_type,
+        event_data: event.event_data || {},
+        page_path: event.page_path,
+        element_selector: event.element_selector,
+        element_text: event.element_text,
+      }))
+
+    // 并行批量执行所有数据库操作
+    await Promise.all([
+      supabase.from('visitors').upsert(visitorUpserts, { onConflict: 'visitor_id' }),
+      pageViewInserts.length > 0
+        ? supabase.from('page_views').insert(pageViewInserts)
+        : Promise.resolve(),
+      eventInserts.length > 0
+        ? supabase.from('events').insert(eventInserts)
+        : Promise.resolve(),
+    ])
 
     return jsonResponse({ data: { success: true } })
   } catch (error) {

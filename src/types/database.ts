@@ -92,10 +92,11 @@ export interface UserPreference {
 }
 
 export interface HotNews {
-  id: string
+  id?: string
   title: string
   link: string
   source?: string
+  hot?: number
   created_at?: string
 }
 
@@ -224,4 +225,5 @@ export interface ImageUploadResponse {
   success: boolean
   url: string
   fileName?: string
+  size?: number
 }

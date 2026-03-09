@@ -16,12 +16,17 @@ interface AuthState {
   checkAuth: () => boolean
 }
 
-const TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000 // 1 天
+const TOKEN_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 天（与后端一致）
 
 // 检查 token 是否过期
 const isTokenExpired = (expiresAt: string | null) => {
   if (!expiresAt) return true
-  return Date.now() > parseInt(expiresAt)
+  const expiry = Number(expiresAt)
+  if (isNaN(expiry)) {
+    // 兼容 ISO 字符串格式
+    return Date.now() > new Date(expiresAt).getTime()
+  }
+  return Date.now() > expiry
 }
 
 // 获取存储的 token 和过期时间

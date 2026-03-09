@@ -46,44 +46,35 @@ export default async function handler(req: Request): Promise<Response> {
       query = query.eq('status', status)
     }
 
-    // 如果指定了分类 ID
-    if (category_id) {
-      query = query.eq('category_id', category_id)
-    }
-
     const { data, error, count } = await query
 
     if (error) {
       return errorResponse(error.message, 500)
     }
 
-    // 批量获取点赞数和评论数（优化 N+1 查询）
+    // 批量获取点赞数和评论数（并行查询，优化 N+1）
     const articleIds = data.map((article: Article) => article.id)
 
-    // 批量查询点赞数
     let likeCounts: Record<string, number> = {}
-    if (articleIds.length > 0) {
-      const { data: fallbackData } = await supabase
-        .from('likes')
-        .select('article_id')
-        .in('article_id', articleIds)
+    let commentCounts: Record<string, number> = {}
 
-      // 统计每个文章的点赞数
-      likeCounts = fallbackData?.reduce((acc: Record<string, number>, like: Like) => {
+    if (articleIds.length > 0) {
+      const [{ data: likesData }, { data: commentData }] = await Promise.all([
+        supabase
+          .from('likes')
+          .select('article_id')
+          .in('article_id', articleIds),
+        supabase
+          .from('comments')
+          .select('article_id')
+          .in('article_id', articleIds),
+      ])
+
+      likeCounts = likesData?.reduce((acc: Record<string, number>, like: Like) => {
         acc[like.article_id] = (acc[like.article_id] || 0) + 1
         return acc
       }, {}) || {}
-    }
 
-    // 批量查询评论数
-    let commentCounts: Record<string, number> = {}
-    if (articleIds.length > 0) {
-      const { data: commentData } = await supabase
-        .from('comments')
-        .select('article_id')
-        .in('article_id', articleIds)
-
-      // 统计每个文章的评论数
       commentCounts = commentData?.reduce((acc: Record<string, number>, comment: Comment) => {
         acc[comment.article_id] = (acc[comment.article_id] || 0) + 1
         return acc
