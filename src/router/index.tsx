@@ -14,6 +14,7 @@ import Dashboard from '../pages/Admin/Dashboard'
 import ArticleManager from '../pages/Admin/ArticleManager'
 import ArticleEditor from '../pages/Admin/ArticleEditor'
 import MessageManager from '../pages/Admin/MessageManager'
+import EventManager from '../pages/Admin/EventManager'
 
 const router = createBrowserRouter([
   // 前台路由
@@ -67,6 +68,10 @@ const router = createBrowserRouter([
       {
         path: 'messages',
         element: <MessageManager />,
+      },
+      {
+        path: 'events',
+        element: <EventManager />,
       },
     ],
   },

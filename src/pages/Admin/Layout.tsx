@@ -12,6 +12,7 @@ import {
   MoonOutlined,
   SunOutlined,
   UserOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
 
@@ -140,6 +141,11 @@ function AdminLayout() {
       label: <span style={{ fontSize: 15, fontWeight: 500 }}>留言管理</span>,
     },
     {
+      key: '/admin/events',
+      icon: <ThunderboltOutlined style={{ fontSize: 18 }} />,
+      label: <span style={{ fontSize: 15, fontWeight: 500 }}>埋点管理</span>,
+    },
+    {
       type: 'divider' as const,
     },
     // Menu Footer - 设置（弹出卡片）
@@ -192,6 +198,7 @@ function AdminLayout() {
     const path = location.pathname
     if (path.includes('articles')) return '/admin/articles'
     if (path.includes('messages')) return '/admin/messages'
+    if (path.includes('events')) return '/admin/events'
     return '/admin/dashboard'
   }
 

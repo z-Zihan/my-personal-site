@@ -319,6 +319,113 @@ async function handleStats(req: Request): Promise<Response> {
         break
       }
 
+      case 'event_detail': {
+        // 获取特定事件的详细信息
+        const eventName = url.searchParams.get('event_name')
+        if (!eventName) {
+          return errorResponse('event_name is required', 400)
+        }
+
+        // 获取事件列表（包含 visitor_id 用于关联查询）
+        const eventsList = await supabase
+          .from('events')
+          .select('id, visitor_id, page_path, created_at, event_data')
+          .eq('event_name', eventName)
+          .gte('created_at', startDate)
+          .order('created_at', { ascending: false })
+          .limit(100)
+
+        const eventRecords = eventsList.data || []
+
+        // 每日趋势
+        const dailyStats: Record<string, number> = {}
+        eventRecords.forEach((e: { created_at: string }) => {
+          const date = e.created_at.split('T')[0]
+          dailyStats[date] = (dailyStats[date] || 0) + 1
+        })
+        const dailyTrend = Object.entries(dailyStats)
+          .map(([date, count]) => ({ date, count }))
+          .sort((a, b) => a.date.localeCompare(b.date))
+
+        // 页面路径分布
+        const pathStats: Record<string, number> = {}
+        eventRecords.forEach((e: { page_path?: string }) => {
+          if (e.page_path) {
+            pathStats[e.page_path] = (pathStats[e.page_path] || 0) + 1
+          }
+        })
+        const pagePaths = Object.entries(pathStats)
+          .map(([path, count]) => ({ path, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 10)
+
+        // 获取关联的访客信息用于设备和地域分析
+        const visitorIds = [...new Set(eventRecords.map((e: { visitor_id?: string }) => e.visitor_id).filter(Boolean))]
+        const visitorsInfo = await supabase
+          .from('visitors')
+          .select('visitor_id, country')
+          .in('visitor_id', visitorIds)
+
+        // 地域分布
+        const countryStats: Record<string, number> = {}
+        ;(visitorsInfo.data || []).forEach((v: { visitor_id: string; country?: string }) => {
+          const country = v.country || 'Unknown'
+          countryStats[country] = (countryStats[country] || 0) + 1
+        })
+        const countries = Object.entries(countryStats)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value)
+
+        // 获取关联的 page_views 用于设备和浏览器分析
+        const pageViewsInfo = await supabase
+          .from('page_views')
+          .select('visitor_id, device_type, browser')
+          .in('visitor_id', visitorIds)
+          .gte('created_at', startDate)
+
+        // 设备分布
+        const deviceStats: Record<string, number> = {}
+        ;(pageViewsInfo.data || []).forEach((pv: { device_type?: string }) => {
+          const device = pv.device_type || 'unknown'
+          deviceStats[device] = (deviceStats[device] || 0) + 1
+        })
+        const devices = Object.entries(deviceStats)
+          .map(([name, value]) => ({ name, value }))
+
+        // 浏览器分布
+        const browserStats: Record<string, number> = {}
+        ;(pageViewsInfo.data || []).forEach((pv: { browser?: string }) => {
+          const browser = pv.browser || 'Unknown'
+          browserStats[browser] = (browserStats[browser] || 0) + 1
+        })
+        const browsers = Object.entries(browserStats)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 10)
+
+        data = {
+          dailyTrend,
+          devices,
+          browsers,
+          countries,
+          pagePaths,
+          recentEvents: eventRecords.slice(0, 20).map((e: {
+            id: number;
+            visitor_id?: string;
+            page_path?: string;
+            created_at: string;
+            event_data?: Record<string, unknown>;
+          }) => ({
+            id: e.id,
+            visitor_id: e.visitor_id || '',
+            page_path: e.page_path || '',
+            created_at: e.created_at,
+            event_data: e.event_data || {},
+          })),
+        }
+        break
+      }
+
       default:
         return errorResponse('Invalid stats type', 400)
     }

@@ -44,7 +44,7 @@ export interface AnalyticsEvent {
   [key: string]: unknown;
 }
 
-type AnalyticsType = 'overview' | 'daily' | 'pages' | 'devices' | 'browsers' | 'countries' | 'events';
+type AnalyticsType = 'overview' | 'daily' | 'pages' | 'devices' | 'browsers' | 'countries' | 'events' | 'event_detail';
 
 /**
  * 数据分析 API
@@ -90,4 +90,24 @@ export const analyticsApi = {
    * @param days - 天数
    */
   getEvents: (days = 7) => get<AnalyticsEvent[]>(API_ENDPOINTS.ANALYTICS, { type: 'events' as AnalyticsType, days }),
+
+  /**
+   * 获取事件详情数据
+   * @param eventName - 事件名称
+   * @param days - 天数
+   */
+  getEventDetail: (eventName: string, days = 7) => get<{
+    dailyTrend: Array<{ date: string; count: number }>;
+    devices: Array<{ name: string; value: number }>;
+    browsers: Array<{ name: string; value: number }>;
+    countries: Array<{ name: string; value: number }>;
+    pagePaths: Array<{ path: string; count: number }>;
+    recentEvents: Array<{
+      id: number;
+      visitor_id: string;
+      page_path: string;
+      created_at: string;
+      event_data: Record<string, unknown>;
+    }>;
+  }>(API_ENDPOINTS.ANALYTICS, { type: 'event_detail' as AnalyticsType, event_name: eventName, days }),
 };
