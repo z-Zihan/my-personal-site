@@ -96,9 +96,13 @@ function MockDataGenerator() {
     setLoading(prev => ({ ...prev, [type]: true }))
 
     try {
+      const token = localStorage.getItem('admin_token')
       const response = await fetch('/api/generate-mock-data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ type, count: counts[type] }),
       })
 
