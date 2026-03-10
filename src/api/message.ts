@@ -42,5 +42,5 @@ export const messageApi = {
    * 点赞/取消点赞留言
    * @param messageId - 留言 ID
    */
-  toggleLike: (messageId: string) => post(API_ENDPOINTS.LIKE_MESSAGE, { messageId }),
+  toggleLike: (messageId: string) => post(API_ENDPOINTS.LIKE_MESSAGE, { id: messageId }),
 };
