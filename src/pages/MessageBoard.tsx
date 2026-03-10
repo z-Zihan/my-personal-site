@@ -37,7 +37,14 @@ function MessageBoard() {
   const [sortMode, setSortMode] = useState<SortMode>("random");
   const [randomSeed, setRandomSeed] = useState<number>(Math.random());
   const [loadingMore, setLoadingMore] = useState(false);
-  const [likedMessages, setLikedMessages] = useState<Set<string>>(new Set());
+  const [likedMessages, setLikedMessages] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('message_likes');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
   const [likingInProgress, setLikingInProgress] = useState<Set<string>>(
     new Set(),
   );
@@ -162,43 +169,109 @@ function MessageBoard() {
     };
   }, [hasMore, loadingMore, loading, loadMore]);
 
+  // 持久化点赞状态到 localStorage
+  const saveLikedMessages = (liked: Set<string>) => {
+    try {
+      localStorage.setItem('message_likes', JSON.stringify([...liked]));
+    } catch {
+      // ignore
+    }
+  };
+
   // 处理点赞
   const handleLike = async (messageId: string) => {
     if (likingInProgress.has(messageId)) return;
 
+    const isCurrentlyLiked = likedMessages.has(messageId);
+
+    // 乐观更新：立即更新 UI
+    setLikedMessages((prev) => {
+      const newSet = new Set(prev);
+      if (isCurrentlyLiked) {
+        newSet.delete(messageId);
+      } else {
+        newSet.add(messageId);
+      }
+      saveLikedMessages(newSet);
+      return newSet;
+    });
+
+    setMessages((prev: any[]) =>
+      prev.map((msg: any) =>
+        msg.id === messageId
+          ? { ...msg, likes: Math.max(0, (msg.likes || 0) + (isCurrentlyLiked ? -1 : 1)) }
+          : msg,
+      ),
+    );
+
     setLikingInProgress((prev) => new Set(prev).add(messageId));
 
     try {
-      const { data, error } = (await messageApi.toggleLike(messageId, visitorId || undefined)) as {
-        data: { success: boolean; liked: boolean; likes: number };
-        error?: string;
-      };
+      const result = (await messageApi.toggleLike(messageId, visitorId || undefined)) as any;
 
-      if (error) {
-        toast.error("操作失败，请重试");
-        return;
-      }
+      if (result?.success) {
+        // 用服务端返回的真实数据同步
+        setMessages((prev: any[]) =>
+          prev.map((msg: any) =>
+            msg.id === messageId ? { ...msg, likes: result.likes } : msg,
+          ),
+        );
 
-      if (data?.success) {
-        // 更新本地状态
+        // 以服务端返回的 liked 状态为准
         setLikedMessages((prev) => {
           const newSet = new Set(prev);
-          if (data.liked) {
+          if (result.liked) {
             newSet.add(messageId);
           } else {
             newSet.delete(messageId);
           }
+          saveLikedMessages(newSet);
+          return newSet;
+        });
+      } else {
+        // 服务端失败，回滚乐观更新
+        setLikedMessages((prev) => {
+          const newSet = new Set(prev);
+          if (isCurrentlyLiked) {
+            newSet.add(messageId);
+          } else {
+            newSet.delete(messageId);
+          }
+          saveLikedMessages(newSet);
           return newSet;
         });
 
-        // 更新留言的点赞数
         setMessages((prev: any[]) =>
           prev.map((msg: any) =>
-            msg.id === messageId ? { ...msg, likes: data.likes } : msg,
+            msg.id === messageId
+              ? { ...msg, likes: Math.max(0, (msg.likes || 0) + (isCurrentlyLiked ? 1 : -1)) }
+              : msg,
           ),
         );
+
+        toast.error("操作失败，请重试");
       }
     } catch (error) {
+      // 网络错误，回滚乐观更新
+      setLikedMessages((prev) => {
+        const newSet = new Set(prev);
+        if (isCurrentlyLiked) {
+          newSet.add(messageId);
+        } else {
+          newSet.delete(messageId);
+        }
+        saveLikedMessages(newSet);
+        return newSet;
+      });
+
+      setMessages((prev: any[]) =>
+        prev.map((msg: any) =>
+          msg.id === messageId
+            ? { ...msg, likes: Math.max(0, (msg.likes || 0) + (isCurrentlyLiked ? 1 : -1)) }
+            : msg,
+        ),
+      );
+
       toast.error("操作失败，请重试");
     } finally {
       setLikingInProgress((prev) => {

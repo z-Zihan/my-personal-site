@@ -115,7 +115,6 @@ function Dashboard() {
           {/* 中心脉冲 */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full animate-pulse shadow-lg shadow-purple-500/50" />
         </div>
-        <p style={{ marginTop: 24, color: '#666', fontSize: 16 }}>加载数据仪表盘中...</p>
       </div>
     )
   }
