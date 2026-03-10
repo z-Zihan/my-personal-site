@@ -3,7 +3,7 @@ export { articleApi } from './article';
 export type { Article, ArticleListParams, ArticleListResponse } from './article';
 
 export { messageApi } from './message';
-export type { Message } from './message';
+export type { Message, MessageListParams, MessageListResponse } from './message';
 
 export { hotNewsApi } from './hotNews';
 export type { HotNews } from './hotNews';

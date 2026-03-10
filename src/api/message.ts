@@ -11,15 +11,33 @@ export interface Message {
   [key: string]: unknown;
 }
 
+export interface MessageListParams {
+  page?: number;
+  pageSize?: number;
+  sort?: 'time' | 'hot' | 'random';
+  seed?: number;
+}
+
+export interface MessageListResponse {
+  data: Message[];
+  total: number;
+  hasMore: boolean;
+}
+
 /**
  * 留言相关 API
  */
 export const messageApi = {
   /**
-   * 获取留言列表
+   * 获取留言列表（服务端分页+排序）
    */
-  getList: (limit?: number) =>
-    get<Message[]>(API_ENDPOINTS.MESSAGES, limit ? { limit } : {}),
+  getList: (params: MessageListParams = {}) =>
+    get<MessageListResponse>(API_ENDPOINTS.MESSAGES, {
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? 10,
+      sort: params.sort ?? 'time',
+      ...(params.seed !== undefined ? { seed: params.seed } : {}),
+    }),
 
   /**
    * 创建留言

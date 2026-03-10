@@ -10,7 +10,7 @@ import ElectricBorder from "../components/effects/ElectricBorder";
 import WorldMap from "../components/effects/WorldMap";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { cleanUserInput, inputRules } from "../utils/sanitize";
-import { Switch, Spin } from "antd";
+import { Spin } from "antd";
 import {
   LikeOutlined,
   LikeFilled,
@@ -25,31 +25,22 @@ const PAGE_SIZE = 10;
 // 排序模式类型
 type SortMode = "random" | "time" | "hot";
 
-// Fisher-Yates 洗牌算法
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
-
 function MessageBoard() {
-  const [allMessages, setAllMessages] = useState<any[]>([]);
-  const [displayMessages, setDisplayMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [totalMessages, setTotalMessages] = useState(0);
   const [content, setContent] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortMode, setSortMode] = useState<SortMode>("random"); // 默认随机排序
+  const [sortMode, setSortMode] = useState<SortMode>("random");
+  const [randomSeed, setRandomSeed] = useState<number>(Math.random());
   const [loadingMore, setLoadingMore] = useState(false);
-  const [likedMessages, setLikedMessages] = useState<Set<string>>(new Set()); // 已点赞的留言ID
+  const [likedMessages, setLikedMessages] = useState<Set<string>>(new Set());
   const [likingInProgress, setLikingInProgress] = useState<Set<string>>(
     new Set(),
-  ); // 正在点赞中的留言ID
+  );
   const [showMap, setShowMap] = useState(false); // 世界地图弹窗
   const { visitorId, initVisitor, getVisitorName } = useVisitorStore();
   const {
@@ -85,7 +76,7 @@ function MessageBoard() {
 
   useEffect(() => {
     initVisitor();
-    fetchMessages();
+    fetchMessages(1, sortMode, randomSeed);
     getLocation()
       .then(setLocation)
       .catch(() => {});
@@ -97,43 +88,55 @@ function MessageBoard() {
     }
   }, [geoLocation]);
 
-  // 根据排序模式获取排序后的留言列表
-  const getSortedMessages = useCallback((messages: any[], mode: SortMode) => {
-    switch (mode) {
-      case "time":
-        return [...messages].sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-        );
-      case "hot":
-        return [...messages].sort((a, b) => (b.likes || 0) - (a.likes || 0));
-      case "random":
-      default:
-        return shuffleArray(messages);
+  // 核心数据获取函数
+  const fetchMessages = useCallback(async (
+    page: number,
+    sort: SortMode,
+    seed: number,
+    append: boolean = false,
+  ) => {
+    if (page === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      const result = await messageApi.getList({
+        page,
+        pageSize: PAGE_SIZE,
+        sort,
+        ...(sort === 'random' ? { seed } : {}),
+      }) as any;
+
+      const newMessages = result?.data || [];
+      const total = result?.total || 0;
+      const more = result?.hasMore ?? false;
+
+      if (append) {
+        setMessages(prev => [...prev, ...newMessages]);
+      } else {
+        setMessages(newMessages);
+      }
+
+      setTotalMessages(total);
+      setHasMore(more);
+      setCurrentPage(page);
+    } catch (error) {
+      // 错误由全局错误边界处理
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
     }
   }, []);
 
-  // 当排序模式或原始数据变化时，重新计算显示数据
-  useEffect(() => {
-    if (allMessages.length > 0) {
-      const sortedMessages = getSortedMessages(allMessages, sortMode);
-      // 重置分页
-      setCurrentPage(1);
-      const firstPage = sortedMessages.slice(0, PAGE_SIZE);
-      setDisplayMessages(firstPage);
-      setHasMore(sortedMessages.length > PAGE_SIZE);
-    }
-  }, [sortMode, allMessages.length, getSortedMessages]);
-
-  // 处理显示数据的更新
-  useEffect(() => {
-    const sortedMessages = getSortedMessages(allMessages, sortMode);
-    const pageData = sortedMessages.slice(0, currentPage * PAGE_SIZE);
-    setDisplayMessages(pageData);
-    setHasMore(pageData.length < sortedMessages.length);
-  }, [currentPage, sortMode, allMessages, getSortedMessages]);
-
   // 设置 Intersection Observer 实现无限滚动
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMore || loading) return;
+    const nextPage = currentPage + 1;
+    fetchMessages(nextPage, sortMode, randomSeed, true);
+  }, [loadingMore, hasMore, loading, currentPage, sortMode, randomSeed, fetchMessages]);
+
   useEffect(() => {
     if (observerRef.current) {
       observerRef.current.disconnect();
@@ -141,7 +144,7 @@ function MessageBoard() {
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
           loadMore();
         }
       },
@@ -157,17 +160,7 @@ function MessageBoard() {
         observerRef.current.disconnect();
       }
     };
-  }, [hasMore, loadingMore, sortMode, allMessages]);
-
-  const loadMore = useCallback(() => {
-    if (loadingMore || !hasMore) return;
-    setLoadingMore(true);
-    // 模拟加载延迟
-    setTimeout(() => {
-      setCurrentPage((prev) => prev + 1);
-      setLoadingMore(false);
-    }, 300);
-  }, [loadingMore, hasMore]);
+  }, [hasMore, loadingMore, loading, loadMore]);
 
   // 处理点赞
   const handleLike = async (messageId: string) => {
@@ -199,15 +192,8 @@ function MessageBoard() {
         });
 
         // 更新留言的点赞数
-        setAllMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === messageId ? { ...msg, likes: data.likes } : msg,
-          ),
-        );
-
-        // 同步更新显示列表
-        setDisplayMessages((prev) =>
-          prev.map((msg) =>
+        setMessages((prev: any[]) =>
+          prev.map((msg: any) =>
             msg.id === messageId ? { ...msg, likes: data.likes } : msg,
           ),
         );
@@ -220,24 +206,6 @@ function MessageBoard() {
         newSet.delete(messageId);
         return newSet;
       });
-    }
-  };
-
-  const fetchMessages = async () => {
-    try {
-      const { data } = await messageApi.getList(20);
-      const messages = data || [];
-      setAllMessages(messages);
-      // 初始显示乱序的第一页
-      const shuffled = shuffleArray(messages);
-      const firstPage = shuffled.slice(0, PAGE_SIZE);
-      setDisplayMessages(firstPage);
-      setHasMore(messages.length > PAGE_SIZE);
-      setCurrentPage(1);
-    } catch (error) {
-      // 错误由全局错误边界处理
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -264,7 +232,11 @@ function MessageBoard() {
         location: location || undefined,
       });
       setContent("");
-      fetchMessages();
+      // 提交后刷新列表
+      const newSeed = sortMode === 'random' ? Math.random() : randomSeed;
+      if (sortMode === 'random') setRandomSeed(newSeed);
+      setMessages([]);
+      fetchMessages(1, sortMode, newSeed);
       toast.success("留言成功");
     } catch (error) {
       toast.error("留言失败，请重试");
@@ -282,20 +254,33 @@ function MessageBoard() {
   };
 
   // 切换排序模式
-  const handleSortModeChange = (value: string | number) => {
-    setSortMode(value as SortMode);
-  };
+  const handleSortModeChange = useCallback((value: string | number) => {
+    const newSort = value as SortMode;
+    setSortMode(newSort);
 
-  // 重新随机排序
-  const handleShuffle = () => {
-    if (sortMode === "random" && allMessages.length > 0) {
-      const shuffled = shuffleArray(allMessages);
-      const firstPage = shuffled.slice(0, PAGE_SIZE);
-      setDisplayMessages(firstPage);
-      setCurrentPage(1);
-      setHasMore(allMessages.length > PAGE_SIZE);
+    let seed = randomSeed;
+    if (newSort === 'random') {
+      seed = Math.random();
+      setRandomSeed(seed);
     }
-  };
+
+    setMessages([]);
+    setCurrentPage(1);
+    setHasMore(true);
+    fetchMessages(1, newSort, seed);
+  }, [randomSeed, fetchMessages]);
+
+  // 换一批（重新随机排序）
+  const handleShuffle = useCallback(() => {
+    if (sortMode === 'random') {
+      const newSeed = Math.random();
+      setRandomSeed(newSeed);
+      setMessages([]);
+      setCurrentPage(1);
+      setHasMore(true);
+      fetchMessages(1, 'random', newSeed);
+    }
+  }, [sortMode, fetchMessages]);
 
   // 滚动到留言输入框
   const scrollToInput = () => {
@@ -455,9 +440,9 @@ function MessageBoard() {
             <div className="flex items-center gap-3">
               <div className="w-1 h-8 bg-gradient-to-b from-purple-400 to-cyan-400 rounded-full"></div>
               <h2 className="text-2xl font-bold text-gray-800">所有留言</h2>
-              {allMessages.length > 0 && (
+              {totalMessages > 0 && (
                 <span className="px-3 py-1 bg-purple-100 rounded-full text-sm text-purple-600">
-                  {allMessages.length} 条
+                  {totalMessages} 条
                 </span>
               )}
             </div>
@@ -619,7 +604,7 @@ function MessageBoard() {
                     正在加载留言...
                   </p>
                 </div>
-              ) : allMessages.length === 0 ? (
+              ) : messages.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -673,7 +658,7 @@ function MessageBoard() {
                 </motion.div>
               ) : (
                 <>
-                  {displayMessages.map((message, index) => (
+                  {messages.map((message, index) => (
                     <motion.div
                       key={message.id}
                       initial={{ opacity: 0, x: -20 }}
@@ -755,7 +740,7 @@ function MessageBoard() {
                         <span>加载更多...</span>
                       </div>
                     )}
-                    {!hasMore && displayMessages.length > 0 && (
+                    {!hasMore && messages.length > 0 && (
                       <div className="text-gray-400 text-sm">
                         已加载全部留言
                       </div>
