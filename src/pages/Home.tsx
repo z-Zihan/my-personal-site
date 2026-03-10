@@ -13,6 +13,7 @@ import Aurora from '../components/effects/Aurora';
 import LoadingSpinner from '../components/effects/LoadingSpinner';
 import PixelCard from '../components/effects/PixelCard';
 import CountUpNumber from '../components/effects/CountUp';
+import { trackEvent } from '../utils/analytics';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -21,6 +22,43 @@ export default function Home() {
   const [hotNews, setHotNews] = useState<HotNews[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // 文章点击埋点
+  const handleArticleClick = (article: Article, section: 'recommended' | 'latest') => {
+    trackEvent('home_article_click', 'engagement', {
+      article_id: article.id,
+      article_title: article.title,
+      section: section,
+      page_path: window.location.pathname,
+    });
+    navigate(`/blog/${article.id}`);
+  };
+
+  // 热门资讯点击埋点
+  const handleHotNewsClick = (news: HotNews, index: number) => {
+    trackEvent('hot_news_click', 'engagement', {
+      news_title: news.title,
+      news_source: news.source,
+      rank: index + 1,
+      page_path: window.location.pathname,
+    });
+  };
+
+  // 查看全部文章按钮点击埋点
+  const handleViewAllClick = () => {
+    trackEvent('view_all_articles_click', 'navigation', {
+      page_path: window.location.pathname,
+    });
+    navigate('/blog');
+  };
+
+  // 去热点资讯按钮点击埋点
+  const handleGoHotNewsClick = () => {
+    trackEvent('go_hot_news_click', 'navigation', {
+      page_path: window.location.pathname,
+    });
+    navigate('/hot-news');
+  };
 
   useEffect(() => {
     fetchData();
@@ -157,7 +195,7 @@ export default function Home() {
                   className="h-full cursor-pointer"
                   variant="gold"
                 >
-                  <div onClick={() => navigate(`/blog/${article.id}`)}>
+                  <div onClick={() => handleArticleClick(article, 'recommended')}>
                     <img
                       src={getArticleCover(article)}
                       alt={article.title}
@@ -212,7 +250,7 @@ export default function Home() {
                 className="h-full cursor-pointer"
                 variant="purple"
               >
-                <div onClick={() => navigate(`/blog/${article.id}`)}>
+                <div onClick={() => handleArticleClick(article, 'latest')}>
                   <img
                     src={getArticleCover(article)}
                     alt={article.title}
@@ -243,7 +281,7 @@ export default function Home() {
           <div className="text-center mt-12">
             <Magnet padding={150} strength={0.3}>
               <motion.button
-                onClick={() => navigate('/blog')}
+                onClick={handleViewAllClick}
                 className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:opacity-90 transition-opacity"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -304,6 +342,7 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.08 }}
+                  onClick={() => handleHotNewsClick(news, index)}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
                   <div className="relative bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 group-hover:border-orange-200 dark:group-hover:border-orange-800 transition-all duration-300 h-full flex items-start gap-4 group-hover:shadow-lg group-hover:shadow-orange-500/10">
@@ -362,7 +401,7 @@ export default function Home() {
             >
               <Magnet padding={100} strength={0.3}>
                 <motion.button
-                  onClick={() => navigate('/hot-news')}
+                  onClick={handleGoHotNewsClick}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full font-medium hover:shadow-lg hover:shadow-orange-500/25 transition-all duration-300"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}

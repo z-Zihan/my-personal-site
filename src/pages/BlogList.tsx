@@ -5,6 +5,7 @@ import ArticleCard from "../components/ArticleCard";
 import GooeyNav from "../components/effects/GooeyNav";
 import Crosshair from "../components/effects/Crosshair";
 import { categoryApi, Category } from "../api/category";
+import { trackEvent } from "../utils/analytics";
 
 function BlogList() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,6 +84,12 @@ function BlogList() {
             timeVariance={300}
             colors={[1, 2, 3, 1, 2, 3, 1, 4]}
             onClick={(index: number) => {
+              const category = categories[index];
+              trackEvent('category_switch', 'navigation', {
+                category_id: category.id,
+                category_name: category.name,
+                page_path: window.location.pathname,
+              });
               setSelectedCategory(categories[index].id as unknown as number);
               setPage(1);
             }}

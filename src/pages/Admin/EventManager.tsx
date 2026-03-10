@@ -17,7 +17,9 @@ import {
   CalendarOutlined,
   UserOutlined,
   ArrowLeftOutlined,
+  BookOutlined,
 } from '@ant-design/icons'
+import { TrendingUp } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -43,6 +45,13 @@ const EVENT_CONFIG: Record<string, { label: string; icon: React.ReactNode; color
   'reading_progress': { label: '阅读进度', icon: <ReadOutlined />, color: '#2f54eb', description: '用户阅读文章进度' },
   'reading_complete': { label: '阅读完成', icon: <ReadOutlined />, color: '#52c41a', description: '用户完成文章阅读' },
   'click': { label: '点击', icon: <BarChartOutlined />, color: '#faad14', description: '用户点击操作' },
+  // 新增埋点事件
+  'nav_click': { label: '导航点击', icon: <GlobalOutlined />, color: '#722ed1', description: '用户点击导航栏按钮' },
+  'home_article_click': { label: '首页文章点击', icon: <ReadOutlined />, color: '#1890ff', description: '用户在首页点击推荐/最新文章' },
+  'hot_news_click': { label: '热点资讯点击', icon: <TrendingUp />, color: '#fa8c16', description: '用户点击热点资讯' },
+  'view_all_articles_click': { label: '查看全部文章', icon: <BookOutlined />, color: '#52c41a', description: '用户点击查看全部文章按钮' },
+  'go_hot_news_click': { label: '去热点资讯', icon: <TrendingUp />, color: '#fa541c', description: '用户点击去热点资讯按钮' },
+  'category_switch': { label: '分类切换', icon: <ThunderboltOutlined />, color: '#13c2c2', description: '用户在文章列表切换分类' },
 }
 
 // 日期快捷选项

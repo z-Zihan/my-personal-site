@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion' // eslint-disable-line no-unused-vars
 import Avatar from './common/Avatar'
 import Magnet from './effects/Magnet'
+import { trackEvent } from '../utils/analytics'
 
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -26,6 +27,14 @@ function Navbar() {
   ]
 
   const isActive = (path: string) => location.pathname === path
+
+  // 导航点击埋点
+  const handleNavClick = (label: string) => {
+    trackEvent('nav_click', 'navigation', {
+      nav_item: label,
+      page_path: window.location.pathname,
+    })
+  }
 
   return (
     <motion.nav
@@ -55,6 +64,7 @@ function Navbar() {
                 <Magnet key={link.path} padding={80} strength={0.4} active={true}>
                   <Link
                     to={link.path}
+                    onClick={() => handleNavClick(link.label)}
                     className={`relative px-4 py-3 rounded-xl text-sm lg:text-base transition-all duration-300 ${
                       isActive(link.path)
                         ? 'text-white font-semibold'
