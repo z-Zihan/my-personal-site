@@ -113,6 +113,7 @@ export interface Message {
   content: string
   visitor_name?: string
   location?: string
+  likes?: number
   created_at?: string
 }
 

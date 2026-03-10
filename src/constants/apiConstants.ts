@@ -37,6 +37,7 @@ export const API_ENDPOINTS = {
   CREATE_MESSAGE: '/api/create-message',
   DELETE_MESSAGE: '/api/delete-message',
   BATCH_DELETE_MESSAGE: '/api/batch-delete-message',
+  LIKE_MESSAGE: '/api/like-message',
 
   // 认证相关
   LOGIN: '/api/login',

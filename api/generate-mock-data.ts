@@ -929,11 +929,29 @@ const mockGenerators = {
       const randomMinutes = Math.floor(Math.random() * 60)
       const createdAt = new Date(now - randomDays * 24 * 60 * 60 * 1000 - randomHours * 60 * 60 * 1000 - randomMinutes * 60 * 1000)
 
+      // 生成随机点赞量（大部分留言点赞较少，少数留言点赞较多）
+      const randomValue = Math.random()
+      let likes: number
+      if (randomValue < 0.5) {
+        // 50% 的留言点赞数在 0-10 之间
+        likes = Math.floor(Math.random() * 10)
+      } else if (randomValue < 0.8) {
+        // 30% 的留言点赞数在 10-50 之间
+        likes = Math.floor(Math.random() * 40) + 10
+      } else if (randomValue < 0.95) {
+        // 15% 的留言点赞数在 50-200 之间
+        likes = Math.floor(Math.random() * 150) + 50
+      } else {
+        // 5% 的留言点赞数在 200-500 之间（热门留言）
+        likes = Math.floor(Math.random() * 300) + 200
+      }
+
       messages.push({
         visitor_id: `mock_visitor_${now}_${i}`,
         content,
         visitor_name: visitorNames[Math.floor(Math.random() * visitorNames.length)],
         location: getMessageLocation(countryData, regionData, city),
+        likes,
         created_at: createdAt.toISOString(),
       })
     }

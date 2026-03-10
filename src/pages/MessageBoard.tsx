@@ -9,11 +9,14 @@ import PixelCard from "../components/effects/PixelCard";
 import ElectricBorder from "../components/effects/ElectricBorder";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { cleanUserInput, inputRules } from "../utils/sanitize";
-import { Switch, Spin } from 'antd';
-import { SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons';
+import { Switch, Spin, Segmented } from 'antd';
+import { SortAscendingOutlined, SortDescendingOutlined, LikeOutlined, LikeFilled, FireOutlined, ClockCircleOutlined } from '@ant-design/icons';
 
 // 每页显示的留言数量
 const PAGE_SIZE = 10;
+
+// 排序模式类型
+type SortMode = 'random' | 'time' | 'hot';
 
 // Fisher-Yates 洗牌算法
 function shuffleArray<T>(array: T[]): T[] {
@@ -34,8 +37,10 @@ function MessageBoard() {
   const [submitting, setSubmitting] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isOrdered, setIsOrdered] = useState(false); // 默认乱序
+  const [sortMode, setSortMode] = useState<SortMode>('random'); // 默认随机排序
   const [loadingMore, setLoadingMore] = useState(false);
+  const [likedMessages, setLikedMessages] = useState<Set<string>>(new Set()); // 已点赞的留言ID
+  const [likingInProgress, setLikingInProgress] = useState<Set<string>>(new Set()); // 正在点赞中的留言ID
   const { visitorId, initVisitor, getVisitorName } = useVisitorStore();
   const {
     location: geoLocation,
@@ -61,33 +66,38 @@ function MessageBoard() {
     }
   }, [geoLocation]);
 
+  // 根据排序模式获取排序后的留言列表
+  const getSortedMessages = useCallback((messages: any[], mode: SortMode) => {
+    switch (mode) {
+      case 'time':
+        return [...messages].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      case 'hot':
+        return [...messages].sort((a, b) => (b.likes || 0) - (a.likes || 0))
+      case 'random':
+      default:
+        return shuffleArray(messages)
+    }
+  }, [])
+
   // 当排序模式或原始数据变化时，重新计算显示数据
   useEffect(() => {
     if (allMessages.length > 0) {
-      const sortedMessages = isOrdered
-        ? [...allMessages].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        : shuffleArray(allMessages);
-      setAllMessages(prev => {
-        // 保持原始顺序，只在显示时乱序
-        return prev;
-      });
+      const sortedMessages = getSortedMessages(allMessages, sortMode)
       // 重置分页
-      setCurrentPage(1);
-      const firstPage = sortedMessages.slice(0, PAGE_SIZE);
-      setDisplayMessages(firstPage);
-      setHasMore(sortedMessages.length > PAGE_SIZE);
+      setCurrentPage(1)
+      const firstPage = sortedMessages.slice(0, PAGE_SIZE)
+      setDisplayMessages(firstPage)
+      setHasMore(sortedMessages.length > PAGE_SIZE)
     }
-  }, [isOrdered, allMessages.length]);
+  }, [sortMode, allMessages.length, getSortedMessages])
 
   // 处理显示数据的更新
   useEffect(() => {
-    const sortedMessages = isOrdered
-      ? [...allMessages].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      : shuffleArray(allMessages);
-    const pageData = sortedMessages.slice(0, currentPage * PAGE_SIZE);
-    setDisplayMessages(pageData);
-    setHasMore(pageData.length < sortedMessages.length);
-  }, [currentPage, isOrdered, allMessages]);
+    const sortedMessages = getSortedMessages(allMessages, sortMode)
+    const pageData = sortedMessages.slice(0, currentPage * PAGE_SIZE)
+    setDisplayMessages(pageData)
+    setHasMore(pageData.length < sortedMessages.length)
+  }, [currentPage, sortMode, allMessages, getSortedMessages])
 
   // 设置 Intersection Observer 实现无限滚动
   useEffect(() => {
@@ -113,7 +123,7 @@ function MessageBoard() {
         observerRef.current.disconnect();
       }
     };
-  }, [hasMore, loadingMore, isOrdered, allMessages]);
+  }, [hasMore, loadingMore, sortMode, allMessages]);
 
   const loadMore = useCallback(() => {
     if (loadingMore || !hasMore) return;
@@ -124,6 +134,57 @@ function MessageBoard() {
       setLoadingMore(false);
     }, 300);
   }, [loadingMore, hasMore]);
+
+  // 处理点赞
+  const handleLike = async (messageId: string) => {
+    if (likingInProgress.has(messageId)) return;
+
+    setLikingInProgress(prev => new Set(prev).add(messageId));
+
+    try {
+      const { data, error } = await messageApi.toggleLike(messageId) as { data: { success: boolean; liked: boolean; likes: number }, error?: string };
+
+      if (error) {
+        toast.error('操作失败，请重试');
+        return;
+      }
+
+      if (data?.success) {
+        // 更新本地状态
+        setLikedMessages(prev => {
+          const newSet = new Set(prev);
+          if (data.liked) {
+            newSet.add(messageId);
+          } else {
+            newSet.delete(messageId);
+          }
+          return newSet;
+        });
+
+        // 更新留言的点赞数
+        setAllMessages(prev =>
+          prev.map(msg =>
+            msg.id === messageId ? { ...msg, likes: data.likes } : msg
+          )
+        );
+
+        // 同步更新显示列表
+        setDisplayMessages(prev =>
+          prev.map(msg =>
+            msg.id === messageId ? { ...msg, likes: data.likes } : msg
+          )
+        );
+      }
+    } catch (error) {
+      toast.error('操作失败，请重试');
+    } finally {
+      setLikingInProgress(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(messageId);
+        return newSet;
+      });
+    }
+  };
 
   const fetchMessages = async () => {
     try {
@@ -184,13 +245,13 @@ function MessageBoard() {
   };
 
   // 切换排序模式
-  const handleToggleOrder = (checked: boolean) => {
-    setIsOrdered(checked);
+  const handleSortModeChange = (value: string | number) => {
+    setSortMode(value as SortMode);
   };
 
   // 重新随机排序
   const handleShuffle = () => {
-    if (!isOrdered && allMessages.length > 0) {
+    if (sortMode === 'random' && allMessages.length > 0) {
       const shuffled = shuffleArray(allMessages);
       const firstPage = shuffled.slice(0, PAGE_SIZE);
       setDisplayMessages(firstPage);
@@ -222,7 +283,7 @@ function MessageBoard() {
 
             {/* 排序控制 */}
             <div className="flex items-center gap-3">
-              {!isOrdered && (
+              {sortMode === 'random' && (
                 <button
                   onClick={handleShuffle}
                   className="text-sm px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center gap-1 cursor-pointer"
@@ -233,20 +294,23 @@ function MessageBoard() {
                   换一批
                 </button>
               )}
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg">
-                <SortDescendingOutlined className={`text-lg ${!isOrdered ? 'text-purple-500' : 'text-gray-400'}`} />
-                <Switch
-                  checked={isOrdered}
-                  onChange={handleToggleOrder}
-                  size="small"
-                />
-                <SortAscendingOutlined className={`text-lg ${isOrdered ? 'text-purple-500' : 'text-gray-400'}`} />
-              </div>
+              <Segmented
+                value={sortMode}
+                onChange={handleSortModeChange}
+                options={[
+                  { value: 'random', label: '随机' },
+                  { value: 'time', label: '最新' },
+                  { value: 'hot', label: '热门' },
+                ]}
+                size="small"
+              />
             </div>
           </div>
 
           <div className="text-xs text-gray-400 mb-2 px-1">
-            {isOrdered ? '按时间顺序显示' : '随机顺序显示'}
+            {sortMode === 'random' && '随机顺序显示'}
+            {sortMode === 'time' && '按时间顺序显示'}
+            {sortMode === 'hot' && '按点赞量排序'}
           </div>
 
           {/* 只有这个区域可以滚动 */}
@@ -356,6 +420,27 @@ function MessageBoard() {
                             <p className="text-gray-700 leading-relaxed break-words text-lg mb-3">
                               {message.content}
                             </p>
+                            {/* 点赞按钮 */}
+                            <div className="flex items-center gap-4">
+                              <button
+                                onClick={() => handleLike(message.id)}
+                                disabled={likingInProgress.has(message.id)}
+                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all duration-200 cursor-pointer ${
+                                  likedMessages.has(message.id)
+                                    ? 'bg-pink-100 text-pink-500'
+                                    : 'bg-gray-100 text-gray-500 hover:bg-pink-50 hover:text-pink-400'
+                                }`}
+                              >
+                                {likedMessages.has(message.id) ? (
+                                  <LikeFilled className="text-sm" />
+                                ) : (
+                                  <LikeOutlined className="text-sm" />
+                                )}
+                                <span className="text-sm font-medium">
+                                  {message.likes || 0}
+                                </span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </PixelCard>

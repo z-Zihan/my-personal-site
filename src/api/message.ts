@@ -6,6 +6,7 @@ export interface Message {
   content: string;
   author?: string;
   contact?: string;
+  likes?: number;
   created_at?: string;
   [key: string]: unknown;
 }
@@ -36,4 +37,10 @@ export const messageApi = {
    * @param ids - 留言 ID 数组
    */
   batchDelete: (ids: number[]) => post(API_ENDPOINTS.BATCH_DELETE_MESSAGE, { ids }),
+
+  /**
+   * 点赞/取消点赞留言
+   * @param messageId - 留言 ID
+   */
+  toggleLike: (messageId: string) => post(API_ENDPOINTS.LIKE_MESSAGE, { messageId }),
 };
