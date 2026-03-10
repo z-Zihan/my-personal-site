@@ -596,7 +596,7 @@ export default function WorldMap({ visible, onClose }: WorldMapProps) {
                     className="flex items-center gap-3 px-6 py-4 bg-white/10 backdrop-blur-xl rounded-2xl border border-purple-400/40"
                   >
                     <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/40">
-                      <GlobalOutlined className="text-white text-xl" />
+                      <GlobalOutlined style={{ color: "white" }}  className="text-white text-xl" />
                     </div>
                     <div>
                       <div className="text-sm text-purple-300">覆盖国家</div>
@@ -609,7 +609,7 @@ export default function WorldMap({ visible, onClose }: WorldMapProps) {
                     className="flex items-center gap-3 px-6 py-4 bg-white/10 backdrop-blur-xl rounded-2xl border border-cyan-400/40"
                   >
                     <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl shadow-lg shadow-cyan-500/40">
-                      <TeamOutlined className="text-white text-xl" />
+                      <TeamOutlined style={{ color: "white" }}  className="text-white text-xl" />
                     </div>
                     <div>
                       <div className="text-sm text-cyan-300">访客总数</div>
@@ -622,7 +622,7 @@ export default function WorldMap({ visible, onClose }: WorldMapProps) {
                     className="flex items-center gap-3 px-6 py-4 bg-white/10 backdrop-blur-xl rounded-2xl border border-pink-400/40"
                   >
                     <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl shadow-lg shadow-pink-500/40">
-                      <CommentOutlined className="text-white text-xl" />
+                      <CommentOutlined style={{ color: "white" }}  className="text-white text-xl" />
                     </div>
                     <div>
                       <div className="text-sm text-pink-300">留言总数</div>

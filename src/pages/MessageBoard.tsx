@@ -12,14 +12,11 @@ import { useGeolocation } from "../hooks/useGeolocation";
 import { cleanUserInput, inputRules } from "../utils/sanitize";
 import { Switch, Spin } from "antd";
 import {
-  SortAscendingOutlined,
-  SortDescendingOutlined,
   LikeOutlined,
   LikeFilled,
   FireOutlined,
   ClockCircleOutlined,
   GlobalOutlined,
-  EnvironmentOutlined,
 } from "@ant-design/icons";
 
 // 每页显示的留言数量
