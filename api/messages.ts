@@ -15,11 +15,14 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
+    const url = new URL(req.url)
+    const limit = Math.min(Number(url.searchParams.get('limit')) || 100, 500)
+
     const { data, error } = await supabase
       .from('messages')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(100)
+      .limit(limit)
 
     if (error) {
       return errorResponse(error.message, 500)

@@ -18,7 +18,8 @@ export const messageApi = {
   /**
    * 获取留言列表
    */
-  getList: () => get<Message[]>(API_ENDPOINTS.MESSAGES),
+  getList: (limit?: number) =>
+    get<Message[]>(API_ENDPOINTS.MESSAGES, limit ? { limit } : {}),
 
   /**
    * 创建留言
@@ -42,5 +43,6 @@ export const messageApi = {
    * 点赞/取消点赞留言
    * @param messageId - 留言 ID
    */
-  toggleLike: (messageId: string) => post(API_ENDPOINTS.LIKE_MESSAGE, { id: messageId }),
+  toggleLike: (messageId: string, visitorId?: string) =>
+    post(API_ENDPOINTS.LIKE_MESSAGE, { messageId, visitorId }),
 };

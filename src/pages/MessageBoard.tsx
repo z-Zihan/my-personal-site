@@ -10,7 +10,7 @@ import ElectricBorder from "../components/effects/ElectricBorder";
 import WorldMap from "../components/effects/WorldMap";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { cleanUserInput, inputRules } from "../utils/sanitize";
-import { Switch, Spin, Segmented } from "antd";
+import { Switch, Spin } from "antd";
 import {
   SortAscendingOutlined,
   SortDescendingOutlined,
@@ -20,7 +20,6 @@ import {
   ClockCircleOutlined,
   GlobalOutlined,
   EnvironmentOutlined,
-  SyncOutlined,
 } from "@ant-design/icons";
 
 // 每页显示的留言数量
@@ -180,7 +179,7 @@ function MessageBoard() {
     setLikingInProgress((prev) => new Set(prev).add(messageId));
 
     try {
-      const { data, error } = (await messageApi.toggleLike(messageId)) as {
+      const { data, error } = (await messageApi.toggleLike(messageId, visitorId || undefined)) as {
         data: { success: boolean; liked: boolean; likes: number };
         error?: string;
       };
@@ -229,7 +228,7 @@ function MessageBoard() {
 
   const fetchMessages = async () => {
     try {
-      const { data } = await messageApi.getList();
+      const { data } = await messageApi.getList(20);
       const messages = data || [];
       setAllMessages(messages);
       // 初始显示乱序的第一页
@@ -479,7 +478,7 @@ function MessageBoard() {
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                   {/* 星星装饰 */}
                   <motion.svg
-                    animate={{ rotate: [0, 180, 360] }}
+                    animate={{ rotate: [0, -180, -360] }}
                     transition={{ duration: 0.6, ease: "easeInOut" }}
                     className="w-4 h-4 relative z-10"
                     fill="none"
@@ -496,53 +495,89 @@ function MessageBoard() {
                   <span className="relative z-10 font-medium">换一批</span>
                 </motion.button>
               )}
-              <div className="relative">
-                {/* 发光背景 */}
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-cyan-500/20 rounded-lg blur-sm" />
-                <Segmented
-                  value={sortMode}
-                  onChange={handleSortModeChange}
-                  options={[
+              {/* 自定义炫酷排序切换 */}
+              <div className="relative flex items-center bg-white/60 backdrop-blur-md border border-purple-200/30 rounded-2xl p-1.5 gap-0.5 shadow-inner shadow-purple-100/50">
+                {(
+                  [
                     {
-                      value: "random",
-                      label: (
-                        <motion.span
-                          className="flex items-center gap-1.5 px-1"
-                          whileHover={{ scale: 1.05 }}
+                      value: "random" as SortMode,
+                      label: "随机",
+                      icon: (
+                        <svg
+                          className="w-4 h-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         >
-                          <SyncOutlined className="text-purple-500" />
-                          <span className="font-medium">随机</span>
-                        </motion.span>
+                          <polyline points="16 3 21 3 21 8" />
+                          <line x1="4" y1="20" x2="21" y2="3" />
+                          <polyline points="21 16 21 21 16 21" />
+                          <line x1="15" y1="15" x2="21" y2="21" />
+                          <line x1="4" y1="4" x2="9" y2="9" />
+                        </svg>
                       ),
+                      gradient: "from-purple-500 to-indigo-600",
+                      glow: "shadow-purple-500/40",
                     },
                     {
-                      value: "time",
-                      label: (
-                        <motion.span
-                          className="flex items-center gap-1.5 px-1"
-                          whileHover={{ scale: 1.05 }}
-                        >
-                          <ClockCircleOutlined className="text-cyan-500" />
-                          <span className="font-medium">最新</span>
-                        </motion.span>
-                      ),
+                      value: "time" as SortMode,
+                      label: "最新",
+                      icon: <ClockCircleOutlined />,
+                      gradient: "from-cyan-500 to-blue-600",
+                      glow: "shadow-cyan-500/40",
                     },
                     {
-                      value: "hot",
-                      label: (
-                        <motion.span
-                          className="flex items-center gap-1.5 px-1"
-                          whileHover={{ scale: 1.05 }}
-                        >
-                          <FireOutlined className="text-orange-500" />
-                          <span className="font-medium">热门</span>
-                        </motion.span>
-                      ),
+                      value: "hot" as SortMode,
+                      label: "热门",
+                      icon: <FireOutlined />,
+                      gradient: "from-orange-500 to-red-500",
+                      glow: "shadow-orange-500/40",
                     },
-                  ]}
-                  size="small"
-                  className="relative bg-white/80 backdrop-blur-sm border border-purple-200/50"
-                />
+                  ] as const
+                ).map((tab) => (
+                  <motion.button
+                    key={tab.value}
+                    onClick={() => handleSortModeChange(tab.value)}
+                    className={`relative flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-bold cursor-pointer transition-colors duration-200 ${
+                      sortMode === tab.value
+                        ? "text-white"
+                        : "text-gray-400 hover:text-gray-600"
+                    }`}
+                    whileHover={sortMode !== tab.value ? { scale: 1.08 } : {}}
+                    whileTap={{ scale: 0.92 }}
+                  >
+                    {sortMode === tab.value && (
+                      <motion.div
+                        layoutId="activeSortTab"
+                        className={`absolute inset-0 bg-gradient-to-r ${tab.gradient} rounded-xl shadow-lg ${tab.glow}`}
+                        transition={{
+                          type: "spring",
+                          stiffness: 380,
+                          damping: 30,
+                        }}
+                      >
+                        {/* 光泽效果 */}
+                        <div className="absolute inset-0 rounded-xl overflow-hidden">
+                          <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/25" />
+                        </div>
+                        {/* 活跃指示小点 */}
+                        <motion.div
+                          className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full"
+                          animate={{
+                            opacity: [0.4, 1, 0.4],
+                            scale: [0.8, 1.2, 0.8],
+                          }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        />
+                      </motion.div>
+                    )}
+                    <span className="relative z-10">{tab.icon}</span>
+                    <span className="relative z-10">{tab.label}</span>
+                  </motion.button>
+                ))}
               </div>
             </div>
           </div>
@@ -694,7 +729,7 @@ function MessageBoard() {
                               disabled={likingInProgress.has(message.id)}
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
-                              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer ${
+                              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer ${
                                 likedMessages.has(message.id)
                                   ? "bg-pink-100 text-pink-500"
                                   : "bg-gray-100 text-gray-500 hover:bg-pink-50 hover:text-pink-400"

@@ -559,22 +559,22 @@ export default function WorldMap({ visible, onClose }: WorldMapProps) {
                 {/* 加载动画 */}
                 <div className="relative w-32 h-32">
                   <div
-                    className="absolute inset-0 border-4 border-cyan-400/30 rounded-full animate-spin"
-                    style={{ animationDuration: '2.5s', borderLeftColor: '#22d3ee', borderTopColor: '#a78bfa' }}
+                    className="absolute inset-0 rounded-full animate-spin"
+                    style={{ animationDuration: '2.5s', border: '4px solid rgba(34, 211, 238, 0.3)', borderLeftColor: '#22d3ee', borderTopColor: '#a78bfa' }}
                   />
                   <div
-                    className="absolute inset-3 border-4 border-purple-400/30 rounded-full animate-spin"
-                    style={{ animationDuration: '2s', animationDirection: 'reverse', borderRightColor: '#a78bfa' }}
+                    className="absolute inset-3 rounded-full animate-spin"
+                    style={{ animationDuration: '2s', animationDirection: 'reverse', border: '4px solid rgba(167, 139, 250, 0.3)', borderRightColor: '#a78bfa' }}
                   />
                   <div
-                    className="absolute inset-6 border-4 border-pink-400/30 rounded-full animate-spin"
-                    style={{ animationDuration: '1.5s', borderBottomColor: '#f472b6' }}
+                    className="absolute inset-6 rounded-full animate-spin"
+                    style={{ animationDuration: '1.5s', border: '4px solid rgba(244, 114, 182, 0.3)', borderBottomColor: '#f472b6' }}
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <GlobalOutlined className="text-5xl text-cyan-400 animate-pulse" />
+                    <GlobalOutlined style={{ fontSize: '48px', color: '#22d3ee' }} className="animate-pulse" />
                   </div>
                 </div>
-                <p className="mt-8 text-xl text-cyan-300 animate-pulse font-medium">正在加载全球数据...</p>
+                <p className="mt-8 text-xl text-cyan-300 animate-pulse font-medium" style={{ color: '#67e8f9' }}>正在加载全球数据...</p>
               </div>
             ) : (
               <>
