@@ -10,7 +10,7 @@ import { sanitizeInput, inputRules } from '../utils/sanitize';
 export default function Profile() {
   const navigate = useNavigate();
   const { darkMode, setDarkMode } = useThemeStore();
-  const [visitorId, setVisitorId] = useState('');
+  const [visitorId, setVisitorId] = useState(() => localStorage.getItem('visitor_id') || '');
   const [language, setLang] = useState<Language>('zh');
   const [userName, setUserName] = useState('');
   const [editingName, setEditingName] = useState(false);
@@ -99,7 +99,7 @@ export default function Profile() {
 
           {/* 头像和用户名 */}
           <div className="flex items-center gap-6 mb-6">
-            <Avatar userId={visitorId} size={80} className="shadow-lg" />
+            <Avatar userId={visitorId} size={80} className="shadow-lg" editable />
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
                 昵称

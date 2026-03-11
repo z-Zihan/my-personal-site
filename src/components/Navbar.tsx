@@ -98,15 +98,18 @@ function Navbar() {
               <Magnet padding={0} strength={0.4} active={true}>
                 <Link
                   to="/profile"
-                  className="p-3 rounded-full transition-all relative group"
+                  onClick={() => handleNavClick('个人中心')}
+                  className={`p-2 rounded-full transition-all relative group flex items-center justify-center ${
+                    isActive('/profile') ? 'ring-2 ring-purple-400' : ''
+                  }`}
                   title="个人中心"
                 >
-                  <Avatar userId={visitorId} size={36} />
-                  <motion.div
-                    className="absolute inset-0 ring-2 ring-purple-400 rounded-full opacity-0 "
-                    transition={{ duration: 0.2 }}
-                  />
-                  {/* 头像光晕效果 */}
+                  <Avatar userId={visitorId} size={36} isSelf />
+                  {/* 激活状态光晕 */}
+                  {isActive('/profile') && (
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 blur-md" />
+                  )}
+                  {/* Hover 光晕效果 */}
                   <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 blur-md transition-opacity" />
                 </Link>
               </Magnet>
@@ -155,7 +158,7 @@ function Navbar() {
                 className="text-white/90 hover:text-white transition-colors flex items-center gap-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <Avatar userId={visitorId} size={32} />
+                <Avatar userId={visitorId} size={32} isSelf />
                 <span className="text-white/90">个人中心</span>
               </Link>
             </div>
