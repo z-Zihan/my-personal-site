@@ -51,9 +51,38 @@ const GRADIENT_PRESETS = [
   ['#2193b0', '#6dd5ed'],  // 水晶蓝
   ['#cc2b5e', '#753a88'],  // 莓果紫
   ['#42275a', '#734b6d'],  // 暮色紫
+  ['#de6262', '#ffb88c'],  // 珊瑚粉
+  ['#06beb6', '#48b1bf'],  // 碧海青
+  ['#eb3349', '#f45c43'],  // 石榴红
+  ['#dd5e89', '#f7bb97'],  // 蜜桃粉
+  ['#56ccf2', '#2f80ed'],  // 天际蓝
+  ['#f2709c', '#ff9472'],  // 落霞橙
+  ['#7b4397', '#dc2430'],  // 酒红紫
+  ['#c6ffdd', '#fbd786'],  // 柠檬绿
+  ['#4776e6', '#8e54e9'],  // 靛蓝紫
+  ['#f79d00', '#64f38c'],  // 热带绿
+  ['#43cea2', '#185a9d'],  // 孔雀蓝
+  ['#ba5370', '#f4e2d8'],  // 裸粉
+  ['#ff512f', '#dd2476'],  // 樱桃红
+  ['#1a2980', '#26d0ce'],  // 深邃蓝绿
+  ['#e53935', '#e35d5b'],  // 中国红
+  ['#9796f0', '#fbc7d4'],  // 丁香粉
+  ['#c0392b', '#8e44ad'],  // 暗红紫
+  ['#3a1c71', '#ffaf7b'],  // 星河橙
+  ['#00b4db', '#0083b0'],  // 海洋蓝
 ]
 
-const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const CHARACTERS = [
+  ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+  '道', '玄', '禅', '风', '云', '月', '星', '空',
+  '梦', '灵', '幻', '墨', '雪', '岚', '翼', '焰',
+  '龍', '鳳', '華', '義', '劍', '魂', '韻', '煌',
+  '蒼', '曜', '凌', '澈', '霖', '璃', '銘', '逸',
+  '樱', '瑾', '辰', '渊', '棠', '珩', '昀', '筠',
+  '朔', '熠', '琅', '沁', '黎', '暄', '砚', '霁',
+  '尸', '魔', '狱', '噬', '冥', '殇', '煞', '邪',
+  '蝕', '獄', '咒', '厄', '殁', '戮', '罪', '劫',
+]
 
 const AVATAR_STORAGE_KEY = 'avatar_seed'
 const AVATAR_CHANGE_EVENT = 'avatar-seed-changed'
@@ -107,7 +136,13 @@ export default function Avatar({ userId, size = 40, className = '', editable = f
     : (avatar.backgroundColor || '#a18cd1')
 
   return (
-    <div className="relative group" style={{ width: size, height: size }}>
+    <div className="relative group" style={{ width: size }}>
+      {/* 可编辑提示 */}
+      {editable && (
+        <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs text-gray-400 pointer-events-none">
+          点击更换头像
+        </div>
+      )}
       <motion.div
         onClick={handleClick}
         whileHover={editable ? { scale: 1.1 } : {}}
@@ -154,13 +189,6 @@ export default function Avatar({ userId, size = 40, className = '', editable = f
           </motion.span>
         </AnimatePresence>
       </motion.div>
-
-      {/* 可编辑提示 */}
-      {editable && (
-        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          点击更换头像
-        </div>
-      )}
     </div>
   )
 }
@@ -175,10 +203,10 @@ interface AvatarResult {
  * 根据 seed 生成渐变头像（用于当前用户可编辑头像）
  */
 function generateAvatarFromSeed(seed: number): AvatarResult {
-  const letterIndex = seed % 26
-  const gradientIndex = Math.floor(seed / 26) % GRADIENT_PRESETS.length
+  const letterIndex = seed % CHARACTERS.length
+  const gradientIndex = Math.floor(seed / CHARACTERS.length) % GRADIENT_PRESETS.length
   return {
-    letter: LETTERS[letterIndex],
+    letter: CHARACTERS[letterIndex],
     gradient: GRADIENT_PRESETS[gradientIndex] as [string, string],
   }
 }
@@ -197,8 +225,8 @@ function generateAvatar(userId: string | null | undefined): AvatarResult {
     hash = hash & hash
   }
 
-  const letterIndex = Math.abs(hash) % 26
-  const letter = LETTERS[letterIndex]
+  const letterIndex = Math.abs(hash) % CHARACTERS.length
+  const letter = CHARACTERS[letterIndex]
   const gradientIndex = Math.abs(hash >> 5) % GRADIENT_PRESETS.length
   const gradient = GRADIENT_PRESETS[gradientIndex] as [string, string]
 
