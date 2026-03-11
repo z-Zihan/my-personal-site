@@ -524,7 +524,7 @@ export default function WorldMap({ visible, onClose }: WorldMapProps) {
               <CloseOutlined className="text-white/70 group-hover:text-white text-lg" />
             </button>
 
-            {/* 炫酷背景 */}
+            {/* 背景 */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#4c1d95]" />
 
             {/* 动态光效 */}

@@ -65,10 +65,10 @@ function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
           target.src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop'
         }}
       />
-      <div className="p-6 relative z-10">
+      <div className="p-6 relative z-10 pt-8">
         {/* 分类标签 */}
         {article.categories && (article.categories as { name: string }).name && (
-          <div className="mb-3 absolute top-3 right-3">
+          <div className="mb-3 absolute top-1 right-2">
             <RandomTag>{(article.categories as { name: string }).name}</RandomTag>
           </div>
         )}

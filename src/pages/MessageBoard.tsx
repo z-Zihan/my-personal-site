@@ -550,7 +550,7 @@ function MessageBoard() {
                   <span className="relative z-10 font-medium">换一批</span>
                 </motion.button>
               )}
-              {/* 自定义炫酷排序切换 */}
+              {/* 自定义排序切换 */}
               <div className="relative flex items-center bg-white/60 backdrop-blur-md border border-purple-200/30 rounded-2xl p-1.5 gap-0.5 shadow-inner shadow-purple-100/50">
                 {(
                   [
@@ -903,7 +903,7 @@ function MessageBoard() {
                   </span>
                 </div>
 
-                {/* 炫酷提交按钮 */}
+                {/* 提交按钮 */}
                 <motion.button
                   type="submit"
                   disabled={submitting || !content.trim()}

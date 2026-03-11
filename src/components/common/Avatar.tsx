@@ -9,7 +9,7 @@ interface AvatarProps {
   isSelf?: boolean
 }
 
-// 炫酷渐变色方案
+// 渐变色方案
 const GRADIENT_PRESETS = [
   ['#667eea', '#764ba2'],  // 紫蓝
   ['#f093fb', '#f5576c'],  // 粉红

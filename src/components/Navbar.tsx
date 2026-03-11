@@ -34,6 +34,8 @@ function Navbar() {
       nav_item: label,
       page_path: window.location.pathname,
     })
+    // 滚动到顶部
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
