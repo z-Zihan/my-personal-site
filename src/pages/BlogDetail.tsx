@@ -10,6 +10,7 @@ import ShareButtons from "../components/common/ShareButtons";
 import LikeButton from "../components/common/LikeButton";
 import ReadingTime from "../components/common/ReadingTime";
 import CommentSection from "../components/common/CommentSection";
+import ArticleNav from "../components/common/ArticleNav";
 import { trackEvent } from "../utils/analytics";
 
 export default function BlogDetail() {
@@ -198,6 +199,9 @@ export default function BlogDetail() {
             <ShareButtons title={article.title} url={window.location.href} articleId={id} />
           </div>
         </div>
+
+        {/* Article Navigation */}
+        <ArticleNav currentArticleId={id || ''} />
 
         {/* Comments */}
         <CommentSection articleId={id || ''} />

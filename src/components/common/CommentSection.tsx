@@ -18,7 +18,7 @@ interface Comment {
 }
 
 interface CommentSectionProps {
-  articleId: string
+  articleId?: string
 }
 
 export default function CommentSection({ articleId }: CommentSectionProps) {
@@ -39,7 +39,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
 
   const fetchComments = async () => {
     try {
-      const res = await commentApi.getList({ article_id: articleId })
+      const res = await commentApi.getList({ article_id: articleId || 'guestbook' })
       const commentData = res as unknown as { comments?: Comment[] }
       setComments(commentData.comments || [])
     } catch (error) {
@@ -83,15 +83,15 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
       const cleanedComment = cleanUserInput(newComment)
 
       await commentApi.create({
-        article_id: articleId,
+        article_id: articleId || 'guestbook',
         visitor_id: visitorId,
         content: cleanedComment,
         visitor_name: visitorName || undefined,
-        location: location || undefined,
+        location: location || '未知',
       })
       // 评论埋点
       trackEvent('comment_submit', 'engagement', {
-        article_id: articleId,
+        article_id: articleId || 'guestbook',
         page_path: window.location.pathname,
       })
       setNewComment('')
@@ -163,9 +163,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
                       hour12: false,
                     })}
                   </span>
-                  {comment.location && (
-                    <span className="text-xs text-gray-500">📍 {comment.location}</span>
-                  )}
+                  <span className="text-xs text-gray-500">📍 {comment.location || '未知'}</span>
                 </div>
                 <p className="text-gray-900 dark:text-white">{comment.content}</p>
               </div>
