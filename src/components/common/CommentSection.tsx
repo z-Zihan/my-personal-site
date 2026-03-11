@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
+import { MapPin } from 'lucide-react'
 import { commentApi } from '../../api/comment'
 import { toast } from '../../utils/toast'
 import Avatar from './Avatar'
@@ -163,7 +164,10 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
                       hour12: false,
                     })}
                   </span>
-                  <span className="text-xs text-gray-500">📍 {comment.location || '未知'}</span>
+                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {comment.location || '未知'}
+                  </span>
                 </div>
                 <p className="text-gray-900 dark:text-white">{comment.content}</p>
               </div>
