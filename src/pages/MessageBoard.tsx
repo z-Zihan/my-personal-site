@@ -365,7 +365,7 @@ function MessageBoard() {
 
   return (
     <div className="min-h-screen pt-10 pb-30 relative">
-      {/* 左下角俏皮悬浮提示 */}
+      {/* 左下角悬浮提示 */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}

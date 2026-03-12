@@ -179,7 +179,8 @@ export const trackEvent = (eventName: string, eventType: string, eventData: Reco
   queueEvent({
     event_name: eventName,
     event_type: eventType,
-    ...eventData,
+    page_path: eventData.page_path as string | undefined,
+    event_data: eventData,
     ...deviceInfo,
   })
 }

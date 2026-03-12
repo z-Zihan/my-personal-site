@@ -95,6 +95,11 @@ const getDateRangeFromPreset = (preset: string): [dayjs.Dayjs, dayjs.Dayjs] => {
   }
 }
 
+interface ParamDistribution {
+  paramName: string
+  values: Array<{ value: string; count: number }>
+}
+
 interface EventDetail {
   eventName: string
   totalCount: number
@@ -103,6 +108,7 @@ interface EventDetail {
   browsers: Array<{ name: string; value: number }>
   countries: Array<{ name: string; value: number }>
   pagePaths: Array<{ path: string; count: number }>
+  paramDistributions: ParamDistribution[]
   recentEvents: Array<{
     id: number
     visitor_id: string
@@ -153,6 +159,10 @@ function EventManager() {
         browsers: Array<{ name: string; value: number }>;
         countries: Array<{ name: string; value: number }>;
         pagePaths: Array<{ path: string; count: number }>;
+        paramDistributions: Array<{
+          paramName: string;
+          values: Array<{ value: string; count: number }>;
+        }>;
         recentEvents: Array<{
           id: number;
           visitor_id: string;
@@ -171,6 +181,7 @@ function EventManager() {
           browsers: result.data.browsers || [],
           countries: result.data.countries || [],
           pagePaths: result.data.pagePaths || [],
+          paramDistributions: result.data.paramDistributions || [],
           recentEvents: result.data.recentEvents || [],
         })
       }
@@ -371,8 +382,86 @@ function EventManager() {
               )}
             </Card>
 
+            {/* 参数分布 - 核心数据维度 */}
+            {selectedEvent.paramDistributions.length > 0 && (
+              <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+                {selectedEvent.paramDistributions.map((param) => {
+                  const total = param.values.reduce((sum, v) => sum + v.count, 0)
+                  const pieData = param.values.map(v => ({ name: v.value, value: v.count }))
+                  return (
+                    <Col xs={24} lg={selectedEvent.paramDistributions.length === 1 ? 24 : 12} key={param.paramName}>
+                      <Card
+                        title={
+                          <Space>
+                            <BarChartOutlined style={{ color: '#722ed1' }} />
+                            <span>参数分布：<Tag color="purple">{param.paramName}</Tag></span>
+                          </Space>
+                        }
+                      >
+                        <Row gutter={16}>
+                          {/* 饼图 */}
+                          <Col xs={24} md={12}>
+                            <ResponsiveContainer width="100%" height={220}>
+                              <PieChart>
+                                <Pie
+                                  data={pieData}
+                                  cx="50%"
+                                  cy="50%"
+                                  labelLine={false}
+                                  label={({ name, percent }: { name?: string; percent?: number }) => `${name ?? ''}: ${((percent ?? 0) * 100).toFixed(1)}%`}
+                                  outerRadius={75}
+                                  dataKey="value"
+                                >
+                                  {pieData.map((_, index) => (
+                                    <Cell key={`param-cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                  ))}
+                                </Pie>
+                                <Tooltip />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </Col>
+                          {/* 详细列表 */}
+                          <Col xs={24} md={12}>
+                            <Table
+                              dataSource={param.values}
+                              pagination={false}
+                              rowKey="value"
+                              size="small"
+                              columns={[
+                                {
+                                  title: '参数值',
+                                  dataIndex: 'value',
+                                  key: 'value',
+                                  render: (val: string) => <Tag color="cyan">{val}</Tag>,
+                                },
+                                {
+                                  title: '次数',
+                                  dataIndex: 'count',
+                                  key: 'count',
+                                  width: 80,
+                                  sorter: (a: { count: number }, b: { count: number }) => a.count - b.count,
+                                },
+                                {
+                                  title: '占比',
+                                  key: 'percentage',
+                                  width: 150,
+                                  render: (_: unknown, record: { count: number }) => {
+                                    const percentage = total > 0 ? Math.round((record.count / total) * 1000) / 10 : 0
+                                    return <Progress percent={percentage} size="small" strokeColor="#722ed1" />
+                                  },
+                                },
+                              ]}
+                            />
+                          </Col>
+                        </Row>
+                      </Card>
+                    </Col>
+                  )
+                })}
+              </Row>
+            )}
+
             <Row gutter={[16, 16]}>
-              {/* 设备分布 */}
               <Col xs={24} lg={12}>
                 <Card title={<><MobileOutlined style={{ marginRight: 8 }} />设备分布</>}>
                   {selectedEvent.devices.length > 0 ? (
@@ -511,6 +600,23 @@ function EventManager() {
                             dataIndex: 'page_path',
                             key: 'page_path',
                             render: (path: string) => <code style={{ fontSize: 12 }}>{path}</code>,
+                          },
+                          {
+                            title: '事件参数',
+                            dataIndex: 'event_data',
+                            key: 'event_data',
+                            render: (data: Record<string, unknown>) => {
+                              if (!data || Object.keys(data).length === 0) return <span style={{ color: '#999' }}>-</span>
+                              return (
+                                <Space size={[4, 4]} wrap>
+                                  {Object.entries(data).map(([key, value]) => (
+                                    <Tag key={key} color="geekblue" style={{ fontSize: 11 }}>
+                                      {key}: {String(value)}
+                                    </Tag>
+                                  ))}
+                                </Space>
+                              )
+                            },
                           },
                           {
                             title: '时间',

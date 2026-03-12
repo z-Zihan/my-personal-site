@@ -102,6 +102,10 @@ export const analyticsApi = {
     browsers: Array<{ name: string; value: number }>;
     countries: Array<{ name: string; value: number }>;
     pagePaths: Array<{ path: string; count: number }>;
+    paramDistributions: Array<{
+      paramName: string;
+      values: Array<{ value: string; count: number }>;
+    }>;
     recentEvents: Array<{
       id: number;
       visitor_id: string;

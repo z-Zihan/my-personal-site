@@ -407,12 +407,33 @@ async function handleStats(req: Request): Promise<Response> {
           .sort((a, b) => b.value - a.value)
           .slice(0, 10)
 
+        // 参数分布统计 - 聚合 event_data 中的各个字段
+        const paramStats: Record<string, Record<string, number>> = {}
+        eventRecords.forEach((e: { event_data?: Record<string, unknown> }) => {
+          if (e.event_data && typeof e.event_data === 'object') {
+            Object.entries(e.event_data).forEach(([key, value]) => {
+              if (value !== null && value !== undefined) {
+                if (!paramStats[key]) paramStats[key] = {}
+                const strValue = String(value)
+                paramStats[key][strValue] = (paramStats[key][strValue] || 0) + 1
+              }
+            })
+          }
+        })
+        const paramDistributions = Object.entries(paramStats).map(([paramName, values]) => ({
+          paramName,
+          values: Object.entries(values)
+            .map(([value, count]) => ({ value, count }))
+            .sort((a, b) => b.count - a.count),
+        }))
+
         data = {
           dailyTrend,
           devices,
           browsers,
           countries,
           pagePaths,
+          paramDistributions,
           recentEvents: eventRecords.slice(0, 20).map((e: {
             id: number;
             visitor_id?: string;
