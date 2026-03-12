@@ -47,16 +47,24 @@ export default async function handler(req: Request): Promise<Response> {
     const body = await req.json() as {
       id: string
       is_recommended?: boolean
+      recommended?: boolean
       recommend_order?: number
     }
-    const { id, is_recommended, recommend_order } = body
+    const { id, is_recommended, recommended, recommend_order } = body
 
     if (!id) {
       return errorResponse('Article ID is required', 400)
     }
 
-    const updateData: { is_recommended?: boolean; recommend_order?: number } = {}
-    if (is_recommended !== undefined) updateData.is_recommended = is_recommended
+    // 兼容两种参数名：recommended 和 is_recommended
+    const recommendedValue = is_recommended !== undefined ? is_recommended : recommended
+    if (recommendedValue === undefined) {
+      return errorResponse('recommended or is_recommended is required', 400)
+    }
+
+    const updateData: { is_recommended?: boolean; recommend_order?: number } = {
+      is_recommended: recommendedValue
+    }
     if (recommend_order !== undefined) updateData.recommend_order = recommend_order
 
     const { data: article, error } = await supabase
@@ -64,10 +72,14 @@ export default async function handler(req: Request): Promise<Response> {
       .update(updateData)
       .eq('id', id)
       .select()
-      .single()
+      .maybeSingle()
 
     if (error) {
       return errorResponse(error.message, 500)
+    }
+
+    if (!article) {
+      return errorResponse('Article not found', 404)
     }
 
     return jsonResponse({ success: true, is_recommended: article?.is_recommended })

@@ -119,7 +119,24 @@ a {
   @apply bg-white/10 backdrop-blur-lg border border-white/20;
 }
 
-/* 加载动画 */
+/* 旋转光环动画 */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* Conic 渐变背景 */
+.bg-gradient-conic {
+  background: conic-gradient(var(--tw-gradient-stops));
+}
+
+/* ============================================
+   加载动画
+   ============================================ */
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }

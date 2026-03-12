@@ -164,7 +164,7 @@ function ArticleManager() {
         limit: 50,
       });
       // 按 recommend_order 排序
-      const sorted = ((data?.data as ArticleWithExtra[]) || []).sort(
+      const sorted = ((data as ArticleWithExtra[]) || []).sort(
         (a, b) => (a.recommend_order ?? 0) - (b.recommend_order ?? 0),
       );
       setRecommendedArticles(sorted);

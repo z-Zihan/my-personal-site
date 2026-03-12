@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, ArrowUpLeft } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { articleApi, Article } from '../../api/article';
 
@@ -68,7 +68,7 @@ export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
 
   return (
     <>
-      {/* 返回按钮 - 悬浮玻璃态风格 */}
+      {/* 返回按钮 - 炫酷特效版 */}
       <motion.button
         onClick={handleBack}
         onMouseEnter={() => setShowBackHint(true)}
@@ -77,34 +77,57 @@ export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
       >
-        {/* 霓虹光晕 */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 opacity-0 group-hover:opacity-60 blur-xl transition-opacity duration-500" />
+        {/* 外层旋转光环 */}
+        <div className="absolute inset-0 rounded-full">
+          <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+            <div className="absolute inset-[-4px] rounded-full bg-gradient-conic from-emerald-500 via-green-500 via-teal-500 to-emerald-500 animate-spin-slow opacity-75 blur-[1px]" />
+          </div>
+        </div>
+
+        {/* 脉冲光晕 */}
+        <div className="absolute inset-[-8px] rounded-full bg-gradient-to-r from-emerald-500/30 via-green-500/30 to-teal-500/30 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500 animate-pulse" />
+
+        {/* 霓虹扩散效果 */}
+        <div className="absolute inset-[-12px] rounded-full bg-emerald-500/0 group-hover:bg-emerald-500/10 transition-all duration-300" />
+        <div className="absolute inset-[-16px] rounded-full bg-green-500/0 group-hover:bg-green-500/5 transition-all duration-500 delay-75" />
 
         {/* 按钮主体 */}
         <div className="relative flex items-center justify-center w-12 h-12 rounded-full
-          bg-white/80 dark:bg-gray-800/80
+          bg-gradient-to-br from-emerald-100 via-green-200 to-teal-100
+          dark:from-emerald-900/60 dark:via-green-800/60 dark:to-teal-900/60
           backdrop-blur-md
-          border border-white/50 dark:border-gray-600/50
-          shadow-lg shadow-purple-500/10 dark:shadow-purple-900/30
-          group-hover:border-purple-400/50 dark:group-hover:border-purple-500/50
-          transition-all duration-300">
-          <ArrowLeft
-            className="w-5 h-5 text-gray-700 dark:text-gray-200
-              group-hover:text-purple-600 dark:group-hover:text-purple-400
-              transition-colors duration-300"
-          />
+          border-2 border-emerald-300/50 dark:border-emerald-600/50
+          shadow-lg shadow-emerald-500/20
+          group-hover:border-emerald-400 dark:group-hover:border-emerald-400
+          group-hover:shadow-emerald-500/40 dark:group-hover:shadow-emerald-500/30
+          transition-all duration-300 overflow-hidden">
 
-          {/* 悬停时的箭头动画 */}
-          <motion.div
-            className="absolute -right-1 opacity-0 group-hover:opacity-100 transition-opacity"
-            initial={{ x: 0 }}
-            whileHover={{ x: -2 }}
-          >
-            <ArrowUpLeft className="w-3 h-3 text-purple-500" />
-          </motion.div>
+          {/* 内部光效 */}
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-transparent to-teal-500/0 group-hover:from-emerald-500/20 group-hover:to-teal-500/20 transition-all duration-500" />
+
+          {/* 箭头图标容器 */}
+          <div className="relative">
+            {/* 主箭头 */}
+            <motion.div
+              animate={{}}
+              className="transition-all duration-300"
+              style={{ position: 'relative' }}
+            >
+              <ArrowLeft
+                className="w-5 h-5 text-emerald-700 dark:text-emerald-200
+                  group-hover:text-emerald-600 dark:group-hover:text-emerald-300
+                  transition-colors duration-300 relative z-10"
+              />
+            </motion.div>
+          </div>
+
+          {/* 轨迹动画 */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+          </div>
         </div>
 
         {/* 提示文字 */}
@@ -115,17 +138,20 @@ export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: -10, scale: 0.9 }}
               transition={{ duration: 0.2 }}
-              className="absolute top-1/2 -translate-y-1/2 left-full ml-3
-                px-3 py-1.5 rounded-lg
-                bg-gray-900/90 dark:bg-white/10
+              className="absolute top-1/2 -translate-y-1/2 left-full ml-4
+                px-4 py-2 rounded-xl
+                bg-gradient-to-r from-gray-900/95 to-gray-800/95
+                dark:from-white/10 dark:to-white/5
                 text-white text-sm font-medium whitespace-nowrap
-                backdrop-blur-sm"
+                backdrop-blur-md shadow-lg shadow-emerald-500/20
+                border border-white/10"
             >
-              返回列表
+              <span className="relative z-10">返回列表</span>
               {/* 小三角 */}
-              <div className="absolute top-1/2 -translate-y-1/2 -left-1
-                w-2 h-2 rotate-45
-                bg-gray-900/90 dark:bg-white/10" />
+              <div className="absolute top-1/2 -translate-y-1/2 -left-1.5
+                w-3 h-3 rotate-45
+                bg-gray-900/95 dark:bg-white/10
+                border-l border-b border-white/10" />
             </motion.div>
           )}
         </AnimatePresence>
