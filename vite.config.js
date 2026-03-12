@@ -53,6 +53,9 @@ export default defineConfig({
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         globPatterns: ['**/*.{js,css,html,ico,svg,png,jpg,jpeg,webp,woff,woff2}'],
+        // 确保新版本 Service Worker 立即激活并清除旧缓存
+        skipWaiting: true,
+        clientsClaim: true,
         // 不缓存 API 请求
         runtimeCaching: [
           {
