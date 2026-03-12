@@ -886,11 +886,15 @@ const referrers = [
 // 事件类型
 const eventTypes = ['click', 'scroll', 'view', 'submit', 'hover', 'focus', 'blur', 'change']
 
-// 事件名称
+// 事件名称 - 与 EventManager.tsx 保持一致
 const eventNames = [
+  'article_view', 'article_like', 'article_unlike', 'article_share', 'share_copy_link',
+  'comment_submit', 'search_click', 'reading_progress', 'reading_complete', 'click',
+  'nav_click', 'home_article_click', 'hot_news_click', 'view_all_articles_click', 'go_hot_news_click', 'category_switch',
+  // 保留一些通用事件
   'button_click', 'link_click', 'form_submit', 'page_scroll',
   'card_view', 'search', 'share', 'like', 'bookmark',
-  'comment_submit', 'theme_toggle', 'language_change',
+  'theme_toggle', 'language_change',
   'pagination_click', 'filter_apply', 'sort_change',
 ]
 
@@ -901,6 +905,145 @@ const elementSelectors = [
   '.pagination-btn', '.filter-option', '.sort-select',
   '#theme-toggle', '.menu-item', '.sidebar-link',
 ]
+
+// 文章ID列表（用于生成事件参数）
+const articleIds = [
+  'react-hooks', 'typescript-5', 'nextjs-14', 'css-grid', 'vue-3',
+  'async-js', 'vite', 'tailwind', 'performance', 'security',
+  'webgl', 'jest-testing', 'mobile-adapt', 'monitoring', 'eslint',
+]
+
+// 分类列表
+const categories = ['技术', '生活', '随笔', '教程', '分享', '前端', '后端', '工具', '推荐', '最新']
+
+// 导航项
+const navItems = ['首页', '文章', '留言板', '热点资讯', '个人中心']
+
+// 分享平台
+const sharePlatforms = ['wechat', 'weibo', 'twitter', 'facebook', 'linkedin', 'copy_link']
+
+// 为不同事件类型生成参数数据
+const generateEventData = (eventName: string) => {
+  const baseData: Record<string, unknown> = {}
+
+  switch (eventName) {
+    case 'article_view':
+      baseData.article_id = articleIds[Math.floor(Math.random() * articleIds.length)]
+      baseData.article_title = articleTitles[Math.floor(Math.random() * articleTitles.length)]
+      baseData.reading_time = Math.floor(Math.random() * 15) + 1
+      baseData.scroll_depth = Math.floor(Math.random() * 100)
+      break
+
+    case 'article_like':
+    case 'article_unlike':
+      baseData.article_id = articleIds[Math.floor(Math.random() * articleIds.length)]
+      baseData.article_title = articleTitles[Math.floor(Math.random() * articleTitles.length)]
+      baseData.like_count = Math.floor(Math.random() * 500) + 10
+      break
+
+    case 'article_share':
+      baseData.article_id = articleIds[Math.floor(Math.random() * articleIds.length)]
+      baseData.article_title = articleTitles[Math.floor(Math.random() * articleTitles.length)]
+      baseData.platform = sharePlatforms[Math.floor(Math.random() * sharePlatforms.length)]
+      break
+
+    case 'share_copy_link':
+      baseData.article_id = articleIds[Math.floor(Math.random() * articleIds.length)]
+      baseData.article_title = articleTitles[Math.floor(Math.random() * articleTitles.length)]
+      break
+
+    case 'comment_submit':
+      baseData.article_id = articleIds[Math.floor(Math.random() * articleIds.length)]
+      baseData.article_title = articleTitles[Math.floor(Math.random() * articleTitles.length)]
+      baseData.comment_length = Math.floor(Math.random() * 200) + 10
+      break
+
+    case 'search_click':
+      baseData.search_query = ['React', 'TypeScript', 'Vue', 'Next.js', '性能优化'][Math.floor(Math.random() * 5)]
+      baseData.result_position = Math.floor(Math.random() * 10) + 1
+      baseData.result_count = Math.floor(Math.random() * 50) + 5
+      break
+
+    case 'reading_progress':
+      baseData.article_id = articleIds[Math.floor(Math.random() * articleIds.length)]
+      baseData.progress = Math.floor(Math.random() * 100)
+      baseData.reading_time = Math.floor(Math.random() * 600) + 30
+      break
+
+    case 'reading_complete':
+      baseData.article_id = articleIds[Math.floor(Math.random() * articleIds.length)]
+      baseData.article_title = articleTitles[Math.floor(Math.random() * articleTitles.length)]
+      baseData.total_reading_time = Math.floor(Math.random() * 600) + 120
+      break
+
+    case 'nav_click':
+      baseData.nav_item = navItems[Math.floor(Math.random() * navItems.length)]
+      baseData.nav_position = Math.floor(Math.random() * 5) + 1
+      break
+
+    case 'home_article_click':
+      baseData.article_id = articleIds[Math.floor(Math.random() * articleIds.length)]
+      baseData.article_title = articleTitles[Math.floor(Math.random() * articleTitles.length)]
+      baseData.list_type = Math.random() > 0.5 ? '推荐' : '最新'
+      baseData.position = Math.floor(Math.random() * 10) + 1
+      break
+
+    case 'hot_news_click':
+      baseData.news_id = `news_${Math.floor(Math.random() * 100)}`
+      baseData.news_title = ['AI 发展新动态', '科技前沿资讯', '互联网热点'][Math.floor(Math.random() * 3)]
+      baseData.position = Math.floor(Math.random() * 5) + 1
+      break
+
+    case 'view_all_articles_click':
+      baseData.from_section = Math.random() > 0.5 ? '推荐文章' : '最新文章'
+      baseData.visible_count = Math.floor(Math.random() * 10) + 5
+      break
+
+    case 'go_hot_news_click':
+      baseData.from_position = Math.random() > 0.5 ? '首页侧边栏' : '文章详情页'
+      break
+
+    case 'category_switch':
+      baseData.from_category = categories[Math.floor(Math.random() * categories.length)]
+      baseData.to_category = categories[Math.floor(Math.random() * categories.length)]
+      baseData.current_page = Math.floor(Math.random() * 5) + 1
+      break
+
+    case 'theme_toggle':
+      baseData.from_theme = Math.random() > 0.5 ? 'light' : 'dark'
+      baseData.to_theme = Math.random() > 0.5 ? 'dark' : 'light'
+      break
+
+    case 'language_change':
+      baseData.from_lang = 'zh-CN'
+      baseData.to_lang = ['en-US', 'ja-JP', 'ko-KR'][Math.floor(Math.random() * 3)]
+      break
+
+    case 'pagination_click':
+      baseData.from_page = Math.floor(Math.random() * 10) + 1
+      baseData.to_page = Math.floor(Math.random() * 10) + 1
+      baseData.total_pages = Math.floor(Math.random() * 20) + 10
+      break
+
+    case 'filter_apply':
+      baseData.filter_type = ['category', 'date', 'tag'][Math.floor(Math.random() * 3)]
+      baseData.filter_value = categories[Math.floor(Math.random() * categories.length)]
+      baseData.result_count = Math.floor(Math.random() * 50) + 5
+      break
+
+    case 'sort_change':
+      baseData.from_sort = ['最新', '最热', '推荐'][Math.floor(Math.random() * 3)]
+      baseData.to_sort = ['最新', '最热', '推荐'][Math.floor(Math.random() * 3)]
+      break
+
+    default:
+      // 通用点击事件
+      baseData.element_type = ['button', 'link', 'card', 'icon'][Math.floor(Math.random() * 4)]
+      baseData.element_text = `Element ${Math.floor(Math.random() * 100)}`
+  }
+
+  return baseData
+}
 
 // ============================================
 // Mock 数据生成器
@@ -1216,13 +1359,18 @@ const mockGenerators = {
       const createdAt = new Date(now - randomDays * 24 * 60 * 60 * 1000)
       const session = sessions.length > 0 ? sessions[Math.floor(Math.random() * sessions.length)] : null
       const page = pagePaths[Math.floor(Math.random() * pagePaths.length)]
+      const eventName = eventNames[Math.floor(Math.random() * eventNames.length)]
+
+      // 使用新的参数生成函数
+      const eventData = generateEventData(eventName)
 
       events.push({
         visitor_id: session?.visitor_id || visitorIds[Math.floor(Math.random() * visitorIds.length)],
         session_id: session?.session_id || `mock_s_${now}_${i}`,
-        event_name: eventNames[Math.floor(Math.random() * eventNames.length)],
+        event_name: eventName,
         event_type: eventTypes[Math.floor(Math.random() * eventTypes.length)],
         event_data: {
+          ...eventData,
           timestamp: createdAt.getTime(),
           page: page.path,
           userAgent: `Mozilla/5.0 (${osList[Math.floor(Math.random() * osList.length)]})`,

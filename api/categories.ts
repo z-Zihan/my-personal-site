@@ -185,6 +185,20 @@ export default async function handler(req: Request): Promise<Response> {
         return errorResponse('Category ID is required', 400)
       }
 
+      // 检查是否有文章正在使用这个分类
+      const { count, error: countError } = await supabase
+        .from('articles')
+        .select('id', { count: 'exact', head: true })
+        .eq('category_id', id)
+
+      if (countError) {
+        return errorResponse(countError.message, 500)
+      }
+
+      if (count && count > 0) {
+        return errorResponse(`无法删除该分类，有 ${count} 篇文章正在使用此分类。请先将这些文章移至其他分类或设为无分类。`, 400)
+      }
+
       const { error } = await supabase
         .from('categories')
         .delete()

@@ -11,6 +11,9 @@ import {
   Modal,
   Drawer,
   Typography,
+  Select,
+  Row,
+  Col,
 } from "antd";
 import type { Key } from "antd/es/table/interface";
 import type { ColumnType } from "antd/es/table";
@@ -23,12 +26,16 @@ import {
   StarOutlined,
   DragOutlined,
   CopyOutlined,
+  FilterOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import {
   articleApi,
   commentApi,
+  categoryApi,
   Article,
   Comment as CommentType,
+  Category,
 } from "../../api/index";
 import { formatDate } from "../../utils/helpers";
 import { DndContext, closestCenter } from "@dnd-kit/core";
@@ -97,14 +104,36 @@ function ArticleManager() {
   const [recommendDrawerVisible, setRecommendDrawerVisible] = useState(false);
   const [selectedCommentKeys, setSelectedCommentKeys] = useState<Key[]>([]);
 
+  // 筛选相关状态
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined);
+  const [filterRecommended, setFilterRecommended] = useState<string | undefined>(undefined);
+  const [filterCategoryId, setFilterCategoryId] = useState<string | undefined>(undefined);
+
   useEffect(() => {
+    fetchCategories();
     fetchArticles();
   }, []);
+
+  // 获取分类列表
+  const fetchCategories = async () => {
+    try {
+      const { data } = await categoryApi.getList();
+      setCategories(data || []);
+    } catch {
+      // 错误静默处理
+    }
+  };
 
   const fetchArticles = async () => {
     setLoading(true);
     try {
-      const { data } = await articleApi.getList({ limit: 100 });
+      const params: Record<string, unknown> = { limit: 100 };
+      if (filterStatus) params.status = filterStatus;
+      if (filterRecommended !== undefined) params.recommended = filterRecommended === 'true';
+      if (filterCategoryId) params.category_id = filterCategoryId;
+
+      const { data } = await articleApi.getList(params);
       setArticles(data || []); //不要修改这一句 现在是对的
     } catch {
       message.error("加载文章失败");
@@ -112,6 +141,19 @@ function ArticleManager() {
       setLoading(false);
     }
   };
+
+  // 重置筛选
+  const handleResetFilter = () => {
+    setFilterStatus(undefined);
+    setFilterRecommended(undefined);
+    setFilterCategoryId(undefined);
+  };
+
+  // 筛选条件改变时重新获取数据
+  useEffect(() => {
+    fetchArticles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterStatus, filterRecommended, filterCategoryId]);
 
   const fetchRecommendedArticles = async () => {
     try {
@@ -617,6 +659,80 @@ function ArticleManager() {
           </Space>
         }
       >
+        {/* 筛选区域 */}
+        <Card size="small" style={{ marginBottom: 16 }} bordered={false}>
+          <Row gutter={[16, 16]} align="middle">
+            <Col>
+              <Space>
+                <FilterOutlined style={{ color: '#1890ff' }} />
+                <span style={{ fontWeight: 500 }}>筛选条件：</span>
+              </Space>
+            </Col>
+            <Col>
+              <Space>
+                <span>发布状态：</span>
+                <Select
+                  allowClear
+                  placeholder="全部状态"
+                  style={{ width: 120 }}
+                  value={filterStatus}
+                  onChange={setFilterStatus}
+                  options={[
+                    { label: '已发布', value: 'published' },
+                    { label: '草稿', value: 'draft' },
+                  ]}
+                />
+              </Space>
+            </Col>
+            <Col>
+              <Space>
+                <span>推荐状态：</span>
+                <Select
+                  allowClear
+                  placeholder="全部"
+                  style={{ width: 120 }}
+                  value={filterRecommended}
+                  onChange={setFilterRecommended}
+                  options={[
+                    { label: '已推荐', value: 'true' },
+                    { label: '未推荐', value: 'false' },
+                  ]}
+                />
+              </Space>
+            </Col>
+            <Col>
+              <Space>
+                <span>分类：</span>
+                <Select
+                  allowClear
+                  placeholder="全部分类"
+                  style={{ width: 150 }}
+                  value={filterCategoryId}
+                  onChange={setFilterCategoryId}
+                  options={categories.map(cat => ({
+                    label: cat.name,
+                    value: cat.id,
+                  }))}
+                />
+              </Space>
+            </Col>
+            <Col>
+              <Space>
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={handleResetFilter}
+                  disabled={!filterStatus && !filterRecommended && !filterCategoryId}
+                >
+                  重置筛选
+                </Button>
+                <Button type="primary" onClick={fetchArticles} loading={loading}>
+                  刷新
+                </Button>
+              </Space>
+            </Col>
+          </Row>
+        </Card>
+
         <Table
           columns={columns}
           dataSource={articles}
