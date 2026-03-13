@@ -26,14 +26,15 @@ export default async function handler(req: Request): Promise<Response> {
       .from('articles')
       .select('*, categories(name, id)', { count: 'exact' })
 
-    // 如果是获取推荐文章
+    // 分类过滤
+    if (category_id) {
+      query = query.eq('category_id', category_id)
+    }
+
+    // 推荐文章过滤与排序
     if (recommended === 'true') {
       query = query.eq('is_recommended', true)
         .order('recommend_order', { ascending: true, nullsFirst: false })
-        .order('created_at', { ascending: false })
-    } else if (category_id) {
-      // 指定分类的文章列表
-      query = query.eq('category_id', category_id)
         .order('created_at', { ascending: false })
     } else {
       // 普通文章列表，按创建时间倒序
