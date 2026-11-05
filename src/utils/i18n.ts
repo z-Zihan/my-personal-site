@@ -138,6 +138,7 @@ export interface Translations {
   searching: string
   noResults: string
   backToTop: string
+  top: string
   // 语言切换按钮 / 菜单
   langSwitchToEnglish: string
   langSwitchToChinese: string
@@ -301,6 +302,7 @@ const translations: Record<Language, Translations> = {
     searching: '搜索中...',
     noResults: '未找到相关文章',
     backToTop: '回到顶部',
+    top: '顶部',
 
     // 语言切换按钮 / 菜单
     langSwitchToEnglish: '切换为英文',
@@ -463,6 +465,7 @@ const translations: Record<Language, Translations> = {
     searching: 'Searching...',
     noResults: 'No results found',
     backToTop: 'Back to top',
+    top: 'TOP',
 
     // Language toggle button / menu
     langSwitchToEnglish: 'Switch to English',
