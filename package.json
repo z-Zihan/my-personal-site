@@ -29,7 +29,7 @@
     "antd": "^6.3.1",
     "autoprefixer": "^10.4.27",
     "axios": "^1.13.6",
-    "build-meta-injector": "^1.0.7",
+    "build-meta-injector": "^1.0.8",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.6",
     "framer-motion": "^12.34.3",
