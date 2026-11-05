@@ -144,8 +144,8 @@ function MockDataGenerator() {
 
   const totalGenerated = results.filter(r => r.success).reduce((sum, r) => sum + r.count, 0)
 
-  return (
-    <div style={{ padding: '0 24px' }}>
+return (
+    <div>
       <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <Title level={3} style={{ margin: 0 }}>Mock 数据生成器</Title>

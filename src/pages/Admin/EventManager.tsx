@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card, Table, Tag, Row, Col, Statistic, Typography, Progress, DatePicker, Button, Space, Select, Pagination } from 'antd'
+import { Card, Table, Tag, Row, Col, Statistic, Typography, Progress, DatePicker, Button, Space, Select, Pagination, Segmented } from 'antd'
 import EmptyState from '../../components/common/EmptyState'
 import {
   EyeOutlined,
@@ -204,6 +204,20 @@ function EventManager() {
     setDatePreset(value)
     setDateRange(getDateRangeFromPreset(value))
   }
+
+  // 快捷时间段切换（与下方预设/自定义范围双向同步）
+  const handleQuickRange = (days: number) => {
+    const presetMap: Record<number, string> = { 7: 'last7days', 30: 'last30days', 90: 'last90days' }
+    setDatePreset(presetMap[days] || 'custom')
+    const today = dayjs()
+    setDateRange([today.subtract(days - 1, 'day').startOf('day'), today.endOf('day')])
+  }
+
+  // 由当前日期范围反推快捷选项值（不在快拨范围内则返回 undefined，Segmented 不高亮）
+  const quickRangeValue = (() => {
+    const days = dateRange[1].diff(dateRange[0], 'day') + 1
+    return [7, 30, 90].includes(days) ? days : undefined
+  })()
 
   const handleRangeChange = (dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null) => {
     if (dates && dates[0] && dates[1]) {
@@ -660,8 +674,8 @@ function EventManager() {
 
   // 列表页面
   return (
-    <div style={{ padding: '24px 0' }}>
-      <Title level={3} style={{ marginBottom: 24 }}>
+    <div>
+      <Title level={3} style={{ margin: 0, marginBottom: 24 }}>
         <ThunderboltOutlined style={{ marginRight: 8, color: '#faad14' }} />
         埋点事件管理
       </Title>
@@ -669,9 +683,18 @@ function EventManager() {
       {/* 筛选区域 */}
       <Card style={{ marginBottom: 24 }}>
         <Space size="middle" wrap>
+          <Segmented
+            value={quickRangeValue}
+            onChange={(value) => handleQuickRange(value as number)}
+            options={[
+              { label: '近 7 天', value: 7 },
+              { label: '近 30 天', value: 30 },
+              { label: '近 90 天', value: 90 },
+            ]}
+          />
           <span>
             <CalendarOutlined style={{ marginRight: 8 }} />
-            时间范围：
+            自定义：
           </span>
           <Select
             value={datePreset}

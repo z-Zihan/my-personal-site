@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card, Statistic, Row, Col, Typography, Table, Progress, Tag } from 'antd'
+import { Card, Statistic, Row, Col, Typography, Table, Progress, Tag, Segmented, Button } from 'antd'
 import EmptyState from '../../components/common/EmptyState'
 import {
   FileTextOutlined,
@@ -7,7 +7,6 @@ import {
   MessageOutlined,
   FireOutlined,
   UserOutlined,
-  LaptopOutlined,
   ClockCircleOutlined,
   StarOutlined,
   BarChartOutlined,
@@ -21,10 +20,11 @@ import {
   CommentOutlined,
   SearchOutlined,
   ReadOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie,
+  PieChart, Pie, Cell,
   LineChart, Line,
 } from 'recharts'
 import { articleApi } from '../../api/article'
@@ -33,13 +33,30 @@ import { analyticsApi } from '../../api/analytics'
 import VisitorMap from '../../components/admin/VisitorMap'
 import { useNavigate } from 'react-router-dom'
 
-const { Title } = Typography
+const { Title, Text } = Typography
 
-const COLORS = ['#00f0ff', '#7000ff', '#00ff88', '#ff6600', '#ff0066', '#00ccff']
+const COLORS = ['#7000ff', '#1890ff', '#52c41a', '#fa8c16', '#eb2f96', '#13c2c2']
+
+// 统计卡片：干净白底 + 左侧色条
+const statCardStyle = (color: string): React.CSSProperties => ({
+  background: '#ffffff',
+  border: '1px solid #f0f0f0',
+  borderRadius: 8,
+  position: 'relative',
+  overflow: 'hidden',
+})
+const statAccent = (color: string) => (
+  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: color }} />
+)
 
 function Dashboard() {
   const navigate = useNavigate()
-  const [stats, setStats] = useState<{ totalArticles?: number; totalMessages?: number; totalNews?: number } | null>(null)
+  const [stats, setStats] = useState<{
+    totalArticles?: number
+    publishedArticles?: number
+    totalMessages?: number
+    totalNews?: number
+  } | null>(null)
   const [analytics, setAnalytics] = useState<{
     totalVisitors?: number
     totalPageViews?: number
@@ -52,14 +69,21 @@ function Dashboard() {
     events?: Array<{ event_name: string; count: number }>
   } | null>(null)
   const [loading, setLoading] = useState(true)
+  const [chartLoading, setChartLoading] = useState(true)
+  const [rangeDays, setRangeDays] = useState<number>(7)
   const [latestArticles, setLatestArticles] = useState<Array<{ id: number; title: string; status: string; views: number; likes: number; comment_count: number; created_at: string; updated_at?: string }>>([])
   const [recommendedArticles, setRecommendedArticles] = useState<Array<{ id: number; title: string; views: number; likes: number; recommend_order?: number; created_at: string }>>([])
 
   useEffect(() => {
-    fetchAllData()
+    fetchBaseData()
   }, [])
 
-  const fetchAllData = async () => {
+  useEffect(() => {
+    fetchChartData(rangeDays)
+  }, [rangeDays])
+
+  const fetchBaseData = async () => {
+    setLoading(true)
     try {
       const [statsRes, analyticsRes, latestRes] = await Promise.all([
         statsApi.getStats(),
@@ -73,47 +97,51 @@ function Dashboard() {
       // 推荐文章必须是已发布的文章
       const recommendedData = articlesData.filter(a => (a as unknown as { is_recommended?: boolean }).is_recommended && a.status === 'published').slice(0, 10)
       setRecommendedArticles(recommendedData as Array<{ id: number; title: string; views: number; likes: number; recommend_order?: number; created_at: string }>)
+    } catch (error) {
+      console.error('Failed to fetch dashboard base data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-      // 获取详细统计数据
+  const fetchChartData = async (days: number) => {
+    setChartLoading(true)
+    try {
       const [daily, pages, devices, browsers, events] = await Promise.all([
-        analyticsApi.getDaily(7),
-        analyticsApi.getPages(7),
-        analyticsApi.getDevices(7),
-        analyticsApi.getBrowsers(7),
-        analyticsApi.getEvents(7),
+        analyticsApi.getDaily(days),
+        analyticsApi.getPages(days),
+        analyticsApi.getDevices(days),
+        analyticsApi.getBrowsers(days),
+        analyticsApi.getEvents(days),
       ])
 
       // 确保数据是数组
       const safeArray = (data: unknown) => Array.isArray(data) ? data : []
 
       setAnalytics(prev => ({
-        ...prev,
-        daily: safeArray((daily as { data?: unknown })?.data || daily.data),
-        pages: safeArray((pages as { data?: unknown })?.data || pages.data),
-        devices: safeArray((devices as { data?: unknown })?.data || devices.data),
-        browsers: safeArray((browsers as { data?: unknown })?.data || browsers.data),
-        events: safeArray((events as { data?: unknown })?.data || events.data),
+        ...(prev || {}),
+        daily: safeArray((daily as { data?: unknown })?.data),
+        pages: safeArray((pages as { data?: unknown })?.data),
+        devices: safeArray((devices as { data?: unknown })?.data),
+        browsers: safeArray((browsers as { data?: unknown })?.data),
+        events: safeArray((events as { data?: unknown })?.data),
       }))
     } catch (error) {
-      // 错误由全局错误边界处理
+      console.error('Failed to fetch dashboard charts:', error)
     } finally {
-      setLoading(false)
+      setChartLoading(false)
     }
   }
 
+  const publishedCount = stats?.publishedArticles || 0
+  const totalCount = stats?.totalArticles || 0
+
   if (loading) {
     return (
-      <div style={{ padding: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', minHeight: '100vh' }}>
-        {/* 科技风 Loading 动画 */}
+      <div style={{ padding: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
         <div className="relative inline-block">
-          {/* 外环 */}
-          <div className="w-20 h-20 border-4 border-purple-300 rounded-full animate-spin" style={{ animationDuration: '2s', borderLeftColor: '#7000ff', borderTopColor: '#00f0ff' }} />
-          {/* 中环 */}
-          <div className="absolute top-1 left-1 w-18 h-18 border-4 border-cyan-300 rounded-full animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse', borderRightColor: '#00f0ff' }} />
-          {/* 内环 */}
-          <div className="absolute top-2 left-2 w-14 h-14 border-t-4 border-purple-400 rounded-full animate-spin" style={{ animationDuration: '1s' }} />
-          {/* 中心脉冲 */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full animate-pulse shadow-lg shadow-purple-500/50" />
+          <div className="w-16 h-16 border-4 border-purple-200 rounded-full animate-spin" style={{ borderLeftColor: '#7000ff' }} />
+          <p style={{ marginTop: 16, textAlign: 'center', color: '#999', fontSize: 14 }}>加载中...</p>
         </div>
       </div>
     )
@@ -121,48 +149,30 @@ function Dashboard() {
 
   if (!stats || !analytics) {
     return (
-      <div style={{ padding: 48, textAlign: 'center', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {/* 空状态 - 科技风插图 */}
-        <div className="relative">
-          {/* 背景光晕 */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
-
-          {/* SVG 图标 - 数据图表 */}
-          <svg
-            className="w-32 h-32 text-gray-400 relative z-10 mx-auto mb-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            />
-          </svg>
-
-          <h3 className="text-2xl font-semibold text-gray-600 mb-3">暂无数据</h3>
-          <p className="text-gray-500 text-center max-w-md">
-            数据正在收集中
-            <br />
-            <span className="text-sm opacity-70">请稍后再来查看，统计数据将会在这里展示</span>
-          </p>
-
-          {/* 浮动装饰点 */}
-          <div className="absolute top-0 right-0 w-3 h-3 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0s' }} />
-          <div className="absolute bottom-4 left-4 w-2 h-2 bg-cyan-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+      <div style={{ padding: 48, textAlign: 'center', minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div>
+          <BarChartOutlined style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }} />
+          <Title level={4} style={{ color: '#666' }}>暂无数据</Title>
+          <Text type="secondary">数据正在收集中，请稍后再来查看</Text>
+          <div style={{ marginTop: 24 }}>
+            <Button icon={<ReloadOutlined />} onClick={fetchBaseData}>重新加载</Button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ padding: '24px 0' }}>
-      <Title level={3} style={{ marginBottom: 24 }}><BarChartOutlined style={{ marginRight: 8 }} />数据仪表盘</Title>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <Title level={3} style={{ margin: 0 }}>数据仪表盘</Title>
+        <Button icon={<ReloadOutlined />} onClick={() => { fetchBaseData(); fetchChartData(rangeDays) }} loading={loading || chartLoading}>
+          刷新数据
+        </Button>
+      </div>
 
-      {/* 世界地图 - 移到最顶部 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+      {/* 世界地图 */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24}>
           <Card title={<><GlobalOutlined style={{ marginRight: 8 }} />访客地域分布</>}>
             <VisitorMap />
@@ -170,72 +180,80 @@ function Dashboard() {
         </Col>
       </Row>
 
-      {/* 核心指标 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+      {/* 访问核心指标 */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} sm={12} lg={6}>
-          <Card style={{ background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.55) 0%, rgba(118, 75, 162, 0.55) 100%)' }}>
+          <Card style={statCardStyle('#7000ff')}>
+            {statAccent('#7000ff')}
             <Statistic
-              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总访客数</span>}
+              title="总访客数"
               value={analytics.totalVisitors || 0}
-              prefix={<UserOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
+              prefix={<UserOutlined style={{ color: '#7000ff' }} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card style={{ background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.55) 0%, rgba(0, 204, 255, 0.55) 100%)' }}>
+          <Card style={statCardStyle('#1890ff')}>
+            {statAccent('#1890ff')}
             <Statistic
-              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总浏览量</span>}
+              title="总浏览量"
               value={analytics.totalPageViews || 0}
-              prefix={<EyeOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
+              prefix={<EyeOutlined style={{ color: '#1890ff' }} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card style={{ background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.55) 0%, rgba(0, 204, 136, 0.55) 100%)' }}>
+          <Card style={statCardStyle('#52c41a')}>
+            {statAccent('#52c41a')}
             <Statistic
-              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总会话数</span>}
+              title="总会话数"
               value={analytics.totalSessions || 0}
-              prefix={<LaptopOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
+              prefix={<ThunderboltOutlined style={{ color: '#52c41a' }} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card style={{ background: 'linear-gradient(135deg, rgba(255, 102, 0, 0.55) 0%, rgba(255, 136, 0, 0.55) 100%)' }}>
+          <Card style={statCardStyle('#fa8c16')}>
+            {statAccent('#fa8c16')}
             <Statistic
-              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总事件数</span>}
+              title="总事件数"
               value={analytics.totalEvents || 0}
-              prefix={<ThunderboltOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
+              prefix={<BarChartOutlined style={{ color: '#fa8c16' }} />}
             />
           </Card>
         </Col>
       </Row>
 
-      {/* 原有统计 */}
+      {/* 内容统计：口径修正（发布/总数） */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={8}>
-          <Card style={{ background: 'linear-gradient(135deg, rgba(255, 99, 132, 0.55) 0%, rgba(255, 159, 64, 0.55) 100%)' }}>
+          <Card style={statCardStyle('#eb2f96')}>
+            {statAccent('#eb2f96')}
             <Statistic
-              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总文章数</span>}
-              value={stats.totalArticles || 0}
-              prefix={<FileTextOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
+              title="文章数（已发布/全部）"
+              value={publishedCount}
+              suffix={<Text type="secondary" style={{ fontSize: 14 }}>/ {totalCount} 篇</Text>}
+              prefix={<FileTextOutlined style={{ color: '#eb2f96' }} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={8}>
-          <Card style={{ background: 'linear-gradient(135deg, rgba(54, 162, 235, 0.55) 0%, rgba(75, 192, 192, 0.55) 100%)' }}>
+          <Card style={statCardStyle('#13c2c2')}>
+            {statAccent('#13c2c2')}
             <Statistic
-              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总留言数</span>}
+              title="留言数"
               value={stats.totalMessages || 0}
-              prefix={<MessageOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
+              prefix={<MessageOutlined style={{ color: '#13c2c2' }} />}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={8}>
-          <Card style={{ background: 'linear-gradient(135deg, rgba(255, 205, 86, 0.55) 0%, rgba(255, 183, 77, 0.55) 100%)' }}>
+          <Card style={statCardStyle('#faad14')}>
+            {statAccent('#faad14')}
             <Statistic
-              title={<span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>总热点数</span>}
+              title="热点资讯数"
               value={stats.totalNews || 0}
-              prefix={<FireOutlined style={{ color: 'rgba(0, 0, 0, 0.65)' }} />}
+              prefix={<FireOutlined style={{ color: '#faad14' }} />}
             />
           </Card>
         </Col>
@@ -245,7 +263,7 @@ function Dashboard() {
       {recommendedArticles.length > 0 && (
         <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
           <Col xs={24}>
-            <Card title={<><StarOutlined style={{ color: '#fadb14', marginRight: 8 }} />推荐文章</>}>
+            <Card title={<><StarOutlined style={{ color: '#faad14', marginRight: 8 }} />推荐文章</>}>
               <Table
                 dataSource={recommendedArticles}
                 rowKey="id"
@@ -290,17 +308,7 @@ function Dashboard() {
                     dataIndex: 'created_at',
                     key: 'created_at',
                     width: 160,
-                    render: (date) => {
-                      const d = new Date(date)
-                      return d.toLocaleString('zh-CN', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })
-                    },
+                    render: (date) => formatDateStr(date),
                   },
                 ]}
               />
@@ -312,7 +320,12 @@ function Dashboard() {
       {/* 最新文章模块 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24}>
-          <Card title={<><ClockCircleOutlined style={{ marginRight: 8 }} />最新文章（最多显示 6 篇）</>}>
+          <Card
+            title={<><ClockCircleOutlined style={{ marginRight: 8 }} />最新文章（最多显示 6 篇）</>}
+            extra={
+              <a onClick={() => navigate('/admin/articles')}>管理文章 →</a>
+            }
+          >
             {latestArticles.length > 0 ? (
               <Table
                 dataSource={latestArticles}
@@ -338,7 +351,7 @@ function Dashboard() {
                     key: 'status',
                     width: 80,
                     render: (status) => (
-                      <Tag color={status === 'published' ? 'green' : 'gray'}>
+                      <Tag color={status === 'published' ? 'green' : 'default'}>
                         {status === 'published' ? '已发布' : '草稿'}
                       </Tag>
                     ),
@@ -366,35 +379,14 @@ function Dashboard() {
                     dataIndex: 'created_at',
                     key: 'created_at',
                     width: 160,
-                    render: (date) => {
-                      const d = new Date(date)
-                      return d.toLocaleString('zh-CN', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })
-                    },
+                    render: (date) => formatDateStr(date),
                   },
                   {
-                    title: '最后修改时间',
+                    title: '最后修改',
                     dataIndex: 'updated_at',
                     key: 'updated_at',
                     width: 160,
-                    render: (date) => {
-                      if (!date) return '-'
-                      const d = new Date(date)
-                      return d.toLocaleString('zh-CN', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })
-                    },
+                    render: (date) => (date ? formatDateStr(date) : '-'),
                   },
                 ]}
               />
@@ -405,19 +397,31 @@ function Dashboard() {
         </Col>
       </Row>
 
-      {/* 图表区域 */}
+      {/* 图表区域：带时间范围切换 */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+        <Title level={4} style={{ margin: 0 }}>趋势分析</Title>
+        <Segmented
+          value={rangeDays}
+          onChange={(value) => setRangeDays(value as number)}
+          options={[
+            { label: '近 7 天', value: 7 },
+            { label: '近 30 天', value: 30 },
+            { label: '近 90 天', value: 90 },
+          ]}
+        />
+      </div>
       <Row gutter={[16, 16]}>
         {/* 每日访问趋势 */}
         <Col xs={24} lg={12}>
-          <Card title={<><PieChartOutlined style={{ marginRight: 8 }} />近 7 天访问趋势</>} style={{ marginBottom: 24 }}>
+          <Card title={<><PieChartOutlined style={{ marginRight: 8 }} />访问趋势</>} loading={chartLoading} style={{ marginBottom: 24 }}>
             {analytics.daily && analytics.daily.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={analytics.daily}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                  <XAxis dataKey="date" stroke="#666" />
-                  <YAxis stroke="#666" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="date" stroke="#999" fontSize={12} />
+                  <YAxis stroke="#999" fontSize={12} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="views" stroke="#7000ff" strokeWidth={2} />
+                  <Line type="monotone" dataKey="views" stroke="#7000ff" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
@@ -428,23 +432,22 @@ function Dashboard() {
 
         {/* 设备分布 */}
         <Col xs={24} lg={12}>
-          <Card title={<><MobileOutlined style={{ marginRight: 8 }} />设备分布</>} style={{ marginBottom: 24 }}>
+          <Card title={<><MobileOutlined style={{ marginRight: 8 }} />设备分布</>} loading={chartLoading} style={{ marginBottom: 24 }}>
             {analytics.devices && analytics.devices.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={analytics.devices.map((entry, index) => ({
-                      ...entry,
-                      fill: COLORS[index % COLORS.length]
-                    }))}
+                    data={analytics.devices}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
                     label={({ name, value }) => `${name}: ${value}`}
                     outerRadius={80}
-                    fill="#8884d8"
                     dataKey="value"
                   >
+                    {analytics.devices.map((entry, index) => (
+                      <Cell key={`device-cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
                   </Pie>
                   <Tooltip />
                 </PieChart>
@@ -457,12 +460,12 @@ function Dashboard() {
 
         {/* 热门页面 */}
         <Col xs={24} lg={12}>
-          <Card title={<><TrophyOutlined style={{ marginRight: 8 }} />热门页面 TOP 10</>} style={{ marginBottom: 24 }}>
+          <Card title={<><TrophyOutlined style={{ marginRight: 8 }} />热门页面 TOP 10</>} loading={chartLoading} style={{ marginBottom: 24 }}>
             {analytics.pages && analytics.pages.length > 0 ? (
               <Table
-                dataSource={analytics.pages}
+                dataSource={analytics.pages.slice(0, 10)}
                 pagination={false}
-                rowKey={(record: unknown) => `page_${(record as { path?: string }).path || ''}_`}
+                rowKey={(record: unknown) => `page_${(record as { path?: string }).path || ''}`}
                 size="small"
                 columns={[
                   {
@@ -475,6 +478,7 @@ function Dashboard() {
                     title: '浏览量',
                     dataIndex: 'views',
                     key: 'views',
+                    width: 80,
                     sorter: (a: unknown, b: unknown) => (b as { views: number }).views - (a as { views: number }).views,
                   },
                   {
@@ -496,13 +500,13 @@ function Dashboard() {
 
         {/* 浏览器分布 */}
         <Col xs={24} lg={12}>
-          <Card title={<><GlobalOutlined style={{ marginRight: 8 }} />浏览器分布</>} style={{ marginBottom: 24 }}>
+          <Card title={<><GlobalOutlined style={{ marginRight: 8 }} />浏览器分布</>} loading={chartLoading} style={{ marginBottom: 24 }}>
             {analytics.browsers && analytics.browsers.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={analytics.browsers}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                  <XAxis dataKey="name" stroke="#666" />
-                  <YAxis stroke="#666" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="name" stroke="#999" fontSize={12} />
+                  <YAxis stroke="#999" fontSize={12} />
                   <Tooltip />
                   <Bar dataKey="value" fill="#1890ff" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -514,8 +518,8 @@ function Dashboard() {
         </Col>
 
         {/* 用户行为事件统计 */}
-        <Col xs={24} lg={12}>
-          <Card title={<><ThunderboltOutlined style={{ marginRight: 8, color: '#faad14' }} />用户行为事件统计</>} style={{ marginBottom: 24 }}>
+        <Col xs={24}>
+          <Card title={<><ThunderboltOutlined style={{ marginRight: 8, color: '#faad14' }} />用户行为事件统计</>} loading={chartLoading}>
             {analytics.events && analytics.events.length > 0 ? (
               <Table
                 dataSource={analytics.events}
@@ -552,6 +556,7 @@ function Dashboard() {
                     title: '次数',
                     dataIndex: 'count',
                     key: 'count',
+                    width: 100,
                     sorter: (a: { count: number }, b: { count: number }) => a.count - b.count,
                     render: (count: number) => <Tag color="blue">{count}</Tag>,
                   },
@@ -565,6 +570,17 @@ function Dashboard() {
       </Row>
     </div>
   )
+}
+
+function formatDateStr(date: string) {
+  const d = new Date(date)
+  return d.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 export default Dashboard

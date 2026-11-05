@@ -113,7 +113,6 @@ function AdminLogin() {
           </Title>
           <p style={{ color: '#666' }}>请输入管理员账号</p>
         </div>
-
         <Form
           name="login"
           onFinish={handleSubmit}
@@ -167,6 +166,17 @@ function AdminLogin() {
             </Button>
           </Form.Item>
         </Form>
+
+        <div style={{ textAlign: 'center', marginTop: 20 }}>
+          <a
+            href="/"
+            style={{ color: '#999', fontSize: 13, textDecoration: 'none' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#7000ff' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#999' }}
+          >
+            ← 返回前台
+          </a>
+        </div>
       </Card>
     </div>
   )

@@ -23,7 +23,7 @@ export function useHotNews() {
       const newsData = data as unknown as HotNewsType[]
       setNews(newsData.map(item => ({
         ...item,
-        id: item.id || 0,
+        id: typeof item.id === 'number' ? item.id : 0,
         title: item.title || '',
         url: item.url || '',
         source: item.source || '',

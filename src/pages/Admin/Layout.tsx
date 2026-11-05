@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, Navigate, useLocation, useNavigate, Link } from 'react-router-dom'
 import { Layout as AntLayout, Menu, Switch, Popover, Button } from 'antd'
 import type { MenuProps } from 'antd'
 import {
   DashboardOutlined,
   FileTextOutlined,
   MessageOutlined,
+  CommentOutlined,
+  TagsOutlined,
+  FireOutlined,
   LogoutOutlined,
   HomeOutlined,
   SettingOutlined,
@@ -76,13 +79,10 @@ function AdminLayout() {
 
   if (loading || !token) {
     return (
-      <AntLayout style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
+      <AntLayout style={{ minHeight: '100vh', background: '#f5f7fa' }}>
         <Content style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="relative">
-            {/* 科技风 Loading 动画 */}
             <div className="w-20 h-20 border-4 border-purple-300 rounded-full animate-spin" style={{ animationDuration: '2s', borderLeftColor: '#7000ff', borderTopColor: '#00f0ff' }} />
-            <div className="absolute top-1 left-1 w-18 h-18 border-4 border-cyan-300 rounded-full animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse', borderRightColor: '#00f0ff' }} />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full animate-pulse shadow-lg shadow-purple-500/50" />
             <p style={{ marginTop: 24, textAlign: 'center', color: '#666', fontSize: 16 }}>加载中...</p>
           </div>
         </Content>
@@ -128,91 +128,130 @@ function AdminLayout() {
   const menuItems: MenuItem[] = [
     {
       key: '/admin/dashboard',
-      icon: <DashboardOutlined style={{ fontSize: 18 }} />,
-      label: <span style={{ fontSize: 15, fontWeight: 500 }}>仪表盘</span>,
+      icon: <DashboardOutlined />,
+      label: '仪表盘',
     },
     {
       key: '/admin/articles',
-      icon: <FileTextOutlined style={{ fontSize: 18 }} />,
-      label: <span style={{ fontSize: 15, fontWeight: 500 }}>文章管理</span>,
+      icon: <FileTextOutlined />,
+      label: '文章管理',
+    },
+    {
+      key: '/admin/comments',
+      icon: <CommentOutlined />,
+      label: '评论管理',
     },
     {
       key: '/admin/messages',
-      icon: <MessageOutlined style={{ fontSize: 18 }} />,
-      label: <span style={{ fontSize: 15, fontWeight: 500 }}>留言管理</span>,
+      icon: <MessageOutlined />,
+      label: '留言管理',
+    },
+    {
+      key: '/admin/categories',
+      icon: <TagsOutlined />,
+      label: '分类管理',
+    },
+    {
+      key: '/admin/hot-news',
+      icon: <FireOutlined />,
+      label: '热点资讯',
     },
     {
       key: '/admin/events',
-      icon: <ThunderboltOutlined style={{ fontSize: 18 }} />,
-      label: <span style={{ fontSize: 15, fontWeight: 500 }}>埋点管理</span>,
+      icon: <ThunderboltOutlined />,
+      label: '埋点管理',
     },
     {
       key: '/admin/mock-data',
-      icon: <DatabaseOutlined style={{ fontSize: 18 }} />,
-      label: <span style={{ fontSize: 15, fontWeight: 500 }}>数据生成</span>,
+      icon: <DatabaseOutlined />,
+      label: '数据生成',
     },
-    {
-      type: 'divider' as const,
-    },
-    // Menu Footer - 设置（弹出卡片）
-    {
-      key: 'settings',
-      icon: <SettingOutlined style={{ fontSize: 18 }} />,
-      label: (
+  ]
+
+  const handleMenuClick: MenuProps['onClick'] = (e) => {
+    navigate(e.key)
+  }
+
+  // 根据 pathname 精确计算高亮菜单：编辑器子路由归入文章管理
+  const getSelectedKey = () => {
+    const path = location.pathname
+    if (path.startsWith('/admin/dashboard')) return '/admin/dashboard'
+    if (path.startsWith('/admin/articles')) return '/admin/articles'
+    if (path.startsWith('/admin/comments')) return '/admin/comments'
+    if (path.startsWith('/admin/messages')) return '/admin/messages'
+    if (path.startsWith('/admin/categories')) return '/admin/categories'
+    if (path.startsWith('/admin/hot-news')) return '/admin/hot-news'
+    if (path.startsWith('/admin/events')) return '/admin/events'
+    if (path.startsWith('/admin/mock-data')) return '/admin/mock-data'
+    return '/admin/dashboard'
+  }
+
+  // 菜单底部：返回前台 + 设置
+  const menuFooter = (
+    <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 16px', flexShrink: 0 }}>
+      <Link
+        to="/"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          color: '#595959',
+          fontSize: 14,
+          textDecoration: 'none',
+          padding: '8px 10px',
+          borderRadius: 8,
+          transition: 'all 0.2s',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = '#f5f5f5'
+          e.currentTarget.style.color = '#7000ff'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.color = '#595959'
+        }}
+      >
+        <HomeOutlined />
+        <span>返回前台</span>
+      </Link>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '8px 10px',
+          borderRadius: 8,
+          cursor: 'pointer',
+          color: '#595959',
+          fontSize: 14,
+        }}
+        onClick={(e) => {
+          e.stopPropagation()
+          setPopoverOpen(!popoverOpen)
+        }}
+      >
         <Popover
           content={popoverContent}
           trigger="click"
           open={popoverOpen}
           onOpenChange={setPopoverOpen}
-          placement="rightTop"
+          placement="rightBottom"
           overlayStyle={{ maxWidth: 250 }}
           arrow={false}
         >
-          <span
-            style={{
-              fontSize: 15,
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-              cursor: 'pointer',
-            }}
-            onClick={(e) => {
-              e.stopPropagation()
-              setPopoverOpen(!popoverOpen)
-            }}
-          >
+          <span style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%' }}>
+            <SettingOutlined />
             <span>设置</span>
-            <span style={{ fontSize: 10, color: '#999' }}>▼</span>
           </span>
         </Popover>
-      ),
-    },
-  ]
-
-  const handleMenuClick: MenuProps['onClick'] = (e) => {
-    if (e.key === 'settings') {
-      // 不跳转
-    } else {
-      setPopoverOpen(false)
-      navigate(e.key)
-    }
-  }
-
-  const getSelectedKey = () => {
-    const path = location.pathname
-    if (path.includes('articles')) return '/admin/articles'
-    if (path.includes('messages')) return '/admin/messages'
-    if (path.includes('events')) return '/admin/events'
-    if (path.includes('mock-data')) return '/admin/mock-data'
-    return '/admin/dashboard'
-  }
+      </div>
+    </div>
+  )
 
   return (
     <AntLayout style={{ minHeight: '100vh' }}>
       <Sider
-        width={240}
+        width={220}
         style={{
           background: '#ffffff',
           position: 'fixed',
@@ -220,7 +259,7 @@ function AdminLayout() {
           top: 0,
           bottom: 0,
           overflow: 'hidden',
-          boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
+          borderRight: '1px solid #f0f0f0',
           zIndex: 100,
           display: 'flex',
           flexDirection: 'column',
@@ -236,7 +275,7 @@ function AdminLayout() {
             flexShrink: 0,
           }}
         >
-          <span style={{ color: '#7000ff', fontSize: 20, fontWeight: 'bold' }}>管理后台</span>
+          <span style={{ color: '#7000ff', fontSize: 18, fontWeight: 600 }}>管理后台</span>
         </div>
         <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
           <Menu
@@ -245,15 +284,16 @@ function AdminLayout() {
             items={menuItems}
             onClick={handleMenuClick}
             theme="light"
-            inlineIndent={16}
+            inlineIndent={20}
             style={{
               borderRight: 0,
               flex: 1,
             }}
           />
+          {menuFooter}
         </div>
       </Sider>
-      <AntLayout style={{ marginLeft: 240, transition: 'margin-left 0.3s' }}>
+      <AntLayout style={{ marginLeft: 220, transition: 'margin-left 0.3s' }}>
         <Header
           style={{
             padding: '0 24px',
@@ -262,38 +302,39 @@ function AdminLayout() {
             alignItems: 'center',
             justifyContent: 'space-between',
             height: 64,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            borderBottom: '1px solid #f0f0f0',
+            boxShadow: 'none',
             position: 'sticky',
             top: 0,
             zIndex: 99,
           }}
         >
-          <a 
-            href="/" 
-            style={{ 
-              color: '#666', 
+          <a
+            href="/"
+            style={{
+              color: '#595959',
               fontSize: 14,
               textDecoration: 'none',
               display: 'flex',
               alignItems: 'center',
               gap: 6,
-              padding: '10px 20px',
+              padding: '8px 16px',
               borderRadius: 8,
-              transition: 'all 0.3s',
+              transition: 'all 0.2s',
               fontWeight: 500,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#f0f0f0'
+              e.currentTarget.style.background = '#f5f5f5'
               e.currentTarget.style.color = '#7000ff'
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = '#666'
+              e.currentTarget.style.color = '#595959'
             }}
           >
-            <HomeOutlined style={{ fontSize: 16 }} /> 返回首页
+            <HomeOutlined style={{ fontSize: 16 }} /> 返回前台
           </a>
-          <span style={{ color: '#666', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
+          <span style={{ color: '#595959', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
             <UserOutlined style={{ fontSize: 16 }} /> 管理员
           </span>
         </Header>

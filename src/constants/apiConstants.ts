@@ -41,6 +41,11 @@ export const API_ENDPOINTS = {
 
   // 认证相关
   LOGIN: '/api/login',
+
+  // 热点资讯管理相关
+  CREATE_HOT_NEWS: '/api/create-hot-news',
+  UPDATE_HOT_NEWS: '/api/update-hot-news',
+  DELETE_HOT_NEWS: '/api/delete-hot-news',
   // 其他
   BATCH_DELETE_COMMENT: '/api/batch-delete-comment',
 } as const;

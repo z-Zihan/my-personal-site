@@ -20,6 +20,9 @@ const Dashboard = lazy(() => import('../pages/Admin/Dashboard'))
 const ArticleManager = lazy(() => import('../pages/Admin/ArticleManager'))
 const ArticleEditor = lazy(() => import('../pages/Admin/ArticleEditor'))
 const MessageManager = lazy(() => import('../pages/Admin/MessageManager'))
+const CommentManager = lazy(() => import('../pages/Admin/CommentManager'))
+const CategoryManager = lazy(() => import('../pages/Admin/CategoryManager'))
+const HotNewsManager = lazy(() => import('../pages/Admin/HotNewsManager'))
 const EventManager = lazy(() => import('../pages/Admin/EventManager'))
 const MockDataGenerator = lazy(() => import('../pages/Admin/MockDataGenerator'))
 
@@ -79,6 +82,18 @@ const router = createBrowserRouter([
       {
         path: 'messages',
         element: <LazyPage><MessageManager /></LazyPage>,
+      },
+      {
+        path: 'comments',
+        element: <LazyPage><CommentManager /></LazyPage>,
+      },
+      {
+        path: 'categories',
+        element: <LazyPage><CategoryManager /></LazyPage>,
+      },
+      {
+        path: 'hot-news',
+        element: <LazyPage><HotNewsManager /></LazyPage>,
       },
       {
         path: 'events',

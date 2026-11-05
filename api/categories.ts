@@ -143,10 +143,7 @@ export default async function handler(req: Request): Promise<Response> {
 
       const { data, error } = await supabase
         .from('categories')
-        .update({
-          name: trimName,
-          updated_at: new Date().toISOString()
-        })
+        .update({ name: trimName })
         .eq('id', id)
         .select()
         .single()

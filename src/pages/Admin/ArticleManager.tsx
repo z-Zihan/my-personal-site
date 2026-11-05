@@ -17,6 +17,8 @@ import {
   Pagination,
 } from "antd";
 import type { Key } from "antd/es/table/interface";
+
+const { Title } = Typography;
 import type { ColumnType } from "antd/es/table";
 import {
   PlusOutlined,
@@ -675,8 +677,8 @@ function ArticleManager() {
 
   return (
     <div>
+      <Title level={3} style={{ marginTop: 0, marginBottom: 24 }}>文章管理</Title>
       <Card
-        title="文章管理"
         extra={
           <Space>
             <Button

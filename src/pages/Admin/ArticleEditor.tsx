@@ -22,12 +22,28 @@ function ArticleEditor() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<{ id: string; name: string } | null>(null);
   const [categoryLoading, setCategoryLoading] = useState(false);
+  // 未保存修改跟踪：表单字段/正文/封面任一变化且尚未保存 → dirty
+  const [dirty, setDirty] = useState(false);
+  const [loadedFromDb, setLoadedFromDb] = useState(!id); // 新建文章首次输入即算 dirty
   useEffect(() => {
     if (id) {
       fetchArticle();
     }
     fetchCategories();
   }, [id]);
+
+  // 表单任意字段变化 → 标记 dirty（初始化回填时跳过，由 JSX onValuesChange + RichEditor/ImageUploader onChange 驱动）
+
+  // 关闭/刷新页面前，有未保存修改时提示
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!dirty) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [dirty]);
 
   const fetchArticle = async () => {
     try {
@@ -43,8 +59,11 @@ function ArticleEditor() {
 
       setContent(article.content || '');
       setCover(article.cover || '');
+      // 回填完成，之后的修改才算 dirty
+      setTimeout(() => setLoadedFromDb(true), 0);
     } catch {
       message.error('加载文章失败')
+      setLoadedFromDb(true)
     }
   };
 
@@ -184,6 +203,7 @@ function ArticleEditor() {
         message.success(status === 'published' ? '文章已发布' : '草稿已保存');
       }
 
+      setDirty(false);
       navigate('/admin/articles');
     } catch (error: unknown) {
       message.error((error as { response?: { data?: { error?: string } }; message?: string }).response?.data?.error || '操作失败');
@@ -261,6 +281,9 @@ function ArticleEditor() {
       form={form}
       layout="vertical"
       initialValues={{ cover: '', content: '' }}
+      onValuesChange={() => {
+        if (loadedFromDb) setDirty(true);
+      }}
     >
       <Form.Item
         name="title"
@@ -321,7 +344,10 @@ function ArticleEditor() {
       >
         <ImageUploader
           value={cover}
-          onChange={setCover}
+          onChange={(v) => {
+            setCover(v);
+            if (loadedFromDb) setDirty(true);
+          }}
         />
       </Form.Item>
 
@@ -343,7 +369,10 @@ function ArticleEditor() {
       >
         <RichEditor
           value={content}
-          onChange={setContent}
+          onChange={(v) => {
+            setContent(v);
+            if (loadedFromDb) setDirty(true);
+          }}
           height={500}
         />
       </Form.Item>
@@ -376,6 +405,12 @@ function ArticleEditor() {
             <span style={{ color: '#999', fontSize: 14 }}>
               {id ? '编辑文章' : '创建文章'}
             </span>
+            {dirty && (
+              <span style={{ color: '#faad14', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#faad14', display: 'inline-block' }} />
+                有未保存的修改
+              </span>
+            )}
           </Space>
           <Space>
             <Button

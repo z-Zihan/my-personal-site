@@ -159,6 +159,22 @@ async function updateCache(newsData: HotNews[]): Promise<void> {
   }
 }
 
+// 获取手动创建的热点资讯（hot_news 表）
+async function getManualNews(): Promise<HotNews[]> {
+  try {
+    const { data, error } = await supabase
+      .from('hot_news')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(30)
+
+    if (error || !data) return []
+    return data as HotNews[]
+  } catch {
+    return []
+  }
+}
+
 export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
@@ -169,11 +185,14 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
+    // 0. 优先合并管理员手动创建的热点（hot_news 表），始终返回
+    const manualNews = await getManualNews()
+
     // 1. 先尝试从缓存获取
     const cachedNews = await getCachedNews()
     if (cachedNews && cachedNews.length > 0) {
       console.log('Returning cached news')
-      return jsonResponse({ data: cachedNews })
+      return jsonResponse({ data: [...manualNews, ...cachedNews] })
     }
 
     // 2. 缓存失效，尝试获取真实数据
@@ -194,10 +213,15 @@ export default async function handler(req: Request): Promise<Response> {
       // 使用 fallback 数据
     }
 
-    return jsonResponse({ data: newsData })
+    return jsonResponse({ data: [...manualNews, ...newsData] })
   } catch (error) {
     console.error('Error fetching hot news:', error)
-    // 始终返回 fallback 数据作为保底
-    return jsonResponse({ data: FALLBACK_NEWS })
+    // 始终返回 fallback 数据作为保底（含手动创建的热点）
+    try {
+      const manualNews = await getManualNews()
+      return jsonResponse({ data: [...manualNews, ...FALLBACK_NEWS] })
+    } catch {
+      return jsonResponse({ data: FALLBACK_NEWS })
+    }
   }
 }
