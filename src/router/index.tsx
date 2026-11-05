@@ -25,6 +25,7 @@ const CategoryManager = lazy(() => import('../pages/Admin/CategoryManager'))
 const HotNewsManager = lazy(() => import('../pages/Admin/HotNewsManager'))
 const EventManager = lazy(() => import('../pages/Admin/EventManager'))
 const MockDataGenerator = lazy(() => import('../pages/Admin/MockDataGenerator'))
+const PerfDashboard = lazy(() => import('../pages/Admin/PerfDashboard'))
 
 function LazyPage({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
@@ -98,6 +99,10 @@ const router = createBrowserRouter([
       {
         path: 'events',
         element: <LazyPage><EventManager /></LazyPage>,
+      },
+      {
+        path: 'perf',
+        element: <LazyPage><PerfDashboard /></LazyPage>,
       },
       {
         path: 'mock-data',

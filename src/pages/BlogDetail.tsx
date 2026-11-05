@@ -14,6 +14,7 @@ import ReadingTime from "../components/common/ReadingTime";
 import CommentSection from "../components/common/CommentSection";
 import ArticleNav from "../components/common/ArticleNav";
 import { trackEvent } from "../utils/analytics";
+import { trackPageRender } from "../utils/perfMonitor";
 import { useLanguage } from "../utils/useLanguage";
 
 /** 阅读字号三档：小 / 标准 / 大 */
@@ -193,6 +194,14 @@ export default function BlogDetail() {
   useEffect(() => {
     if (article && !loading) {
       setContentReady((n) => n + 1);
+    }
+  }, [article, loading]);
+
+  // 页面级渲染耗时埋点：mount → 文章数据渲染完成
+  const perfMountAt = useRef<number>(performance.now());
+  useEffect(() => {
+    if (article && !loading) {
+      trackPageRender(performance.now() - perfMountAt.current);
     }
   }, [article, loading]);
 

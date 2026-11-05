@@ -39,6 +39,7 @@ const PAGE_TITLES: Array<[prefix: string, title: string]> = [
   ['/admin/categories', '分类管理'],
   ['/admin/hot-news', '热点资讯'],
   ['/admin/events', '埋点管理'],
+  ['/admin/perf', '性能监控'],
   ['/admin/mock-data', '数据生成'],
 ]
 
@@ -118,6 +119,11 @@ function AdminLayout() {
       label: '埋点管理',
     },
     {
+      key: '/admin/perf',
+      icon: <DashboardOutlined />,
+      label: '性能监控',
+    },
+    {
       key: '/admin/mock-data',
       icon: <DatabaseOutlined />,
       label: '数据生成',
@@ -138,6 +144,7 @@ function AdminLayout() {
     if (path.startsWith('/admin/categories')) return '/admin/categories'
     if (path.startsWith('/admin/hot-news')) return '/admin/hot-news'
     if (path.startsWith('/admin/events')) return '/admin/events'
+    if (path.startsWith('/admin/perf')) return '/admin/perf'
     if (path.startsWith('/admin/mock-data')) return '/admin/mock-data'
     return '/admin/dashboard'
   }

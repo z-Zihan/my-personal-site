@@ -42,6 +42,9 @@ export const API_ENDPOINTS = {
   // 认证相关
   LOGIN: '/api/login',
 
+  // 性能监控
+  PERF_METRICS: '/api/perf-metrics',
+
   // 热点资讯管理相关
   CREATE_HOT_NEWS: '/api/create-hot-news',
   UPDATE_HOT_NEWS: '/api/update-hot-news',
