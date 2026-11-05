@@ -17,6 +17,8 @@ export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
   const navigate = useNavigate();
   const [prevArticle, setPrevArticle] = useState<NavArticle | null>(null);
   const [nextArticle, setNextArticle] = useState<NavArticle | null>(null);
+  // 当前文章是否存在于已发布列表中（草稿预览等场景不在列表，此时隐藏上/下一篇导航）
+  const [inList, setInList] = useState(true);
   const [showBackHint, setShowBackHint] = useState(false);
 
   useEffect(() => {
@@ -34,16 +36,26 @@ export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
         );
 
         if (currentIndex > -1) {
+          setInList(true);
           // 上一篇是列表中的前一个（更新的文章）
           if (currentIndex > 0) {
             const prev = articles[currentIndex - 1];
             setPrevArticle({ id: prev.id, title: prev.title });
+          } else {
+            setPrevArticle(null);
           }
           // 下一篇是列表中的后一个（较旧的文章）
           if (currentIndex < articles.length - 1) {
             const next = articles[currentIndex + 1];
             setNextArticle({ id: next.id, title: next.title });
+          } else {
+            setNextArticle(null);
           }
+        } else {
+          // 当前文章不在列表（如草稿预览），隐藏上/下一篇导航，优雅降级
+          setInList(false);
+          setPrevArticle(null);
+          setNextArticle(null);
         }
       }
     } catch (error) {
@@ -157,7 +169,8 @@ export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
         </AnimatePresence>
       </motion.button>
 
-      {/* 上一篇/下一篇导航 */}
+      {/* 上一篇/下一篇导航（当前文章不在列表时不渲染，只保留返回按钮） */}
+      {inList && (
       <motion.div
         className="mt-16 pt-8 border-t border-gray-200/50 dark:border-gray-700/50"
         initial={{ opacity: 0, y: 20 }}
@@ -329,6 +342,7 @@ export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
           </motion.div>
         </div>
       </motion.div>
+      )}
     </>
   );
 }

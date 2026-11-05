@@ -1,6 +1,22 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import ReactECharts from 'echarts-for-react'
-import * as echarts from 'echarts'
+import ReactECharts from 'echarts-for-react/lib/core'
+import * as echarts from 'echarts/core'
+import { GeoComponent, TooltipComponent, VisualMapComponent, TitleComponent } from 'echarts/components'
+import { MapChart, EffectScatterChart, LinesChart } from 'echarts/charts'
+import { CanvasRenderer } from 'echarts/renderers'
+
+// 按需注册 echarts（地图 + 散点 + 飞线），替代全量引入
+// @ts-ignore - core 导出在运行时存在 use 方法
+echarts.use([
+  GeoComponent,
+  TooltipComponent,
+  VisualMapComponent,
+  TitleComponent,
+  MapChart,
+  EffectScatterChart,
+  LinesChart,
+  CanvasRenderer,
+])
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlobalOutlined, MessageOutlined, UserOutlined, CloseOutlined, EnvironmentOutlined, TeamOutlined, CommentOutlined } from '@ant-design/icons'
 import { analyticsApi } from '../../api/analytics'
@@ -581,6 +597,7 @@ export default function WorldMap({ visible, onClose }: WorldMapProps) {
                 {/* 地图容器 */}
                 <div className="relative z-10 pt-2">
                   <ReactECharts
+                    echarts={echarts}
                     ref={chartRef}
                     option={getOption()}
                     style={{ height: 480 }}

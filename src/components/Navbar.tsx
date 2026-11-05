@@ -140,7 +140,7 @@ function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden py-4 bg-gray-900/95 backdrop-blur-lg"
+            className="md:hidden py-4 bg-gray-900/60 backdrop-blur-xl"
           >
             <div className="flex flex-col space-y-4">
               {navLinks.map((link) => (

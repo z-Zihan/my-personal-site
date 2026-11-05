@@ -1,8 +1,25 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
 export default function NotFound() {
   const navigate = useNavigate();
+  const [countdown, setCountdown] = useState(5);
+
+  // 倒计时自动返回首页（与文案承诺一致，兑现逻辑闭环）
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          navigate('/');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-cyan-600 flex items-center justify-center px-4">
@@ -132,7 +149,7 @@ export default function NotFound() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
         >
-          或等待 5 秒自动返回首页...
+          或等待 {countdown} 秒自动返回首页...
         </motion.p>
       </motion.div>
     </div>

@@ -51,8 +51,8 @@ export default defineConfig({
         dir: 'ltr'
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
-        globPatterns: ['**/*.{js,css,html,ico,svg,png,jpg,jpeg,webp,woff,woff2}'],
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024, // 2 MB
+        globPatterns: ['**/*.{js,css,html,ico,svg,woff,woff2}'],
         // 确保新版本 Service Worker 立即激活并清除旧缓存
         skipWaiting: true,
         clientsClaim: true,
@@ -105,10 +105,17 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['antd', 'framer-motion'],
-          utils: ['axios', 'zustand']
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('antd') || id.includes('@ant-design') || id.includes('rc-')) return 'antd'
+            if (id.includes('framer-motion') || id.includes('motion')) return 'motion'
+            // 注意：必须在 react 判断之前，否则这些懒加载库会因名字含 'react' 被误抓进 vendor 变成首屏加载
+            if (id.includes('wangeditor')) return 'editor'
+            if (id.includes('echarts') || id.includes('zrender') || id.includes('d3-geo')) return 'charts'
+            if (/micromark|remark|rehype|unified|mdast|hast|unist|vfile|markdown/.test(id)) return 'markdown'
+            if (id.includes('react') || id.includes('scheduler')) return 'vendor'
+            return undefined // 其余 node_modules 交给 Rollup 默认拆分
+          }
         }
       }
     },

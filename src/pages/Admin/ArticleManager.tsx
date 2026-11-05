@@ -14,6 +14,7 @@ import {
   Select,
   Row,
   Col,
+  Pagination,
 } from "antd";
 import type { Key } from "antd/es/table/interface";
 import type { ColumnType } from "antd/es/table";
@@ -103,6 +104,9 @@ function ArticleManager() {
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [recommendDrawerVisible, setRecommendDrawerVisible] = useState(false);
   const [selectedCommentKeys, setSelectedCommentKeys] = useState<Key[]>([]);
+  // 筛选后分页重置：受控分页，筛选条件变化时回到第一页
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   // 筛选相关状态
   const [categories, setCategories] = useState<Category[]>([]);
@@ -149,9 +153,10 @@ function ArticleManager() {
     setFilterCategoryId(undefined);
   };
 
-  // 筛选条件改变时重新获取数据
+  // 筛选条件改变时重新获取数据，并回到第一页
   useEffect(() => {
     fetchArticles();
+    setCurrentPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterStatus, filterRecommended, filterCategoryId]);
 
@@ -178,15 +183,32 @@ function ArticleManager() {
     setRecommendDrawerVisible(true);
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await articleApi.delete(id);
-      message.success("删除成功");
-      fetchArticles();
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } };
-      message.error(err.response?.data?.error || "删除失败");
-    }
+  const handleDelete = (id: string, title?: string) => {
+    Modal.confirm({
+      title: "确认删除这篇文章？",
+      content: title
+        ? `《${title}》删除后不可恢复，其关联的评论与点赞数据也会一并删除。`
+        : "删除后不可恢复，关联的评论与点赞数据也会一并删除。",
+      okText: "确认删除",
+      okType: "danger",
+      cancelText: "取消",
+      onOk: async () => {
+        try {
+          await articleApi.delete(id);
+          message.success("删除成功");
+          // 删除后如果当前页只剩这一条，回退一页避免空页
+          if (articles.length === 1 && currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+          }
+          fetchArticles();
+          // 清掉已选项里被删除的文章
+          setSelectedRowKeys((keys) => keys.filter((key) => key !== id));
+        } catch (error: unknown) {
+          const err = error as { response?: { data?: { error?: string } } };
+          message.error(err.response?.data?.error || "删除失败");
+        }
+      },
+    });
   };
 
   const handleToggleStatus = async (
@@ -290,20 +312,33 @@ function ArticleManager() {
     }
   };
 
-  const handleBatchRecommend = async (selectedRowKeys: Key[]) => {
+  const handleBatchRecommend = async (keys: Key[]) => {
+    // 只允许对已发布文章设置推荐（与单篇切换的规则保持一致）
+    const eligible = articles.filter(
+      (a) => keys.includes(a.id as string) && a.status === "published",
+    );
+    const skipped = keys.length - eligible.length;
+    if (eligible.length === 0) {
+      message.warning("所选文章均为草稿，草稿不能设置推荐，请先发布");
+      return;
+    }
     try {
-      for (let i = 0; i < selectedRowKeys.length; i++) {
+      for (let i = 0; i < eligible.length; i++) {
         await articleApi.updateRecommend({
-          id: selectedRowKeys[i] as string,
+          id: eligible[i].id as string,
           recommended: true,
           recommend_order: i,
         });
       }
-      message.success(`已批量设置 ${selectedRowKeys.length} 篇文章为推荐`);
+      if (skipped > 0) {
+        message.info(`${skipped} 篇草稿文章已跳过（草稿不能推荐）`);
+      }
+      message.success(`已批量设置 ${eligible.length} 篇文章为推荐`);
+      setSelectedRowKeys([]);
       fetchArticles();
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: string } } };
-      message.error(err.response?.data?.error || "批量设置失败");
+      message.error(err.response?.data?.error || "批量设置失败，请重试");
     }
   };
 
@@ -575,7 +610,9 @@ function ArticleManager() {
             </Button>
             <Popconfirm
               title="确定删除吗？"
-              onConfirm={() => handleDelete(record.id as string)}
+              onConfirm={() =>
+                handleDelete(record.id as string, record.title)
+              }
             >
               <Button icon={<DeleteOutlined />} danger>
                 删除
@@ -738,7 +775,14 @@ function ArticleManager() {
           dataSource={articles}
           rowKey="id"
           loading={loading}
-          pagination={{ pageSize: 10 }}
+          pagination={{
+            current: currentPage,
+            pageSize,
+            total: articles.length,
+            showSizeChanger: false,
+            showTotal: (total) => `共 ${total} 篇`,
+            onChange: (page) => setCurrentPage(page),
+          }}
           scroll={{ x: 1800 }}
           rowSelection={{
             selectedRowKeys,
@@ -762,7 +806,6 @@ function ArticleManager() {
           </Space>
         </Card>
       )}
-
       {/* 评论列表弹窗 */}
       <Modal
         title={

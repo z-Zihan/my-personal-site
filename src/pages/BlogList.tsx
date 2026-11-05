@@ -9,6 +9,8 @@ import { trackEvent } from "../utils/analytics";
 
 function BlogList() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const listHeaderRef = useRef<HTMLHeadingElement>(null);
+  const isInitialMount = useRef(true);
   const [page, setPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState<number | "all">(
     "all",
@@ -38,10 +40,18 @@ function BlogList() {
 
   useEffect(() => {
     fetchCategories();
+    // 进入页面时滚动复位
+    window.scrollTo(0, 0);
   }, []);
 
   useEffect(() => {
+    // 跳过首次挂载，避免与 useArticles 内部首屏请求重复
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     // 当分类变化时，重置页码并重新获取文章
+    setPage(1);
     refetch({
       page: 1,
       category_id: selectedCategory !== "all" ? selectedCategory : undefined,
@@ -52,6 +62,8 @@ function BlogList() {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       setPage(newPage);
       refetch({ page: newPage });
+      // 分页跳转后滚动到列表标题附近（不硬跳页面顶端）
+      listHeaderRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -65,7 +77,10 @@ function BlogList() {
         containerRef={containerRef as unknown as React.RefObject<HTMLElement>}
       />
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <h1 className="text-5xl font-bold text-center mb-12 neon-text">
+        <h1
+          ref={listHeaderRef}
+          className="text-5xl font-bold text-center mb-12 neon-text scroll-mt-24"
+        >
           全部文章
         </h1>
 

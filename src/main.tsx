@@ -1,7 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
-import { ConfigProvider } from 'antd'
 import './index.css'
 import router from './router/index.jsx'
 import { initAnalytics } from './utils/analytics'
@@ -9,10 +8,10 @@ import { initAnalytics } from './utils/analytics'
 // 初始化埋点
 initAnalytics()
 
+// 说明：原先这里包了一层 <ConfigProvider>（antd），但没有任何配置项，
+// 却导致整个 antd（gzip ~320KB）进入首屏。已移除，antd 页面按需加载不受影响。
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ConfigProvider>
-      <RouterProvider router={router} />
-    </ConfigProvider>
+    <RouterProvider router={router} />
   </StrictMode>,
 )

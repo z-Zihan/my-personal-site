@@ -144,7 +144,15 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
       </form>
 
       <div className="space-y-4">
-        {comments.map((comment) => (
+        {comments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <span className="text-4xl mb-4" aria-hidden>🛋️</span>
+            <p className="text-gray-500 dark:text-gray-400">
+              还没有评论，来抢沙发
+            </p>
+          </div>
+        ) : (
+          comments.map((comment) => (
           <div key={comment.id} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <div className="flex items-start gap-3">
               <Avatar userId={comment.visitor_id} size={40} />
@@ -173,7 +181,8 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
               </div>
             </div>
           </div>
-        ))}
+        ))
+        )}
       </div>
     </div>
   )

@@ -1,38 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star, BookOpen, TrendingUp, Newspaper } from 'lucide-react';
 import SearchBar from '../components/common/SearchBar';
-import ReadingTime from '../components/common/ReadingTime';
-import { getArticleCover } from '../utils/defaultCovers';
+import ArticleCard from '../components/ArticleCard';
 import { articleApi, hotNewsApi, statsApi, Article, HotNews, Stats } from '../api';
 import Sparkles from '../components/effects/Sparkles';
 import BlurText from '../components/effects/BlurText';
 import Magnet from '../components/effects/Magnet';
 import Aurora from '../components/effects/Aurora';
 import LoadingSpinner from '../components/effects/LoadingSpinner';
-import PixelCard from '../components/effects/PixelCard';
 import CountUpNumber from '../components/effects/CountUp';
 import { trackEvent } from '../utils/analytics';
 
 export default function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [articles, setArticles] = useState<Article[]>([]);
   const [recommendedArticles, setRecommendedArticles] = useState<Article[]>([]);
   const [hotNews, setHotNews] = useState<HotNews[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // 文章点击埋点
-  const handleArticleClick = (article: Article, section: 'recommended' | 'latest') => {
-    trackEvent('home_article_click', 'engagement', {
-      article_id: article.id,
-      article_title: article.title,
-      section: section,
-      page_path: window.location.pathname,
-    });
-    navigate(`/blog/${article.id}`);
-  };
 
   // 热门资讯点击埋点
   const handleHotNewsClick = (news: HotNews, index: number) => {
@@ -63,6 +51,11 @@ export default function Home() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // 进入页面时滚动复位（轻量处理）
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   const fetchData = async () => {
     try {
@@ -183,42 +176,19 @@ export default function Home() {
           </motion.h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recommendedArticles.map((article, index) => (
+            {recommendedArticles.map((article: Article, index: number) => (
               <motion.div
                 key={article.id}
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="h-full"
               >
-                <PixelCard
-                  className="h-full cursor-pointer"
-                  variant="gold"
-                >
-                  <div onClick={() => handleArticleClick(article, 'recommended')}>
-                    <img
-                      src={getArticleCover(article)}
-                      alt={article.title}
-                      className="w-full h-48 object-cover"
-                      loading="lazy"
-                      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop'
-                      }}
-                    />
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                        {article.title}
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                        {article.summary}
-                      </p>
-                      <div className="flex items-center justify-between text-sm text-gray-500">
-                        <ReadingTime content={article.content} />
-                        <span>👁️ {article.views || 0}</span>
-                      </div>
-                    </div>
-                  </div>
-                </PixelCard>
+                <ArticleCard
+                  article={{ ...article, summary: article.summary || '' }}
+                  isRecommended
+                />
               </motion.div>
             ))}
           </div>
@@ -238,42 +208,18 @@ export default function Home() {
         </motion.h2>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {articles.map((article, index) => (
+          {articles.map((article: Article, index: number) => (
             <motion.div
               key={article.id}
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="h-full"
             >
-              <PixelCard
-                className="h-full cursor-pointer"
-                variant="purple"
-              >
-                <div onClick={() => handleArticleClick(article, 'latest')}>
-                  <img
-                    src={getArticleCover(article)}
-                    alt={article.title}
-                    className="w-full h-48 object-cover"
-                    loading="lazy"
-                    onError={(e: React.ChangeEvent<HTMLImageElement>) => {
-                      e.target.src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop'
-                    }}
-                  />
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                      {article.title}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                      {article.summary}
-                    </p>
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <ReadingTime content={article.content} />
-                      <span>👁️ {article.views || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              </PixelCard>
+              <ArticleCard
+                article={{ ...article, summary: article.summary || '' }}
+              />
             </motion.div>
           ))}
         </div>
@@ -331,7 +277,7 @@ export default function Home() {
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {hotNews.slice(0, 6).map((news, index) => (
+              {hotNews.slice(0, 6).map((news: HotNews, index: number) => (
                 <motion.a
                   key={`hot-news-${news.id || news.title}${index}`}
                   href={news.link}

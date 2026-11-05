@@ -6,8 +6,6 @@ import React, {
   useMemo,
   PropsWithChildren,
 } from "react";
-import * as math from "mathjs";
-
 type GradualBlurProps = PropsWithChildren<{
   position?: "top" | "bottom" | "left" | "right";
   strength?: number;
@@ -230,15 +228,15 @@ const GradualBlur: React.FC<GradualBlurProps> = (props) => {
       let blurValue: number;
       if (config.exponential) {
         blurValue =
-          Number(math.pow(2, progress * 4)) * 0.0625 * currentStrength;
+          Math.pow(2, progress * 4) * 0.0625 * currentStrength;
       } else {
         blurValue = 0.0625 * (progress * config.divCount + 1) * currentStrength;
       }
 
-      const p1 = math.round((increment * i - increment) * 10) / 10;
-      const p2 = math.round(increment * i * 10) / 10;
-      const p3 = math.round((increment * i + increment) * 10) / 10;
-      const p4 = math.round((increment * i + increment * 2) * 10) / 10;
+      const p1 = Math.round((increment * i - increment) * 10) / 10;
+      const p2 = Math.round(increment * i * 10) / 10;
+      const p3 = Math.round((increment * i + increment) * 10) / 10;
+      const p4 = Math.round((increment * i + increment * 2) * 10) / 10;
 
       let gradient = `transparent ${p1}%, black ${p2}%`;
       if (p3 <= 100) gradient += `, black ${p3}%`;

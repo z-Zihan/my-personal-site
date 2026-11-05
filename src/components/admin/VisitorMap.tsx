@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react'
-import ReactECharts from 'echarts-for-react'
-import * as echarts from 'echarts'
+import ReactECharts from 'echarts-for-react/lib/core'
+import * as echarts from 'echarts/core'
+import { GeoComponent, TooltipComponent, VisualMapComponent, TitleComponent } from 'echarts/components'
+import { MapChart } from 'echarts/charts'
+import { CanvasRenderer } from 'echarts/renderers'
+
+// 按需注册 echarts（仅地图 series），替代全量引入
+// @ts-ignore - core 导出在运行时存在 use 方法
+echarts.use([
+  GeoComponent,
+  TooltipComponent,
+  VisualMapComponent,
+  TitleComponent,
+  MapChart,
+  CanvasRenderer,
+])
 import { GlobalOutlined } from '@ant-design/icons'
 import { analyticsApi } from '../../api/analytics'
 import worldMapData from '../../data/maps/countries.geo.json'
@@ -256,7 +270,7 @@ export default function VisitorMap() {
 
   return (
     <div style={{ background: '#ffffff', borderRadius: 8, padding: 16 }}>
-      <ReactECharts option={getOption()} style={{ height: 450 }} opts={{ renderer: 'svg' }} notMerge={true} />
+      <ReactECharts echarts={echarts} option={getOption()} style={{ height: 450 }} opts={{ renderer: 'svg' }} notMerge={true} />
     </div>
   )
 }

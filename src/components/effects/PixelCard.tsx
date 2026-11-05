@@ -10,6 +10,13 @@ interface PixelCardProps {
   onClick?: () => void
 }
 
+/**
+ * 像素光斑卡片
+ * 性能说明：旧实现 hover 时渲染 400 个绝对定位 div（20x20 网格），
+ * 列表页 12 张卡 = 4800 个节点，是首页卡顿主因之一。
+ * 现改为单个 radial-gradient 光斑跟随鼠标（CSS 变量驱动，不触发 React 重渲染），
+ * 视觉上保留「像素光斑 + 发光边框 + 角标」的核心效果，DOM 节点从 400/卡 降到 2/卡。
+ */
 const PixelCard = ({
   children,
   className = '',
@@ -20,7 +27,6 @@ const PixelCard = ({
 }: PixelCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   const variants: Record<string, {
     border: string
@@ -66,57 +72,17 @@ const PixelCard = ({
 
   const colors = variants[variant as string] || variants.default;
 
+  // 鼠标位置写入 CSS 变量，光斑跟随；不经过 setState，避免高频重渲染
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    setMousePosition({ x, y });
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--px', String((e.clientX - rect.left) / Math.max(rect.width, 1)));
+    card.style.setProperty('--py', String((e.clientY - rect.top) / Math.max(rect.height, 1)));
   };
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-  };
-
-  // 生成像素网格效果
-  const renderPixelGrid = () => {
-    const pixels = [];
-    const cols = 20;
-    const rows = 20;
-
-    for (let i = 0; i < cols; i++) {
-      for (let j = 0; j < rows; j++) {
-        const distance = Math.sqrt(
-          Math.pow(i / cols - mousePosition.x, 2) + Math.pow(j / rows - mousePosition.y, 2)
-        );
-        const maxDistance = 0.5;
-        const opacity = isHovered
-          ? Math.max(0, 1 - distance / maxDistance) * hoverIntensity * 0.5
-          : 0;
-
-        pixels.push(
-          <div
-            key={`${i}-${j}`}
-            className="absolute pointer-events-none"
-            style={{
-              left: `${(i / cols) * 100}%`,
-              top: `${(j / rows) * 100}%`,
-              width: `${100 / cols}%`,
-              height: `${100 / rows}%`,
-              backgroundColor: colors.pixel,
-              opacity: opacity,
-              transition: 'opacity 0.3s ease'
-            }}
-          />
-        );
-      }
-    }
-    return pixels;
-  };
+  const handleMouseEnter = () => setIsHovered(true);
+  const handleMouseLeave = () => setIsHovered(false);
 
   return (
     <motion.div
@@ -138,21 +104,23 @@ const PixelCard = ({
       }}
       whileTap={{ scale: 0.98 }}
     >
-      {/* 像素网格效果层 */}
-      <div className="absolute inset-0 overflow-hidden">
-        {renderPixelGrid()}
-      </div>
-
-      {/* 像素化边框效果 */}
+      {/* 像素光斑效果层：radial-gradient 跟随鼠标（--px/--py 由 mousemove 直接写入） */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: `
-            linear-gradient(90deg, transparent 0%, transparent ${100 - pixelSize}%, ${colors.border} ${100 - pixelSize}%, transparent 100%),
-            linear-gradient(180deg, transparent 0%, transparent ${100 - pixelSize}%, ${colors.border} ${100 - pixelSize}%, transparent 100%)
-          `,
+          background: `radial-gradient(circle at calc(var(--px, 0.5) * 100%) calc(var(--py, 0.5) * 100%), ${colors.pixel} 0%, transparent 45%)`,
+          opacity: isHovered ? Math.min(0.45 * hoverIntensity, 1) : 0,
+          transition: 'opacity 0.3s ease'
+        }}
+      />
+
+      {/* 像素化网格纹理（静态 repeating 渐变，零 JS 开销） */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `linear-gradient(${colors.border} 1px, transparent 1px), linear-gradient(90deg, ${colors.border} 1px, transparent 1px)`,
           backgroundSize: `${pixelSize * 2}% ${pixelSize * 2}%`,
-          opacity: isHovered ? 0.3 : 0,
+          opacity: isHovered ? 0.08 : 0,
           transition: 'opacity 0.3s ease'
         }}
       />

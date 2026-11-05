@@ -8,6 +8,7 @@ interface SearchResult {
   id: number
   title: string
   summary?: string
+  created_at?: string
   [key: string]: unknown
 }
 
@@ -21,7 +22,19 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
   const [results, setResults] = useState<SearchResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // 点击外部区域关闭下拉
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Ctrl/Cmd + K 快捷键聚焦搜索框
   useEffect(() => {
@@ -77,8 +90,19 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
     navigate(`/blog/${articleId}`)
   }
 
+  // 格式化发布日期为 YYYY-MM-DD
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return ''
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <div className="relative">
         <input
           ref={inputRef}
@@ -106,6 +130,12 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
               >
                 <h4 className="font-medium text-gray-900 dark:text-white">{article.title}</h4>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{article.summary}</p>
+                {formatDate(article.created_at as string | undefined) && (
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 flex items-center gap-1">
+                    <span>🗓️</span>
+                    {formatDate(article.created_at as string | undefined)}
+                  </p>
+                )}
               </div>
             ))
           ) : query.length >= 1 ? (

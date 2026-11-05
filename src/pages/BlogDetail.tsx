@@ -30,6 +30,8 @@ export default function BlogDetail() {
       setLoading(false);
       return;
     }
+    // 切换文章时滚动复位（轻量处理，不影响滚动监听）
+    window.scrollTo(0, 0);
     fetchArticle();
   }, [id]);
 
@@ -115,16 +117,19 @@ export default function BlogDetail() {
   }
 
   if (error || !article) {
+    const isNotFound = !error || error.includes("不存在");
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            {error || "文章未找到"}
+            {isNotFound ? "文章不存在或已删除" : error || "文章未找到"}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
-            可能的原因：文章已被删除、未发布或链接不正确
+            {isNotFound
+              ? "可能的原因：文章已被删除、未发布或链接不正确"
+              : "网络开小差了，请稍后重试"}
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex gap-4 justify-center flex-wrap">
             <button
               onClick={() => navigate("/")}
               className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors cursor-pointer"
@@ -175,26 +180,55 @@ export default function BlogDetail() {
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-12">
-        <article
-          ref={contentRef}
-          className="prose prose-lg dark:prose-invert max-w-none
+        {article.content && article.content.trim() !== "" ? (
+          <article
+            ref={contentRef}
+            className="prose prose-lg dark:prose-invert max-w-none
             prose-headings:text-gray-900 dark:prose-headings:text-white
             prose-p:text-gray-700 dark:prose-p:text-gray-300
             prose-a:text-purple-500 hover:prose-a:text-purple-600
             prose-code:text-pink-500 dark:prose-code:text-pink-400
-            prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700"
-        >
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
+            prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700
+            prose-pre:overflow-x-auto prose-pre:whitespace-pre
+            prose-img:rounded-xl prose-img:shadow-md
+            prose-table:border-collapse
+            prose-th:border prose-th:border-gray-200 dark:prose-th:border-gray-700 prose-th:px-3 prose-th:py-2 prose-th:bg-gray-100 dark:prose-th:bg-gray-800
+            prose-td:border prose-td:border-gray-200 dark:prose-td:border-gray-700 prose-td:px-3 prose-td:py-2"
           >
-            {article.content}
-          </ReactMarkdown>
-        </article>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+            >
+              {article.content}
+            </ReactMarkdown>
+          </article>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <svg
+              className="w-24 h-24 text-gray-300 dark:text-gray-600 mb-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+              />
+            </svg>
+            <p className="text-xl font-medium text-gray-500 dark:text-gray-400 mb-2">
+              本文暂无内容
+            </p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">
+              作者可能还在编辑中，稍后再来看看吧
+            </p>
+          </div>
+        )}
 
         {/* Actions */}
-        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="mt-12">
+          <div className="flex items-center justify-between flex-wrap gap-4 bg-gray-100/80 dark:bg-gray-800/60 rounded-2xl px-6 py-5">
             <LikeButton articleId={id || ''} initialLikes={article.likes || 0} />
             <ShareButtons title={article.title} url={window.location.href} articleId={id} />
           </div>

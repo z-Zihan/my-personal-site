@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { messageApi } from "../api/index";
 import { toast } from "../utils/toast";
@@ -7,7 +7,7 @@ import { formatDate } from "../utils/helpers";
 import Avatar from "../components/common/Avatar";
 import PixelCard from "../components/effects/PixelCard";
 import ElectricBorder from "../components/effects/ElectricBorder";
-import WorldMap from "../components/effects/WorldMap";
+const WorldMap = lazy(() => import("../components/effects/WorldMap"));
 import { useGeolocation } from "../hooks/useGeolocation";
 import { cleanUserInput, inputRules } from "../utils/sanitize";
 import { Spin } from "antd";
@@ -455,8 +455,12 @@ function MessageBoard() {
       </motion.div>
 
       <div className="max-w-4xl mx-auto px-4">
-        {/* 世界地图弹窗 */}
-        <WorldMap visible={showMap} onClose={() => setShowMap(false)} />
+        {/* 世界地图弹窗（懒加载 + 仅在打开时挂载，避免 countries.geo 拖累首屏包） */}
+        {showMap && (
+          <Suspense fallback={null}>
+            <WorldMap visible={showMap} onClose={() => setShowMap(false)} />
+          </Suspense>
+        )}
 
         {/* 世界地图触发按钮 */}
         <motion.div

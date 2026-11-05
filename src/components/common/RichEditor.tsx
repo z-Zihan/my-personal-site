@@ -53,7 +53,8 @@ export default function RichEditor({ value, onChange, height = 400 }: RichEditor
     MENU_CONF: {
       // 正确的图片上传配置 - 直接在 MENU_CONF 下配置 uploadImage
       uploadImage: {
-        server: 'https://zzihanaini.vercel.app/api/upload-image',
+        // 相对路径：生产环境同域直达，开发环境走 vercel dev / vite 代理
+        server: '/api/upload-image',
         fieldName: 'image',
         customInsert(res: { success: boolean; url: string; fileName?: string }, insertFn: (url: string, name: string, href: string) => void) {
           if (res.success && res.url) {

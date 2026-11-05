@@ -34,20 +34,37 @@ function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
 
   const coverUrl = getArticleCover(article)
 
+  const handleCardClick = () => {
+    // 文章卡片点击埋点
+    trackEvent('article_card_click', 'engagement', {
+      article_id: article.id,
+      article_title: article.title,
+      page_path: window.location.pathname,
+    })
+    navigate(`/blog/${article.id}`)
+  }
+
+  const handleCardKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleCardClick()
+    }
+  }
+
   return (
     <PixelCard
       variant="purple"
       className="overflow-hidden cursor-pointer relative"
-      onClick={() => {
-        // 文章卡片点击埋点
-        trackEvent('article_card_click', 'engagement', {
-          article_id: article.id,
-          article_title: article.title,
-          page_path: window.location.pathname,
-        })
-        navigate(`/blog/${article.id}`)
-      }}
+      onClick={handleCardClick}
     >
+      {/* 键盘可达性层：Enter/空格触发跳转，与整卡点击行为一致 */}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={`阅读文章：${article.title}`}
+        onKeyDown={handleCardKeyDown}
+        className="h-full rounded-xl focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2"
+      >
       {isRecommended && (
         <div className="absolute top-2 right-2 z-10 bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
           <Star className="w-4 h-4" /> 推荐
@@ -58,7 +75,7 @@ function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
       <img
         src={coverUrl}
         alt={article.title}
-        className="w-full h-48 object-cover"
+        className="w-full aspect-video object-cover"
         loading="lazy"
         onError={(e) => {
           const target = e.target as HTMLImageElement
@@ -87,6 +104,7 @@ function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
             </span>
           </div>
         </div>
+      </div>
       </div>
     </PixelCard>
   )
