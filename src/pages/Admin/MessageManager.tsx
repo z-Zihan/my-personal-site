@@ -3,9 +3,10 @@ import { messageApi, Message } from '../../api/index'
 import { Table, Button, Popconfirm, message, Typography, Input, Space } from 'antd'
 import type { Key } from 'antd/es/table/interface'
 import { DeleteOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons'
+import PageHeader from './PageHeader'
 import { formatDate } from '../../utils/helpers'
 
-const { Title, Text } = Typography
+const { Text } = Typography
 
 function MessageManager() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -161,21 +162,12 @@ function MessageManager() {
 
   return (
     <div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 24,
-          flexWrap: 'wrap',
-          gap: 12,
-        }}
-      >
-        <Title level={3} style={{ margin: 0 }}>留言管理</Title>
-        <Space wrap>
+      <PageHeader
+        title="留言管理"
+        actions={<Space wrap>
           <Input
             allowClear
-            prefix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+            prefix={<SearchOutlined />}
             placeholder="搜索当前页：内容 / 昵称 / 位置"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -199,8 +191,8 @@ function MessageManager() {
               批量删除{selectedRowKeys.length > 0 ? ` (${selectedRowKeys.length})` : ''}
             </Button>
           </Popconfirm>
-        </Space>
-      </div>
+        </Space>}
+      />
 
       <Table
         columns={columns}

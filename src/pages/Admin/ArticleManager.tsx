@@ -14,11 +14,10 @@ import {
   Select,
   Row,
   Col,
-  Pagination,
 } from "antd";
 import type { Key } from "antd/es/table/interface";
 
-const { Title } = Typography;
+
 import type { ColumnType } from "antd/es/table";
 import {
   PlusOutlined,
@@ -41,6 +40,7 @@ import {
   Category,
 } from "../../api/index";
 import { formatDate } from "../../utils/helpers";
+import PageHeader from "./PageHeader";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -517,19 +517,9 @@ function ArticleManager() {
       render: (_count, record) => (
         <Button
           type="link"
-          onClick={() => handleShowComments(record)}
+          style={{ padding: 0 }}
           disabled={!record.comment_count || record.comment_count === 0}
-          style={{
-            padding: 0,
-            color:
-              !record.comment_count || record.comment_count === 0
-                ? "rgba(0,0,0,0.25)"
-                : undefined,
-            cursor:
-              !record.comment_count || record.comment_count === 0
-                ? "not-allowed"
-                : undefined,
-          }}
+          onClick={() => handleShowComments(record)}
         >
           <CommentOutlined /> {record.comment_count || 0}
         </Button>
@@ -677,7 +667,7 @@ function ArticleManager() {
 
   return (
     <div>
-      <Title level={3} style={{ marginTop: 0, marginBottom: 24 }}>文章管理</Title>
+      <PageHeader title="文章管理" />
       <Card
         extra={
           <Space>

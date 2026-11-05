@@ -3,9 +3,8 @@ import { Table, Button, Popconfirm, message, Typography, Modal, Input, Space, Fo
 import type { Key } from 'antd/es/table/interface'
 import { DeleteOutlined, ReloadOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons'
 import { categoryApi } from '../../api/category'
+import PageHeader from './PageHeader'
 import { formatDate } from '../../utils/helpers'
-
-const { Title } = Typography
 
 interface AdminCategory {
   id: string
@@ -154,28 +153,19 @@ function CategoryManager() {
 
   return (
     <div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 24,
-          flexWrap: 'wrap',
-          gap: 12,
-        }}
-      >
-        <Title level={3} style={{ margin: 0 }}>
-          分类管理
-        </Title>
-        <Space>
-          <Button icon={<ReloadOutlined />} onClick={fetchCategories} loading={loading}>
-            刷新
-          </Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
-            新建分类
-          </Button>
-        </Space>
-      </div>
+      <PageHeader
+        title="分类管理"
+        actions={
+          <Space>
+            <Button icon={<ReloadOutlined />} onClick={fetchCategories} loading={loading}>
+              刷新
+            </Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
+              新建分类
+            </Button>
+          </Space>
+        }
+      />
 
       <Table
         columns={columns}

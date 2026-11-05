@@ -11,6 +11,7 @@ import {
   CheckCircleOutlined,
   LoadingOutlined,
 } from '@ant-design/icons'
+import PageHeader from './PageHeader'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -146,29 +147,28 @@ function MockDataGenerator() {
 
 return (
     <div>
-      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <Title level={3} style={{ margin: 0 }}>Mock 数据生成器</Title>
-          <Text type="secondary">一键生成测试数据，用于开发和演示</Text>
-        </div>
-        <Space>
-          {results.length > 0 && (
-            <Tag color="green" style={{ padding: '4px 12px', fontSize: 14 }}>
-              已生成 {totalGenerated} 条数据
-            </Tag>
-          )}
-          <Button
-            type="primary"
-            size="large"
-            onClick={generateAll}
-            loading={generatingAll}
-            icon={<DatabaseOutlined />}
-            style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none' }}
-          >
-            一键生成全部数据
-          </Button>
-        </Space>
-      </div>
+      <PageHeader
+        title="Mock 数据生成器"
+        subtitle="一键生成测试数据，用于开发和演示"
+        actions={
+          <Space>
+            {results.length > 0 && (
+              <Tag color="green" style={{ padding: '4px 12px', fontSize: 14 }}>
+                已生成 {totalGenerated} 条数据
+              </Tag>
+            )}
+            <Button
+              type="primary"
+              size="large"
+              onClick={generateAll}
+              loading={generatingAll}
+              icon={<DatabaseOutlined />}
+            >
+              一键生成全部数据
+            </Button>
+          </Space>
+        }
+      />
 
       {generatingAll && (
         <Card style={{ marginBottom: 24 }}>
@@ -266,7 +266,7 @@ return (
           <DatabaseOutlined style={{ marginRight: 8 }} />
           使用说明
         </Title>
-        <ul style={{ margin: 0, paddingLeft: 20, color: '#666' }}>
+        <ul style={{ margin: 0, paddingLeft: 20 }} className="text-black/65 dark:text-white/65">
           <li>点击「一键生成全部数据」会按正确顺序依次生成所有类型的数据</li>
           <li>也可以单独生成某个类型的数据</li>
           <li><Text type="warning">注意</Text>：会话数据、页面访问数据、事件数据依赖访客数据，请先生成访客数据</li>

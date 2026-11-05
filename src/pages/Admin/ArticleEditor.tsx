@@ -4,6 +4,8 @@ import { Form, Input, Button, Card, message, Select, Space, Modal, Affix } from 
 import { PlusOutlined, DeleteOutlined, EditOutlined, ArrowLeftOutlined, SaveOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import RichEditor from '../../components/common/RichEditor';
 import ImageUploader from '../../components/common/ImageUploader';
+import PageHeader from './PageHeader';
+import { useThemeStore } from '../../store/themeStore';
 import { articleApi } from '../../api/index';
 import { categoryApi } from '../../api/category';
 
@@ -12,6 +14,7 @@ const { TextArea } = Input;
 function ArticleEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const darkMode = useThemeStore((s) => s.darkMode);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [savingStatus, setSavingStatus] = useState<'draft' | 'published' | null>(null);
@@ -250,7 +253,7 @@ function ArticleEditor() {
       popupRender={(menu) => (
         <>
           {menu}
-          <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
+          <div style={{ padding: '8px', borderTop: '1px solid rgba(128,128,128,0.2)' }}>
             <Button
               type="primary"
               size="small"
@@ -381,8 +384,12 @@ function ArticleEditor() {
 
   return (
     <div>
+      <PageHeader
+        title={id ? '编辑文章' : '新建文章'}
+        subtitle={dirty ? '有未保存的修改，离开前请记得保存' : undefined}
+      />
       {/* 顶部固定操作栏：长页面滚动时保存按钮始终可见 */}
-      <Affix offsetTop={0}>
+      <Affix offsetTop={8}>
         <div
           style={{
             display: 'flex',
@@ -390,9 +397,11 @@ function ArticleEditor() {
             justifyContent: 'space-between',
             padding: '12px 16px',
             marginBottom: 16,
-            background: '#ffffff',
+            background: darkMode ? '#1f1f1f' : '#ffffff',
             borderRadius: 8,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.09)',
+            boxShadow: darkMode ? '0 2px 8px rgba(0,0,0,0.35)' : '0 2px 8px rgba(0,0,0,0.09)',
+            border: darkMode ? '1px solid #303030' : 'none',
+            zIndex: 98, /* 低于 Layout sticky Header(z-99)，滚动时不遮挡顶栏 */
           }}
         >
           <Space>
@@ -402,9 +411,6 @@ function ArticleEditor() {
             >
               返回列表
             </Button>
-            <span style={{ color: '#999', fontSize: 14 }}>
-              {id ? '编辑文章' : '创建文章'}
-            </span>
             {dirty && (
               <span style={{ color: '#faad14', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#faad14', display: 'inline-block' }} />

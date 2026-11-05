@@ -26,9 +26,11 @@ import {
   LineChart, Line,
 } from 'recharts'
 import { analyticsApi } from '../../api/analytics'
+import PageHeader from './PageHeader'
+import { useThemeStore } from '../../store/themeStore'
 import dayjs from 'dayjs'
 
-const { Title, Text } = Typography
+const { Text } = Typography
 const { RangePicker } = DatePicker
 
 const COLORS = ['#00f0ff', '#7000ff', '#00ff88', '#ff6600', '#ff0066', '#00ccff', '#fadb14', '#52c41a']
@@ -119,6 +121,7 @@ interface EventDetail {
 }
 
 function EventManager() {
+  const darkMode = useThemeStore((s) => s.darkMode)
   const [events, setEvents] = useState<Array<{ event_name: string; count: number }>>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'list' | 'detail'>('list')
@@ -306,74 +309,75 @@ function EventManager() {
     return (
       <div style={{ padding: '24px 0' }}>
         {/* 返回按钮和标题 */}
-        <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={handleBack}
-            style={{ borderRadius: 8 }}
-          >
-            返回列表
-          </Button>
-          <Title level={3} style={{ margin: 0 }}>
-            {selectedEvent && (
-              <>
+        <PageHeader
+          title={
+            selectedEvent ? (
+              <span>
                 <span style={{ color: EVENT_CONFIG[selectedEvent.eventName]?.color || '#666' }}>
                   {EVENT_CONFIG[selectedEvent.eventName]?.icon}
                 </span>
                 <span style={{ marginLeft: 8 }}>
                   {EVENT_CONFIG[selectedEvent.eventName]?.label || selectedEvent.eventName} - 详细分析
                 </span>
-              </>
-            )}
-          </Title>
-        </div>
+              </span>
+            ) : '事件详细分析'
+          }
+          actions={
+            <Button
+              icon={<ArrowLeftOutlined />}
+              onClick={handleBack}
+            >
+              返回列表
+            </Button>
+          }
+        />
 
         {detailLoading ? (
-          <div style={{ textAlign: 'center', padding: 100, background: '#fff', borderRadius: 8 }}>
+          <div style={{ textAlign: 'center', padding: 100, borderRadius: 8 }}>
             <div className="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto" />
-            <p style={{ marginTop: 16, color: '#666' }}>加载数据中...</p>
+            <p style={{ marginTop: 16, color: darkMode ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)' }}>加载数据中...</p>
           </div>
         ) : selectedEvent ? (
           <div>
             {/* 概览统计 */}
             <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
               <Col xs={12} sm={6}>
-                <Card style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                <Card style={{ position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: '#7000ff' }} />
                   <Statistic
-                    title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>总触发次数</span>}
+                    title="总触发次数"
                     value={selectedEvent.totalCount}
-                    prefix={<ThunderboltOutlined style={{ color: '#fff' }} />}
-                    valueStyle={{ color: '#fff' }}
+                    prefix={<ThunderboltOutlined style={{ color: '#7000ff' }} />}
                   />
                 </Card>
               </Col>
               <Col xs={12} sm={6}>
-                <Card style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
+                <Card style={{ position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: '#eb2f96' }} />
                   <Statistic
-                    title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>日均触发</span>}
+                    title="日均触发"
                     value={Math.round(selectedEvent.totalCount / (dateRange[1].diff(dateRange[0], 'day') + 1 || 1))}
-                    prefix={<CalendarOutlined style={{ color: '#fff' }} />}
-                    valueStyle={{ color: '#fff' }}
+                    prefix={<CalendarOutlined style={{ color: '#eb2f96' }} />}
                   />
                 </Card>
               </Col>
               <Col xs={12} sm={6}>
-                <Card style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' }}>
+                <Card style={{ position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: '#1890ff' }} />
                   <Statistic
-                    title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>设备类型</span>}
+                    title="设备类型"
                     value={selectedEvent.devices.length}
-                    prefix={<MobileOutlined style={{ color: '#fff' }} />}
-                    valueStyle={{ color: '#fff' }}
+                    prefix={<MobileOutlined style={{ color: '#1890ff' }} />}
                   />
                 </Card>
               </Col>
               <Col xs={12} sm={6}>
-                <Card style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' }}>
+                <Card style={{ position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: '#52c41a' }} />
                   <Statistic
-                    title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>覆盖地区</span>}
+                    title="覆盖地区"
                     value={selectedEvent.countries.length}
-                    prefix={<GlobalOutlined style={{ color: '#fff' }} />}
-                    valueStyle={{ color: '#fff' }}
+                    prefix={<GlobalOutlined style={{ color: '#52c41a' }} />}
                   />
                 </Card>
               </Col>
@@ -384,9 +388,9 @@ function EventManager() {
               {selectedEvent.dailyTrend.length > 0 ? (
                 <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={selectedEvent.dailyTrend}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                    <XAxis dataKey="date" stroke="#666" />
-                    <YAxis stroke="#666" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#303030' : '#eee'} />
+                    <XAxis dataKey="date" stroke={darkMode ? 'rgba(255,255,255,0.45)' : '#666'} />
+                    <YAxis stroke={darkMode ? 'rgba(255,255,255,0.45)' : '#666'} />
                     <Tooltip />
                     <Line type="monotone" dataKey="count" stroke="#7000ff" strokeWidth={2} dot={{ fill: '#7000ff' }} />
                   </LineChart>
@@ -509,9 +513,9 @@ function EventManager() {
                   {selectedEvent.browsers.length > 0 ? (
                     <ResponsiveContainer width="100%" height={250}>
                       <BarChart data={selectedEvent.browsers}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                        <XAxis dataKey="name" stroke="#666" />
-                        <YAxis stroke="#666" />
+                        <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#303030' : '#eee'} />
+                        <XAxis dataKey="name" stroke={darkMode ? 'rgba(255,255,255,0.45)' : '#666'} />
+                        <YAxis stroke={darkMode ? 'rgba(255,255,255,0.45)' : '#666'} />
                         <Tooltip />
                         <Bar dataKey="value" fill="#1890ff" radius={[4, 4, 0, 0]} />
                       </BarChart>
@@ -620,7 +624,7 @@ function EventManager() {
                             dataIndex: 'event_data',
                             key: 'event_data',
                             render: (data: Record<string, unknown>) => {
-                              if (!data || Object.keys(data).length === 0) return <span style={{ color: '#999' }}>-</span>
+                              if (!data || Object.keys(data).length === 0) return <Text type="secondary">-</Text>
                               return (
                                 <Space size={[4, 4]} wrap>
                                   {Object.entries(data).map(([key, value]) => (
@@ -675,10 +679,14 @@ function EventManager() {
   // 列表页面
   return (
     <div>
-      <Title level={3} style={{ margin: 0, marginBottom: 24 }}>
-        <ThunderboltOutlined style={{ marginRight: 8, color: '#faad14' }} />
-        埋点事件管理
-      </Title>
+      <PageHeader
+        title={
+          <span>
+            <ThunderboltOutlined style={{ marginRight: 8, color: '#faad14' }} />
+            埋点事件管理
+          </span>
+        }
+      />
 
       {/* 筛选区域 */}
       <Card style={{ marginBottom: 24 }}>

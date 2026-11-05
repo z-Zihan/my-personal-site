@@ -15,8 +15,8 @@ echarts.use([
   MapChart,
   CanvasRenderer,
 ])
-import { GlobalOutlined } from '@ant-design/icons'
 import { analyticsApi } from '../../api/analytics'
+import { useThemeStore } from '../../store/themeStore'
 import worldMapData from '../../data/maps/countries.geo.json'
 
 // 兼容 echarts GeoJSON 类型
@@ -55,6 +55,7 @@ export default function VisitorMap() {
   const [countryData, setCountryData] = useState<CountryData[]>([])
   const [loading, setLoading] = useState(true)
   const [mapRegistered, setMapRegistered] = useState(false)
+  const darkMode = useThemeStore((s) => s.darkMode)
 
   useEffect(() => {
     fetchCountryData()
@@ -173,11 +174,11 @@ export default function VisitorMap() {
           if (!p.value || p.value === 0) return `${p.name}: 暂无数据`
           return `${p.name}<br/>访客数：${p.value}`
         },
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: darkMode ? 'rgba(31, 31, 31, 0.95)' : 'rgba(255, 255, 255, 0.95)',
         borderColor: '#7000ff',
         borderWidth: 1,
         textStyle: {
-          color: '#333',
+          color: darkMode ? 'rgba(255,255,255,0.85)' : '#333',
         },
       },
       visualMap: {
@@ -187,10 +188,10 @@ export default function VisitorMap() {
         bottom: 20,
         text: ['多', '少'],
         inRange: {
-          color: ['#e8e8e8', '#b37feb', '#7000ff', '#4a00b3'],
+          color: darkMode ? ['#26262b', '#4a3a7a', '#7000ff', '#a85fff'] : ['#e8e8e8', '#b37feb', '#7000ff', '#4a00b3'],
         },
         textStyle: {
-          color: '#666',
+          color: darkMode ? 'rgba(255,255,255,0.45)' : '#666',
         },
         calculable: true,
       },
@@ -201,11 +202,11 @@ export default function VisitorMap() {
         center: [0, 10],
         label: {
           show: false,
-          color: '#666',
+          color: darkMode ? 'rgba(255,255,255,0.65)' : '#666',
         },
         itemstyle: {
-          areaColor: '#f5f5f5',
-          borderColor: '#d9d9d9',
+          areaColor: darkMode ? '#262629' : '#f5f5f5',
+          borderColor: darkMode ? '#3a3a3e' : '#d9d9d9',
           borderWidth: 0.5,
         },
         emphasis: {
@@ -250,7 +251,7 @@ export default function VisitorMap() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #f0f2f5 0%, #e8e4ff 100%)',
+          background: darkMode ? '#26262b' : 'linear-gradient(135deg, #f0f2f5 0%, #e8e4ff 100%)',
           borderRadius: 8,
         }}
       >
@@ -262,14 +263,14 @@ export default function VisitorMap() {
           />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 border-4 border-cyan-200 rounded-full animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse', borderRightColor: '#00f0ff' }} />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-gradient-to-r from-purple-600 to-cyan-400 rounded-full shadow-lg shadow-purple-500/50" />
-          <p style={{ color: '#666', marginTop: 24, textAlign: 'center', fontSize: 14 }}>加载地图数据...</p>
+          <p style={{ color: darkMode ? 'rgba(255,255,255,0.45)' : '#666', marginTop: 24, textAlign: 'center', fontSize: 14 }}>加载地图数据...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ background: '#ffffff', borderRadius: 8, padding: 16 }}>
+    <div style={{ borderRadius: 8, padding: 16 }}>
       <ReactECharts echarts={echarts} option={getOption()} style={{ height: 450 }} opts={{ renderer: 'svg' }} notMerge={true} />
     </div>
   )

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Navigate, useLocation, useNavigate, Link } from 'react-router-dom'
-import { Layout as AntLayout, Menu, Switch, Popover, Button } from 'antd'
+import { Layout as AntLayout, Menu, Button, Dropdown, ConfigProvider, theme as antdTheme } from 'antd'
 import type { MenuProps } from 'antd'
 import {
   DashboardOutlined,
@@ -11,26 +11,55 @@ import {
   FireOutlined,
   LogoutOutlined,
   HomeOutlined,
-  SettingOutlined,
   MoonOutlined,
   SunOutlined,
-  UserOutlined,
   ThunderboltOutlined,
   DatabaseOutlined,
+  UserOutlined,
+  DownOutlined,
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
+import { useThemeStore } from '../../store/themeStore'
+import { initAdminTheme, toggleAdminTheme } from '../../components/admin/adminTheme'
 
 const { Sider, Content, Header } = AntLayout
 
 type MenuItem = Required<MenuProps>['items'][number]
 
+// 站点主色（与品牌一致）
+const PRIMARY_COLOR = '#7000ff'
+
+// 路由 → 页面名映射（Header 面包屑用）
+const PAGE_TITLES: Array<[prefix: string, title: string]> = [
+  ['/admin/dashboard', '仪表盘'],
+  ['/admin/articles/new', '新建文章'],
+  ['/admin/articles', '文章管理'],
+  ['/admin/comments', '评论管理'],
+  ['/admin/messages', '留言管理'],
+  ['/admin/categories', '分类管理'],
+  ['/admin/hot-news', '热点资讯'],
+  ['/admin/events', '埋点管理'],
+  ['/admin/mock-data', '数据生成'],
+]
+
+function getPageTitle(pathname: string): string {
+  // 编辑器子路由：新建 / 编辑（数字 id）
+  if (pathname === '/admin/articles/new') return '新建文章'
+  if (/^\/admin\/articles\/[^/]+$/.test(pathname)) return '编辑文章'
+  for (const [prefix, title] of PAGE_TITLES) {
+    if (pathname === prefix || pathname.startsWith(prefix + '/')) return title
+  }
+  return '管理后台'
+}
+
 function AdminLayout() {
   const [loading, setLoading] = useState(true)
-  const [popoverOpen, setPopoverOpen] = useState(false)
-  const [isDark, setIsDark] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const { token, logout, checkAuth } = useAuthStore()
+  const { token, logout, checkAuth, user } = useAuthStore()
+
+  // 主题：与前台共用同一套 themeStore（一个开关全局同步）
+  const darkMode = useThemeStore((s) => s.darkMode)
 
   // 检查认证状态
   useEffect(() => {
@@ -42,88 +71,15 @@ function AdminLayout() {
     }
   }, [checkAuth, navigate])
 
-  // 初始化主题
+  // 初始化主题：读取统一存储（并迁移旧的后台独立存储）
   useEffect(() => {
-    const stored = localStorage.getItem('admin-theme-storage')
-    let darkMode = false
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        darkMode = parsed.state?.adminDarkMode || false
-      } catch (e) {
-        darkMode = false
-      }
-    }
-    setIsDark(darkMode)
-    if (darkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+    initAdminTheme()
   }, [])
-
-  // 切换主题处理
-  const handleToggleTheme = (checked: boolean) => {
-    setIsDark(checked)
-    if (checked) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-    // 同步到 localStorage
-    localStorage.setItem('admin-theme-storage', JSON.stringify({
-      state: { adminDarkMode: checked },
-      version: 0
-    }))
-  }
-
-  if (loading || !token) {
-    return (
-      <AntLayout style={{ minHeight: '100vh', background: '#f5f7fa' }}>
-        <Content style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="relative">
-            <div className="w-20 h-20 border-4 border-purple-300 rounded-full animate-spin" style={{ animationDuration: '2s', borderLeftColor: '#7000ff', borderTopColor: '#00f0ff' }} />
-            <p style={{ marginTop: 24, textAlign: 'center', color: '#666', fontSize: 16 }}>加载中...</p>
-          </div>
-        </Content>
-      </AntLayout>
-    )
-  }
 
   const handleLogout = () => {
     logout()
-    setPopoverOpen(false)
     navigate('/admin/login', { replace: true })
   }
-
-  // 弹出卡片内容
-  const popoverContent = (
-    <div style={{ padding: 12, minWidth: 220 }}>
-      <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f0f0f0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 14, color: '#666' }}>
-            {isDark ? <MoonOutlined /> : <SunOutlined />} 主题
-          </span>
-          <Switch
-            size="small"
-            checked={isDark}
-            onChange={handleToggleTheme}
-            checkedChildren={<MoonOutlined />}
-            unCheckedChildren={<SunOutlined />}
-          />
-        </div>
-      </div>
-      <Button
-        danger
-        block
-        icon={<LogoutOutlined />}
-        onClick={handleLogout}
-        style={{ marginTop: 8 }}
-      >
-        退出登录
-      </Button>
-    </div>
-  )
 
   const menuItems: MenuItem[] = [
     {
@@ -186,172 +142,222 @@ function AdminLayout() {
     return '/admin/dashboard'
   }
 
-  // 菜单底部：返回前台 + 设置
-  const menuFooter = (
-    <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 16px', flexShrink: 0 }}>
-      <Link
-        to="/"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          color: '#595959',
-          fontSize: 14,
-          textDecoration: 'none',
-          padding: '8px 10px',
-          borderRadius: 8,
-          transition: 'all 0.2s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = '#f5f5f5'
-          e.currentTarget.style.color = '#7000ff'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.color = '#595959'
-        }}
-      >
-        <HomeOutlined />
-        <span>返回前台</span>
-      </Link>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '8px 10px',
-          borderRadius: 8,
-          cursor: 'pointer',
-          color: '#595959',
-          fontSize: 14,
-        }}
-        onClick={(e) => {
-          e.stopPropagation()
-          setPopoverOpen(!popoverOpen)
-        }}
-      >
-        <Popover
-          content={popoverContent}
-          trigger="click"
-          open={popoverOpen}
-          onOpenChange={setPopoverOpen}
-          placement="rightBottom"
-          overlayStyle={{ maxWidth: 250 }}
-          arrow={false}
-        >
-          <span style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%' }}>
-            <SettingOutlined />
-            <span>设置</span>
-          </span>
-        </Popover>
-      </div>
-    </div>
-  )
-
-  return (
-    <AntLayout style={{ minHeight: '100vh' }}>
-      <Sider
-        width={220}
-        style={{
-          background: '#ffffff',
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          overflow: 'hidden',
-          borderRight: '1px solid #f0f0f0',
-          zIndex: 100,
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <div
-          style={{
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderBottom: '1px solid #f0f0f0',
-            flexShrink: 0,
-          }}
-        >
-          <span style={{ color: '#7000ff', fontSize: 18, fontWeight: 600 }}>管理后台</span>
-        </div>
-        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-          <Menu
-            mode="inline"
-            selectedKeys={[getSelectedKey()]}
-            items={menuItems}
-            onClick={handleMenuClick}
-            theme="light"
-            inlineIndent={20}
-            style={{
-              borderRight: 0,
-              flex: 1,
-            }}
-          />
-          {menuFooter}
-        </div>
-      </Sider>
-      <AntLayout style={{ marginLeft: 220, transition: 'margin-left 0.3s' }}>
-        <Header
-          style={{
-            padding: '0 24px',
-            background: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            height: 64,
-            borderBottom: '1px solid #f0f0f0',
-            boxShadow: 'none',
-            position: 'sticky',
-            top: 0,
-            zIndex: 99,
-          }}
-        >
-          <a
-            href="/"
-            style={{
-              color: '#595959',
-              fontSize: 14,
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 16px',
-              borderRadius: 8,
-              transition: 'all 0.2s',
-              fontWeight: 500,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#f5f5f5'
-              e.currentTarget.style.color = '#7000ff'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = '#595959'
-            }}
-          >
-            <HomeOutlined style={{ fontSize: 16 }} /> 返回前台
-          </a>
-          <span style={{ color: '#595959', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
-            <UserOutlined style={{ fontSize: 16 }} /> 管理员
-          </span>
-        </Header>
-        <Content
-          style={{
-            padding: 24,
-            margin: 16,
-            background: '#ffffff',
-            borderRadius: 8,
-            minHeight: 'calc(100vh - 128px)',
-            overflow: 'auto',
-          }}
-        >
-          <Outlet />
+  if (loading) {
+    return (
+      <AntLayout style={{ minHeight: '100vh', background: darkMode ? '#141414' : '#f5f7fa' }}>
+        <Content style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="relative">
+            <div className="w-20 h-20 border-4 border-purple-300 rounded-full animate-spin" style={{ animationDuration: '2s', borderLeftColor: PRIMARY_COLOR, borderTopColor: '#00f0ff' }} />
+            <p style={{ marginTop: 24, textAlign: 'center', color: darkMode ? 'rgba(255,255,255,0.45)' : '#666', fontSize: 16 }}>加载中...</p>
+          </div>
         </Content>
       </AntLayout>
-    </AntLayout>
+    )
+  }
+
+  // 未登录（含 token 过期）：跳登录页。Login 页自己做主题初始化 + ConfigProvider
+  if (!token) {
+    return <Navigate to="/admin/login" replace />
+  }
+
+  // Header 右侧用户下拉菜单
+  const userMenu: MenuProps = {
+    items: [
+      {
+        key: 'identity',
+        label: (
+          <div style={{ padding: '4px 0', minWidth: 160 }}>
+            <div style={{ fontWeight: 600 }}>{user?.username || '管理员'}</div>
+            <div style={{ fontSize: 12, opacity: 0.65, marginTop: 2 }}>管理员</div>
+          </div>
+        ),
+        disabled: true,
+      },
+      { type: 'divider' },
+      {
+        key: 'logout',
+        icon: <LogoutOutlined />,
+        label: '退出登录',
+        danger: true,
+        onClick: handleLogout,
+      },
+    ],
+  }
+
+  return (
+    <ConfigProvider
+      theme={{
+        algorithm: darkMode ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
+        token: {
+          colorPrimary: PRIMARY_COLOR,
+          borderRadius: 8,
+        },
+      }}
+    >
+      <AntLayout style={{ minHeight: '100vh', background: darkMode ? '#141414' : '#f5f7fa' }}>
+        <Sider
+          width={220}
+          theme={darkMode ? 'dark' : 'light'}
+          style={{
+            background: darkMode ? '#1f1f1f' : '#ffffff',
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            overflow: 'hidden',
+            borderRight: `1px solid ${darkMode ? '#303030' : '#f0f0f0'}`,
+            zIndex: 100,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <div
+            style={{
+              height: 64,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderBottom: `1px solid ${darkMode ? '#303030' : '#f0f0f0'}`,
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ color: PRIMARY_COLOR, fontSize: 18, fontWeight: 600 }}>管理后台</span>
+          </div>
+          <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+            <Menu
+              mode="inline"
+              selectedKeys={[getSelectedKey()]}
+              items={menuItems}
+              onClick={handleMenuClick}
+              theme={darkMode ? 'dark' : 'light'}
+              inlineIndent={20}
+              style={{
+                borderRight: 0,
+                flex: 1,
+                background: 'transparent',
+              }}
+            />
+          </div>
+        </Sider>
+        <AntLayout style={{ marginLeft: 220, transition: 'margin-left 0.3s', background: darkMode ? '#141414' : '#f5f7fa' }}>
+          <Header
+            style={{
+              padding: '0 24px',
+              background: darkMode ? '#1f1f1f' : '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              height: 64,
+              borderBottom: `1px solid ${darkMode ? '#303030' : '#f0f0f0'}`,
+              boxShadow: 'none',
+              position: 'sticky',
+              top: 0,
+              zIndex: 99,
+            }}
+          >
+            {/* 左侧：面包屑（管理后台 / 当前页面） */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+              <span style={{ color: darkMode ? 'rgba(255,255,255,0.45)' : '#8c8c8c' }}>管理后台</span>
+              <span style={{ color: darkMode ? 'rgba(255,255,255,0.25)' : '#d9d9d9' }}>/</span>
+              <span style={{ color: darkMode ? 'rgba(255,255,255,0.88)' : 'rgba(0,0,0,0.88)', fontWeight: 500 }}>
+                {getPageTitle(location.pathname)}
+              </span>
+            </div>
+
+            {/* 右侧操作区：前台链接 + 主题切换 + 用户菜单 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Link
+                to="/"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  color: darkMode ? 'rgba(255,255,255,0.65)' : '#595959',
+                  fontSize: 14,
+                  textDecoration: 'none',
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  transition: 'color 0.2s, background 0.2s',
+                  fontWeight: 500,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.08)' : '#f5f5f5'
+                  e.currentTarget.style.color = PRIMARY_COLOR
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.color = darkMode ? 'rgba(255,255,255,0.65)' : '#595959'
+                }}
+              >
+                <HomeOutlined style={{ fontSize: 15 }} /> 前台
+              </Link>
+
+              <Button
+                type="text"
+                aria-label="切换主题"
+                icon={darkMode ? <SunOutlined /> : <MoonOutlined />}
+                onClick={toggleAdminTheme}
+                style={{ color: darkMode ? 'rgba(255,255,255,0.65)' : '#595959' }}
+              />
+
+              <Dropdown menu={userMenu} trigger={['hover', 'click']} placement="bottomRight">
+                <button
+                  type="button"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px 8px',
+                    borderRadius: 8,
+                    color: darkMode ? 'rgba(255,255,255,0.65)' : '#595959',
+                    fontSize: 14,
+                  }}
+                >
+                  {user?.username ? (
+                    <span
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: '50%',
+                        background: PRIMARY_COLOR,
+                        color: '#fff',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 13,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {user.username.slice(0, 1).toUpperCase()}
+                    </span>
+                  ) : (
+                    <UserOutlined style={{ fontSize: 16 }} />
+                  )}
+                  <span>{user?.username || '管理员'}</span>
+                  <DownOutlined style={{ fontSize: 10, opacity: 0.6 }} />
+                </button>
+              </Dropdown>
+            </div>
+          </Header>
+          <Content
+            style={{
+              padding: 24,
+              margin: 16,
+              background: darkMode ? '#1f1f1f' : '#ffffff',
+              borderRadius: 8,
+              minHeight: 'calc(100vh - 128px)',
+              overflow: 'auto',
+              transition: 'background 0.3s',
+            }}
+          >
+            <Outlet />
+          </Content>
+        </AntLayout>
+      </AntLayout>
+    </ConfigProvider>
   )
 }
 

@@ -31,25 +31,21 @@ import { articleApi } from '../../api/article'
 import { statsApi } from '../../api/stats'
 import { analyticsApi } from '../../api/analytics'
 import VisitorMap from '../../components/admin/VisitorMap'
+import PageHeader from './PageHeader'
+import { useThemeStore } from '../../store/themeStore'
 import { useNavigate } from 'react-router-dom'
 
 const { Title, Text } = Typography
 
 const COLORS = ['#7000ff', '#1890ff', '#52c41a', '#fa8c16', '#eb2f96', '#13c2c2']
 
-// 统计卡片：干净白底 + 左侧色条
-const statCardStyle = (color: string): React.CSSProperties => ({
-  background: '#ffffff',
-  border: '1px solid #f0f0f0',
-  borderRadius: 8,
-  position: 'relative',
-  overflow: 'hidden',
-})
+// 统计卡片：跟随主题的 Card（暗色 #1f1f1f / 亮色白底）+ 左侧色条点缀
 const statAccent = (color: string) => (
-  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: color }} />
+  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, borderRadius: '8px 0 0 8px', background: color }} />
 )
 
 function Dashboard() {
+  const darkMode = useThemeStore((s) => s.darkMode)
   const navigate = useNavigate()
   const [stats, setStats] = useState<{
     totalArticles?: number
@@ -141,7 +137,7 @@ function Dashboard() {
       <div style={{ padding: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
         <div className="relative inline-block">
           <div className="w-16 h-16 border-4 border-purple-200 rounded-full animate-spin" style={{ borderLeftColor: '#7000ff' }} />
-          <p style={{ marginTop: 16, textAlign: 'center', color: '#999', fontSize: 14 }}>加载中...</p>
+          <p style={{ marginTop: 16, textAlign: 'center', color: darkMode ? 'rgba(255,255,255,0.45)' : '#999', fontSize: 14 }}>加载中...</p>
         </div>
       </div>
     )
@@ -151,8 +147,8 @@ function Dashboard() {
     return (
       <div style={{ padding: 48, textAlign: 'center', minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div>
-          <BarChartOutlined style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }} />
-          <Title level={4} style={{ color: '#666' }}>暂无数据</Title>
+          <BarChartOutlined style={{ fontSize: 64, color: darkMode ? 'rgba(255,255,255,0.25)' : '#d9d9d9', marginBottom: 16 }} />
+          <Title level={4} style={{ color: darkMode ? 'rgba(255,255,255,0.45)' : '#666' }}>暂无数据</Title>
           <Text type="secondary">数据正在收集中，请稍后再来查看</Text>
           <div style={{ marginTop: 24 }}>
             <Button icon={<ReloadOutlined />} onClick={fetchBaseData}>重新加载</Button>
@@ -164,12 +160,14 @@ function Dashboard() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-        <Title level={3} style={{ margin: 0 }}>数据仪表盘</Title>
-        <Button icon={<ReloadOutlined />} onClick={() => { fetchBaseData(); fetchChartData(rangeDays) }} loading={loading || chartLoading}>
-          刷新数据
-        </Button>
-      </div>
+      <PageHeader
+        title="数据仪表盘"
+        actions={
+          <Button icon={<ReloadOutlined />} onClick={() => { fetchBaseData(); fetchChartData(rangeDays) }} loading={loading || chartLoading}>
+            刷新数据
+          </Button>
+        }
+      />
 
       {/* 世界地图 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
@@ -183,7 +181,7 @@ function Dashboard() {
       {/* 访问核心指标 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} sm={12} lg={6}>
-          <Card style={statCardStyle('#7000ff')}>
+          <Card style={{ position: 'relative', overflow: 'hidden' }}>
             {statAccent('#7000ff')}
             <Statistic
               title="总访客数"
@@ -193,7 +191,7 @@ function Dashboard() {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card style={statCardStyle('#1890ff')}>
+          <Card style={{ position: 'relative', overflow: 'hidden' }}>
             {statAccent('#1890ff')}
             <Statistic
               title="总浏览量"
@@ -203,7 +201,7 @@ function Dashboard() {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card style={statCardStyle('#52c41a')}>
+          <Card style={{ position: 'relative', overflow: 'hidden' }}>
             {statAccent('#52c41a')}
             <Statistic
               title="总会话数"
@@ -213,7 +211,7 @@ function Dashboard() {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card style={statCardStyle('#fa8c16')}>
+          <Card style={{ position: 'relative', overflow: 'hidden' }}>
             {statAccent('#fa8c16')}
             <Statistic
               title="总事件数"
@@ -227,7 +225,7 @@ function Dashboard() {
       {/* 内容统计：口径修正（发布/总数） */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={8}>
-          <Card style={statCardStyle('#eb2f96')}>
+          <Card style={{ position: 'relative', overflow: 'hidden' }}>
             {statAccent('#eb2f96')}
             <Statistic
               title="文章数（已发布/全部）"
@@ -238,7 +236,7 @@ function Dashboard() {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={8}>
-          <Card style={statCardStyle('#13c2c2')}>
+          <Card style={{ position: 'relative', overflow: 'hidden' }}>
             {statAccent('#13c2c2')}
             <Statistic
               title="留言数"
@@ -248,7 +246,7 @@ function Dashboard() {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={8}>
-          <Card style={statCardStyle('#faad14')}>
+          <Card style={{ position: 'relative', overflow: 'hidden' }}>
             {statAccent('#faad14')}
             <Statistic
               title="热点资讯数"
@@ -399,7 +397,7 @@ function Dashboard() {
 
       {/* 图表区域：带时间范围切换 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-        <Title level={4} style={{ margin: 0 }}>趋势分析</Title>
+        <Title level={5} style={{ margin: 0 }}>趋势分析</Title>
         <Segmented
           value={rangeDays}
           onChange={(value) => setRangeDays(value as number)}
@@ -417,9 +415,9 @@ function Dashboard() {
             {analytics.daily && analytics.daily.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={analytics.daily}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="date" stroke="#999" fontSize={12} />
-                  <YAxis stroke="#999" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#303030' : '#f0f0f0'} />
+                  <XAxis dataKey="date" stroke={darkMode ? 'rgba(255,255,255,0.45)' : '#999'} fontSize={12} />
+                  <YAxis stroke={darkMode ? 'rgba(255,255,255,0.45)' : '#999'} fontSize={12} />
                   <Tooltip />
                   <Line type="monotone" dataKey="views" stroke="#7000ff" strokeWidth={2} dot={false} />
                 </LineChart>
@@ -504,9 +502,9 @@ function Dashboard() {
             {analytics.browsers && analytics.browsers.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={analytics.browsers}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="name" stroke="#999" fontSize={12} />
-                  <YAxis stroke="#999" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#303030' : '#f0f0f0'} />
+                  <XAxis dataKey="name" stroke={darkMode ? 'rgba(255,255,255,0.45)' : '#999'} fontSize={12} />
+                  <YAxis stroke={darkMode ? 'rgba(255,255,255,0.45)' : '#999'} fontSize={12} />
                   <Tooltip />
                   <Bar dataKey="value" fill="#1890ff" radius={[4, 4, 0, 0]} />
                 </BarChart>

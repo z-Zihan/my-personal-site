@@ -2,10 +2,11 @@ import { useState, useEffect, useMemo } from 'react'
 import { Table, Button, Popconfirm, message, Typography, Input, Space, Tooltip } from 'antd'
 import type { Key } from 'antd/es/table/interface'
 import { DeleteOutlined, ReloadOutlined, SearchOutlined, LinkOutlined } from '@ant-design/icons'
+import PageHeader from './PageHeader'
 import { commentApi } from '../../api/comment'
 import { formatDate } from '../../utils/helpers'
 
-const { Title, Text } = Typography
+const { Text } = Typography
 
 interface AdminComment {
   id: string
@@ -187,23 +188,12 @@ function CommentManager() {
 
   return (
     <div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 24,
-          flexWrap: 'wrap',
-          gap: 12,
-        }}
-      >
-        <Title level={3} style={{ margin: 0 }}>
-          评论管理
-        </Title>
-        <Space wrap>
+      <PageHeader
+        title="评论管理"
+        actions={<Space wrap>
           <Input
             allowClear
-            prefix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+            prefix={<SearchOutlined />}
             placeholder="搜索评论内容 / 昵称 / 文章标题"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -224,8 +214,8 @@ function CommentManager() {
               批量删除{selectedRowKeys.length > 0 ? ` (${selectedRowKeys.length})` : ''}
             </Button>
           </Popconfirm>
-        </Space>
-      </div>
+        </Space>}
+      />
 
       <Table
         columns={columns}

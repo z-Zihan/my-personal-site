@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
-/* 暗黑模式 */
+/* 排版插件：文章详情页 prose 类生效的关键（Tailwind4 用 @plugin 指令） */
+@plugin "@tailwindcss/typography";
+
+/* 代码高亮亮色基准（github 主题）；暗色在下方 html.dark 段内联覆盖（github-dark 色板） */
+@import "highlight.js/styles/github.css";
+
+/* 暗色模式 */
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* 全局样式 */
@@ -495,4 +501,146 @@ input:focus, textarea:focus {
 /* 防止编辑器内容被遮挡 */
 .wangeditor-editor-container {
   overflow-y: auto;
+}
+
+/* ============================================
+   文章详情页阅读体验（prose 中文排版优化）
+   ============================================ */
+
+/* 阅读字号三档：作用于正文容器，prose 字号跟随（默认标准档） */
+.article-body {
+  font-size: var(--article-font-size, 17px);
+}
+.article-body :where(p):not(:where([class~="not-prose"] *)) {
+  font-size: var(--article-font-size, 17px);
+  line-height: 1.9; /* 中文阅读行距更舒展 */
+}
+.article-body :where(li):not(:where([class~="not-prose"])) {
+  line-height: 1.9;
+}
+
+/* 中文内容标题字重收敛（wangeditor 产出的 h2/h3 默认太粗） */
+.article-body :where(h2, h3, h4):not(:where([class~="not-prose"] *)) {
+  letter-spacing: 0.01em;
+}
+
+/* 正文图片：圆角阴影 + max-width 安全（懒加载占位不跳动） */
+.article-body img {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+html.dark .article-body img {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* blockquote 暗色适配微调（prose-invert 基础上统一中文字体色） */
+html.dark .article-body :where(blockquote):not(:where([class~="not-prose"] *)) {
+  border-color: #4b5563;
+}
+
+/* TOC 点击滚动锚点偏移：文章页 header 悬浮隐藏，无固定导航，给一点呼吸空间即可 */
+.article-body :where(h2, h3) {
+  scroll-margin-top: 24px;
+}
+
+/* 代码块内边距与圆角（wangeditor pre 内套 code 的结构也适配） */
+.article-body pre {
+  border-radius: 10px;
+  padding: 16px 20px;
+}
+.article-body pre code {
+  background: transparent;
+  padding: 0;
+}
+.article-body :not(pre) > code {
+  padding: 2px 6px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+html.dark .article-body :not(pre) > code {
+  background: rgba(255, 255, 255, 0.08);
+}
+html:not(.dark) .article-body :not(pre) > code {
+  background: rgba(112, 0, 255, 0.06);
+}
+
+/* ============================================
+   代码高亮暗色（github-dark 色板，html.dark 前缀优先于亮色基准）
+   ============================================ */
+html.dark .hljs {
+  color: #c9d1d9;
+  background: #0d1117;
+}
+html.dark .hljs-doctag,
+html.dark .hljs-keyword,
+html.dark .hljs-meta .hljs-keyword,
+html.dark .hljs-template-tag,
+html.dark .hljs-template-variable,
+html.dark .hljs-type,
+html.dark .hljs-variable.language_ {
+  color: #ff7b72;
+}
+html.dark .hljs-title,
+html.dark .hljs-title.class_,
+html.dark .hljs-title.class_.inherited__,
+html.dark .hljs-title.function_ {
+  color: #d2a8ff;
+}
+html.dark .hljs-attr,
+html.dark .hljs-attribute,
+html.dark .hljs-literal,
+html.dark .hljs-meta,
+html.dark .hljs-number,
+html.dark .hljs-operator,
+html.dark .hljs-variable,
+html.dark .hljs-selector-attr,
+html.dark .hljs-selector-class,
+html.dark .hljs-selector-id {
+  color: #79c0ff;
+}
+html.dark .hljs-regexp,
+html.dark .hljs-string,
+html.dark .hljs-meta .hljs-string {
+  color: #a5d6ff;
+}
+html.dark .hljs-built_in,
+html.dark .hljs-symbol {
+  color: #ffa657;
+}
+html.dark .hljs-comment,
+html.dark .hljs-code,
+html.dark .hljs-formula {
+  color: #8b949e;
+}
+html.dark .hljs-name,
+html.dark .hljs-quote,
+html.dark .hljs-selector-tag,
+html.dark .hljs-selector-pseudo {
+  color: #7ee787;
+}
+html.dark .hljs-subst {
+  color: #c9d1d9;
+}
+html.dark .hljs-section {
+  color: #1f6feb;
+  font-weight: bold;
+}
+html.dark .hljs-bullet {
+  color: #f2cc60;
+}
+html.dark .hljs-emphasis {
+  color: #c9d1d9;
+  font-style: italic;
+}
+html.dark .hljs-strong {
+  color: #c9d1d9;
+  font-weight: bold;
+}
+html.dark .hljs-addition {
+  color: #aff5b4;
+  background-color: #033a16;
+}
+html.dark .hljs-deletion {
+  color: #ffdcd7;
+  background-color: #67060c;
 }

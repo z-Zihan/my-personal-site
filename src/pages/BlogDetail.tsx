@@ -1,10 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Calendar, Eye } from "lucide-react";
+import { Calendar, Eye, Type } from "lucide-react";
 import { articleApi, Article } from "../api/article";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import rehypeHighlight from "rehype-highlight";
+import TableOfContents from "../components/common/TableOfContents";
 import ReadingProgress from "../components/common/ReadingProgress";
 import ShareButtons from "../components/common/ShareButtons";
 import LikeButton from "../components/common/LikeButton";
@@ -12,6 +14,35 @@ import ReadingTime from "../components/common/ReadingTime";
 import CommentSection from "../components/common/CommentSection";
 import ArticleNav from "../components/common/ArticleNav";
 import { trackEvent } from "../utils/analytics";
+
+/** 阅读字号三档：小 / 标准 / 大 */
+type FontSizeLevel = "small" | "standard" | "large";
+
+const FONT_SIZE_STORAGE_KEY = "article-font-size";
+
+const FONT_SIZE_MAP: Record<FontSizeLevel, string> = {
+  small: "15px",
+  standard: "17px",
+  large: "19px",
+};
+
+const FONT_SIZE_LABELS: Record<FontSizeLevel, string> = {
+  small: "小",
+  standard: "标准",
+  large: "大",
+};
+
+function getInitialFontSize(): FontSizeLevel {
+  try {
+    const stored = localStorage.getItem(FONT_SIZE_STORAGE_KEY);
+    if (stored === "small" || stored === "standard" || stored === "large") {
+      return stored;
+    }
+  } catch {
+    /* localStorage 不可用时用默认档 */
+  }
+  return "standard";
+}
 
 export default function BlogDetail() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +54,25 @@ export default function BlogDetail() {
   const contentRef = useRef<HTMLElement>(null);
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
+
+  // 阅读字号（localStorage 持久化）
+  const [fontSize, setFontSize] = useState<FontSizeLevel>(getInitialFontSize);
+  const handleFontSizeChange = useCallback((level: FontSizeLevel) => {
+    setFontSize(level);
+    try {
+      localStorage.setItem(FONT_SIZE_STORAGE_KEY, level);
+    } catch {
+      /* 忽略存储失败 */
+    }
+  }, []);
+
+  // 文章内容稳定后重新提取目录（TableOfContents 以 contentRef 变化为信号）
+  const [contentReady, setContentReady] = useState(0);
+  useEffect(() => {
+    if (article && !loading) {
+      setContentReady((n) => n + 1);
+    }
+  }, [article, loading]);
 
   useEffect(() => {
     if (!id) {
@@ -153,11 +203,10 @@ export default function BlogDetail() {
       className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors pb-24"
     >
       <ReadingProgress />
-      {/* <TableOfContents contentRef={contentRef} /> */}
 
       {/* Header */}
-      <header className="bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 py-20">
-        <div className="max-w-4xl mx-auto px-4 text-center">
+      <header className="bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 py-16 md:py-20">
+        <div className="max-w-6xl mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
             {article.title}
           </h1>
@@ -178,12 +227,49 @@ export default function BlogDetail() {
         </div>
       </header>
 
-      {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-12">
+      {/* 阅读工具栏：字号切换 + 长文导航提示 */}
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="flex items-center justify-between flex-wrap gap-3 -mb-6 mt-6 pb-4 border-b border-gray-200/60 dark:border-gray-700/60">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <Type className="w-4 h-4" />
+            <span>字号</span>
+            <div
+              className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+              role="group"
+              aria-label="正文字号切换"
+            >
+              {(Object.keys(FONT_SIZE_MAP) as FontSizeLevel[]).map((level) => (
+                <button
+                  key={level}
+                  onClick={() => handleFontSizeChange(level)}
+                  aria-pressed={fontSize === level}
+                  title={`${FONT_SIZE_LABELS[level]}字号`}
+                  className={`px-3 py-1 text-xs transition-colors cursor-pointer ${
+                    fontSize === level
+                      ? "bg-purple-500 text-white font-medium"
+                      : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  {FONT_SIZE_LABELS[level]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <span className="text-xs text-gray-400 dark:text-gray-500">
+            长文可用右侧目录快速跳转章节
+          </span>
+        </div>
+      </div>
+
+      {/* Content：正文 max-w-4xl + 右侧 TOC 栏（xl 以上显示） */}
+      <main className="max-w-6xl mx-auto px-4 py-12">
+        <div className="flex gap-10 items-start">
+          <div className="flex-1 min-w-0 max-w-4xl mx-auto">
         {article.content && article.content.trim() !== "" ? (
           <article
             ref={contentRef}
-            className="prose prose-lg dark:prose-invert max-w-none
+            style={{ '--article-font-size': FONT_SIZE_MAP[fontSize] } as React.CSSProperties}
+            className="article-body prose dark:prose-invert max-w-none
             prose-headings:text-gray-900 dark:prose-headings:text-white
             prose-p:text-gray-700 dark:prose-p:text-gray-300
             prose-a:text-purple-500 hover:prose-a:text-purple-600
@@ -197,7 +283,7 @@ export default function BlogDetail() {
           >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw]}
+              rehypePlugins={[rehypeRaw, rehypeHighlight]}
             >
               {article.content}
             </ReactMarkdown>
@@ -239,6 +325,13 @@ export default function BlogDetail() {
 
         {/* Comments */}
         <CommentSection articleId={id || ''} />
+          </div>
+
+          {/* 右侧目录栏（xl 及以上屏幕显示） */}
+          <aside className="hidden xl:block w-60 flex-shrink-0 sticky top-24">
+            <TableOfContents contentRef={contentRef} />
+          </aside>
+        </div>
       </main>
     </div>
   );

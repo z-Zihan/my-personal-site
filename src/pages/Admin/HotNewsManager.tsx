@@ -3,9 +3,8 @@ import { Table, Button, Popconfirm, message, Typography, Modal, Input, Form, Spa
 import type { Key } from 'antd/es/table/interface'
 import { DeleteOutlined, ReloadOutlined, PlusOutlined, EditOutlined, SearchOutlined, LinkOutlined } from '@ant-design/icons'
 import { hotNewsApi, type HotNews } from '../../api/hotNews'
+import PageHeader from './PageHeader'
 import { formatDate } from '../../utils/helpers'
-
-const { Title } = Typography
 
 interface AdminHotNews extends HotNews {
   id: string
@@ -208,23 +207,12 @@ function HotNewsManager() {
 
   return (
     <div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 24,
-          flexWrap: 'wrap',
-          gap: 12,
-        }}
-      >
-        <Title level={3} style={{ margin: 0 }}>
-          热点资讯管理
-        </Title>
-        <Space wrap>
+      <PageHeader
+        title="热点资讯管理"
+        actions={<Space wrap>
           <Input
             allowClear
-            prefix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+            prefix={<SearchOutlined />}
             placeholder="搜索标题 / 来源 / 链接"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -248,8 +236,8 @@ function HotNewsManager() {
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
             新增热点
           </Button>
-        </Space>
-      </div>
+        </Space>}
+      />
 
       <Table
         columns={columns}
