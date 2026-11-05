@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Calendar, Eye, Type } from "lucide-react";
 import { articleApi, Article } from "../api/article";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
@@ -14,22 +14,17 @@ import ReadingTime from "../components/common/ReadingTime";
 import CommentSection from "../components/common/CommentSection";
 import ArticleNav from "../components/common/ArticleNav";
 import { trackEvent } from "../utils/analytics";
+import { useLanguage } from "../utils/useLanguage";
 
 /** 阅读字号三档：小 / 标准 / 大 */
 type FontSizeLevel = "small" | "standard" | "large";
 
-const FONT_SIZE_STORAGE_KEY = "article-font-size";
+const FONT_SIZE_STORAGE_KEY = "***";
 
 const FONT_SIZE_MAP: Record<FontSizeLevel, string> = {
   small: "15px",
   standard: "17px",
   large: "19px",
-};
-
-const FONT_SIZE_LABELS: Record<FontSizeLevel, string> = {
-  small: "小",
-  standard: "标准",
-  large: "大",
 };
 
 function getInitialFontSize(): FontSizeLevel {
@@ -44,9 +39,115 @@ function getInitialFontSize(): FontSizeLevel {
   return "standard";
 }
 
+/** 语言徽章显示名映射（hljs class → 展示名） */
+const LANGUAGE_LABELS: Record<string, string> = {
+  ts: "TS",
+  tsx: "TSX",
+  js: "JS",
+  jsx: "JSX",
+  javascript: "JavaScript",
+  typescript: "TypeScript",
+  python: "Python",
+  py: "Python",
+  bash: "Shell",
+  sh: "Shell",
+  shell: "Shell",
+  json: "JSON",
+  yaml: "YAML",
+  yml: "YAML",
+  sql: "SQL",
+  css: "CSS",
+  html: "HTML",
+  xml: "XML",
+  markdown: "Markdown",
+  md: "Markdown",
+  go: "Go",
+  rust: "Rust",
+  java: "Java",
+  cpp: "C++",
+  c: "C",
+  toml: "TOML",
+  dockerfile: "Dockerfile",
+};
+
+/** 从 code 元素的 className 提取语言名（language-xxx） */
+function getLanguageLabel(className?: string): string | null {
+  if (!className) return null;
+  const match = /language-([\w-]+)/.exec(className);
+  if (!match) return null;
+  const raw = match[1].toLowerCase();
+  return LANGUAGE_LABELS[raw] || raw.toUpperCase();
+}
+
+/** 复制按钮：成功后显示「已复制 ✓」1.5s 还原（文案由父组件注入） */
+function CopyButton({ getText, copiedText, copyText }: { getText: () => string; copiedText: string; copyText: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(getText());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* 剪贴板不可用（非安全上下文等），静默失败 */
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className={`code-copy-btn ${copied ? "is-copied" : ""}`}
+      aria-label={copied ? copiedText : copyText}
+    >
+      {copied ? copiedText : copyText}
+    </button>
+  );
+}
+
+/**
+ * 覆写 pre 渲染：外层 div.code-block（相对定位）承载语言徽章 + 复制按钮，
+ * 内层保持原 <pre> 结构不变（rehypeHighlight 的 hljs 类照常生效）。
+ */
+function createPreOverride(copiedText: string, copyText: string): Components["pre"] {
+  return ({ children, node, ...props }) => {
+    // 从子 code 元素提取语言名和源码文本
+    let langLabel: string | null = null;
+    let rawText = "";
+    const child = Array.isArray(children) ? children[0] : children;
+    if (child && typeof child === "object" && "props" in (child as { props?: { className?: string; children?: unknown } })) {
+      const childProps = (child as { props?: { className?: string; children?: unknown } }).props;
+      langLabel = getLanguageLabel(childProps?.className);
+      rawText = extractText(childProps?.children);
+    } else if (typeof child === "string") {
+      rawText = child;
+    }
+
+    return (
+      <div className="code-block">
+        {langLabel && <span className="code-lang-badge">{langLabel}</span>}
+        <CopyButton getText={() => rawText} copiedText={copiedText} copyText={copyText} />
+        <pre {...props}>{children}</pre>
+      </div>
+    );
+  };
+}
+
+/** 递归提取 React 子树里的纯文本（用于复制） */
+function extractText(node: unknown): string {
+  if (node == null) return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(extractText).join("");
+  if (typeof node === "object" && node !== null && "props" in node) {
+    const props = (node as { props?: { children?: unknown } }).props;
+    return extractText(props?.children);
+  }
+  return "";
+}
+
 export default function BlogDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { lang, t } = useLanguage();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +155,24 @@ export default function BlogDetail() {
   const contentRef = useRef<HTMLElement>(null);
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
+
+  // 字号标签（小/标准/大）跟随语言
+  const FONT_SIZE_LABELS: Record<FontSizeLevel, string> = useMemo(
+    () => ({
+      small: t("fontSizeSmall"),
+      standard: t("fontSizeStandard"),
+      large: t("fontSizeLarge"),
+    }),
+    [t]
+  );
+
+  // 语言切换时重渲染（useLanguage 内部已处理），pre 覆写按当前文案生成
+  const markdownComponents = useMemo<Components>(
+    () => ({
+      pre: createPreOverride(t("copied"), t("copyCode")),
+    }),
+    [t]
+  );
 
   // 阅读字号（localStorage 持久化）
   const [fontSize, setFontSize] = useState<FontSizeLevel>(getInitialFontSize);
@@ -160,7 +279,7 @@ export default function BlogDetail() {
           <div className="w-16 h-16 border-4 border-purple-200 dark:border-purple-900 rounded-full animate-ping" />
           <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-purple-500 rounded-full animate-spin" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-purple-500 rounded-full shadow-lg shadow-purple-500/50 animate-pulse" />
-          <p className="text-center mt-6 text-gray-600 dark:text-gray-400 animate-pulse">加载文章中...</p>
+          <p className="text-center mt-6 text-gray-600 dark:text-gray-400 animate-pulse">{t("loadingArticle")}</p>
         </div>
       </div>
     );
@@ -172,31 +291,32 @@ export default function BlogDetail() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            {isNotFound ? "文章不存在或已删除" : error || "文章未找到"}
+            {isNotFound ? t("articleNotFound") : t("loadFailed")}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
-            {isNotFound
-              ? "可能的原因：文章已被删除、未发布或链接不正确"
-              : "网络开小差了，请稍后重试"}
+            {isNotFound ? t("articleNotFoundHint") : t("networkErrorHint")}
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <button
               onClick={() => navigate("/")}
               className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors cursor-pointer"
             >
-              返回首页
+              {t("backHome")}
             </button>
             <button
               onClick={() => navigate("/blog")}
               className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors cursor-pointer"
             >
-              查看文章列表
+              {t("viewArticleList")}
             </button>
           </div>
         </div>
       </div>
     );
   }
+
+  // 日期按当前语言显示（en → 英文格式）
+  const locale = lang === "zh" ? "zh-CN" : "en-US";
 
   return (
     <div
@@ -217,11 +337,11 @@ export default function BlogDetail() {
           )}
           <div className="flex items-center justify-center gap-6 text-white/80 flex-wrap">
             <span className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" /> {new Date(article.created_at || Date.now()).toLocaleDateString("zh-CN")}
+              <Calendar className="w-5 h-5" /> {new Date(article.created_at || Date.now()).toLocaleDateString(locale)}
             </span>
             <ReadingTime content={article.content} />
             <span className="flex items-center gap-2">
-              <Eye className="w-5 h-5" /> {article.views || 0} 次阅读
+              <Eye className="w-5 h-5" /> {article.views || 0} {t("viewsSuffix")}
             </span>
           </div>
         </div>
@@ -232,18 +352,18 @@ export default function BlogDetail() {
         <div className="flex items-center justify-between flex-wrap gap-3 -mb-6 mt-6 pb-4 border-b border-gray-200/60 dark:border-gray-700/60">
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <Type className="w-4 h-4" />
-            <span>字号</span>
+            <span>{t("fontSize")}</span>
             <div
               className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
               role="group"
-              aria-label="正文字号切换"
+              aria-label={t("fontSize")}
             >
               {(Object.keys(FONT_SIZE_MAP) as FontSizeLevel[]).map((level) => (
                 <button
                   key={level}
                   onClick={() => handleFontSizeChange(level)}
                   aria-pressed={fontSize === level}
-                  title={`${FONT_SIZE_LABELS[level]}字号`}
+                  title={`${FONT_SIZE_LABELS[level]}${t("fontSize")}`}
                   className={`px-3 py-1 text-xs transition-colors cursor-pointer ${
                     fontSize === level
                       ? "bg-purple-500 text-white font-medium"
@@ -256,7 +376,7 @@ export default function BlogDetail() {
             </div>
           </div>
           <span className="text-xs text-gray-400 dark:text-gray-500">
-            长文可用右侧目录快速跳转章节
+            {t("tocHint")}
           </span>
         </div>
       </div>
@@ -284,6 +404,7 @@ export default function BlogDetail() {
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeRaw, rehypeHighlight]}
+              components={markdownComponents}
             >
               {article.content}
             </ReactMarkdown>
@@ -304,10 +425,10 @@ export default function BlogDetail() {
               />
             </svg>
             <p className="text-xl font-medium text-gray-500 dark:text-gray-400 mb-2">
-              本文暂无内容
+              {t("noContent")}
             </p>
             <p className="text-sm text-gray-400 dark:text-gray-500">
-              作者可能还在编辑中，稍后再来看看吧
+              {t("noContentHint")}
             </p>
           </div>
         )}

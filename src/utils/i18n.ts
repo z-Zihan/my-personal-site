@@ -47,6 +47,59 @@ export interface Translations {
   notFound: string
   error: string
   retry: string
+  // 首页
+  heroTagline: string
+  recommendedArticles: string
+  latestArticles: string
+  viewAllArticles: string
+  goHotNews: string
+  liveUpdates: string
+  hotNewsSubtitle: string
+  articlesCount: string
+  readsCount: string
+  messagesCount: string
+  // 文章列表
+  allArticles: string
+  allCategory: string
+  prevPage: string
+  nextPage: string
+  pageInfo: string
+  noArticles: string
+  noArticlesHint: string
+  // 文章详情
+  viewsSuffix: string
+  loadingArticle: string
+  backHome: string
+  viewArticleList: string
+  articleNotFound: string
+  articleNotFoundHint: string
+  loadFailed: string
+  networkErrorHint: string
+  noContent: string
+  noContentHint: string
+  fontSize: string
+  fontSizeSmall: string
+  fontSizeStandard: string
+  fontSizeLarge: string
+  tocHint: string
+  copied: string
+  copyCode: string
+  articleOf: string
+  previousArticle: string
+  nextArticle: string
+  backToList: string
+  // 404
+  pageLost: string
+  pageLostHint: string
+  pageLostHintSub: string
+  backPrevPage: string
+  autoRedirect: string
+  // 语言切换
+  switchToEnglish: string
+  switchToChinese: string
+  // Footer
+  footerBuiltWith: string
+  footerNiceDay: string
 }
 
 const translations: Record<Language, Translations> = {
@@ -102,6 +155,65 @@ const translations: Record<Language, Translations> = {
     notFound: '未找到',
     error: '错误',
     retry: '重试',
+
+    // 首页
+    heroTagline: '探索技术 · 记录生活 · 分享思考',
+    recommendedArticles: '推荐文章',
+    latestArticles: '最新文章',
+    viewAllArticles: '查看全部文章',
+    goHotNews: '去热点资讯',
+    liveUpdates: '实时更新',
+    hotNewsSubtitle: '追踪最新技术动态，把握行业脉搏',
+    articlesCount: '文章',
+    readsCount: '阅读',
+    messagesCount: '留言',
+
+    // 文章列表
+    allArticles: '全部文章',
+    allCategory: '全部',
+    prevPage: '上一页',
+    nextPage: '下一页',
+    pageInfo: '第 {current} / {total} 页',
+    noArticles: '暂无文章',
+    noArticlesHint: '这里还没有任何文章\n待博主更新后，精彩内容将在这里展示',
+
+    // 文章详情
+    viewsSuffix: '次阅读',
+    loadingArticle: '加载文章中...',
+    backHome: '返回首页',
+    viewArticleList: '查看文章列表',
+    articleNotFound: '文章不存在或已删除',
+    articleNotFoundHint: '可能的原因：文章已被删除、未发布或链接不正确',
+    loadFailed: '加载失败，请稍后重试',
+    networkErrorHint: '网络开小差了，请稍后重试',
+    noContent: '本文暂无内容',
+    noContentHint: '作者可能还在编辑中，稍后再来看看吧',
+    fontSize: '字号',
+    fontSizeSmall: '小',
+    fontSizeStandard: '标准',
+    fontSizeLarge: '大',
+    tocHint: '长文可用右侧目录快速跳转章节',
+    copied: '已复制 ✓',
+    copyCode: '复制',
+    articleOf: '{index} / {total} 篇',
+    previousArticle: '上一篇',
+    nextArticle: '下一篇',
+    backToList: '返回列表',
+
+    // 404
+    pageLost: '页面走丢了',
+    pageLostHint: '抱歉，您访问的页面不存在',
+    pageLostHintSub: '可能是链接已失效或页面已被删除',
+    backPrevPage: '返回上一页',
+    autoRedirect: '或等待 {seconds} 秒自动返回首页...',
+
+    // 语言切换
+    switchToEnglish: 'Language switched to English',
+    switchToChinese: '语言已切换为中文',
+
+    // Footer
+    footerBuiltWith: 'Designed & Built with',
+    footerNiceDay: 'Have a nice day!',
   },
   en: {
     // Navigation
@@ -155,23 +267,121 @@ const translations: Record<Language, Translations> = {
     notFound: 'Not Found',
     error: 'Error',
     retry: 'Retry',
+
+    // Home
+    heroTagline: 'Exploring Tech · Living Life · Sharing Ideas',
+    recommendedArticles: 'Recommended',
+    latestArticles: 'Latest Posts',
+    viewAllArticles: 'View All Posts',
+    goHotNews: 'Hot News',
+    liveUpdates: 'LIVE',
+    hotNewsSubtitle: 'Tracking the latest in tech, one pulse at a time',
+    articlesCount: 'Posts',
+    readsCount: 'Reads',
+    messagesCount: 'Messages',
+
+    // Blog list
+    allArticles: 'All Posts',
+    allCategory: 'All',
+    prevPage: 'Previous',
+    nextPage: 'Next',
+    pageInfo: 'Page {current} of {total}',
+    noArticles: 'No posts yet',
+    noArticlesHint: 'Nothing here at the moment\nCheck back soon — new posts are on the way',
+
+    // Article detail
+    viewsSuffix: 'views',
+    loadingArticle: 'Loading article...',
+    backHome: 'Back Home',
+    viewArticleList: 'All Posts',
+    articleNotFound: 'Article not found or deleted',
+    articleNotFoundHint: 'It may have been deleted, unpublished, or the link is incorrect',
+    loadFailed: 'Failed to load, please try again later',
+    networkErrorHint: 'Network hiccup — please try again later',
+    noContent: 'Nothing here yet',
+    noContentHint: 'The author is probably still writing. Check back soon!',
+    fontSize: 'Text size',
+    fontSizeSmall: 'S',
+    fontSizeStandard: 'M',
+    fontSizeLarge: 'L',
+    tocHint: 'Long read? Use the outline on the right to jump between sections',
+    copied: 'Copied ✓',
+    copyCode: 'Copy',
+    articleOf: '{index} / {total}',
+    previousArticle: 'Previous',
+    nextArticle: 'Next',
+    backToList: 'Back to list',
+
+    // 404
+    pageLost: 'Page Not Found',
+    pageLostHint: 'Sorry, the page you are looking for does not exist',
+    pageLostHintSub: 'The link may be broken or the page has been removed',
+    backPrevPage: 'Go Back',
+    autoRedirect: 'Or wait {seconds}s to be redirected home...',
+
+    // Language switch
+    switchToEnglish: 'Language switched to English',
+    switchToChinese: '语言已切换为中文',
+
+    // Footer
+    footerBuiltWith: 'Designed & Built with',
+    footerNiceDay: 'Have a nice day!',
   },
 }
 
-// 获取当前语言
+type TranslationParams = Record<string, string | number>
+
+/** 模板插值：'第 {current} 页' + {current: 2} → '第 2 页' */
+const interpolate = (template: string, params?: TranslationParams): string => {
+  if (!params) return template
+  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
+    key in params ? String(params[key]) : match
+  )
+}
+
+// 检测浏览器语言：zh-* → 中文，其余 → 英文
+const detectBrowserLanguage = (): Language => {
+  if (typeof navigator === 'undefined') return 'zh'
+  const langs: readonly string[] = navigator.languages || [navigator.language || '']
+  return langs.some((l) => l.toLowerCase().startsWith('zh')) ? 'zh' : 'en'
+}
+
+// 获取当前语言：localStorage 优先；首次访问按 navigator.language 自动选择（并记住选择）
 export const getLanguage = (): Language => {
-  return (localStorage.getItem('language') as Language) || 'zh'
+  try {
+    const stored = localStorage.getItem('language')
+    if (stored === 'zh' || stored === 'en') return stored
+    const detected = detectBrowserLanguage()
+    localStorage.setItem('language', detected)
+    return detected
+  } catch {
+    /* localStorage 不可用（隐私模式等），仅按浏览器语言返回 */
+    return detectBrowserLanguage()
+  }
+}
+
+// 同步 <html lang>（读屏与 SEO）
+const syncHtmlLang = (lang: Language) => {
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en'
+  }
 }
 
 // 设置语言
 export const setLanguage = (lang: Language) => {
   localStorage.setItem('language', lang)
+  syncHtmlLang(lang)
   window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }))
 }
 
-// 获取翻译
-export const t = (key: keyof Translations, lang: Language = getLanguage()): string => {
-  return translations[lang]?.[key] || translations.zh[key] || key
+// 获取翻译，支持 {key} 插值
+export const t = (
+  key: keyof Translations,
+  lang: Language = getLanguage(),
+  params?: TranslationParams
+): string => {
+  const template = translations[lang]?.[key] || translations.zh[key] || (key as string)
+  return interpolate(template, params)
 }
 
 // 获取所有翻译

@@ -644,3 +644,170 @@ html.dark .hljs-deletion {
   color: #ffdcd7;
   background-color: #67060c;
 }
+/* github-dark.css 中 purposely ignored 的 token：显式置空，防止继承亮色组规则 */
+html.dark .hljs-char.escape_,
+html.dark .hljs-link,
+html.dark .hljs-params,
+html.dark .hljs-property,
+html.dark .hljs-punctuation,
+html.dark .hljs-tag {
+  color: inherit;
+}
+
+/* ============================================
+   文章页代码块体验增强（亮/暗通用 + 暗色专属）
+   ============================================ */
+
+/* 代码字体栈：系统级等宽字体优先 */
+.article-body pre,
+.article-body code,
+.article-body pre code {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* 代码块容器：徽章/复制按钮的定位锚点（ReactMarkdown components.pre 覆写生成） */
+.article-body .code-block {
+  position: relative;
+}
+
+/* pre 本体：圆角、内边距、横向滚动（亮色基准） */
+.article-body .code-block pre {
+  border-radius: 12px;
+  padding: 20px 16px;
+  margin: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #e5e7eb;
+  background: #f6f8fa;
+}
+.article-body .code-block pre code {
+  display: block;
+  white-space: pre;
+}
+
+/* 语言徽章（右上角） */
+.article-body .code-lang-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  padding: 2px 10px;
+  border-radius: 0 12px 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color: #8250df;
+  background: rgba(129, 80, 223, 0.10);
+  border-left: 1px solid rgba(129, 80, 223, 0.15);
+  border-bottom: 1px solid rgba(129, 80, 223, 0.15);
+  pointer-events: none; /* 纯展示，不挡复制按钮 */
+}
+
+/* 复制按钮（右上角，徽章左侧） */
+.code-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #57606a;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #d0d7de;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  backdrop-filter: blur(2px);
+}
+/* 有语言徽章时按钮左移，避免重叠 */
+.article-body .code-lang-badge + .code-copy-btn {
+  right: 3.2em;
+}
+/* hover 代码块 / 触屏设备时显示按钮 */
+.article-body .code-block:hover .code-copy-btn,
+.code-copy-btn:focus-visible,
+.code-copy-btn.is-copied {
+  opacity: 1;
+}
+@media (hover: none) {
+  .article-body .code-block .code-copy-btn {
+    opacity: 1; /* 触屏无 hover，常显 */
+  }
+}
+.code-copy-btn:hover {
+  color: #8250df;
+  border-color: #8250df;
+  background: #ffffff;
+}
+.code-copy-btn.is-copied {
+  color: #1a7f37;
+  border-color: #1a7f37;
+  background: #dafbe1;
+}
+
+/* 暗色：pre 用 github dark 底色，徽章/按钮换暗色皮肤 */
+html.dark .article-body .code-block pre {
+  background: #0d1117;
+  border-color: #30363d;
+}
+html.dark .article-body .code-lang-badge {
+  color: #a5b1bd;
+  background: rgba(110, 118, 129, 0.25);
+  border-left-color: rgba(110, 118, 129, 0.4);
+  border-bottom-color: rgba(110, 118, 129, 0.4);
+}
+html.dark .code-copy-btn {
+  color: #c9d1d9;
+  background: rgba(22, 27, 34, 0.85);
+  border-color: #30363d;
+}
+html.dark .code-copy-btn:hover {
+  color: #a5b1bd;
+  border-color: #8b949e;
+  background: #161b22;
+}
+html.dark .code-copy-btn.is-copied {
+  color: #7ee787;
+  border-color: #2ea043;
+  background: rgba(46, 160, 67, 0.15);
+}
+
+/* 行号（CSS counter 方案）：仅对 hljs 块生效，通过 counter-increment 逐行编号。
+   说明：hljs 输出是连续文本+span 混排，无行级元素，纯 CSS 无法稳定按换行计数，
+   此方案依赖 white-space: pre-line 会破坏代码缩进——评估后放弃行号，保持可读性优先。 */
+
+/* ============================================
+   表格排版：斑马纹 + 表头加重 + 横向滚动
+   ============================================ */
+
+/* 外层横向滚动：Markdown table 无原生滚动容器，用 display:block 方案（移动端已有同款规则） */
+.article-body .prose-table-wrapper,
+.article-body table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.article-body thead th {
+  font-weight: 700;
+}
+
+/* 斑马纹：偶数行浅灰底（亮色） */
+.article-body tbody tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+/* 斑马纹（暗色） */
+html.dark .article-body tbody tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+/* 行 hover 提示（可选增强，克制） */
+.article-body tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+/* 数字列表标记色与引用块暗色适配检查：
+   ol 标记颜色继承 prose（prose-invert 已处理暗色文字），
+   blockquote 暗色边框已有专门规则（html.dark .article-body blockquote），无需额外改动。 */

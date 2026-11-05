@@ -6,8 +6,10 @@ import GooeyNav from "../components/effects/GooeyNav";
 import Crosshair from "../components/effects/Crosshair";
 import { categoryApi, Category } from "../api/category";
 import { trackEvent } from "../utils/analytics";
+import { useLanguage } from "../utils/useLanguage";
 
 function BlogList() {
+  const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const listHeaderRef = useRef<HTMLHeadingElement>(null);
   const isInitialMount = useRef(true);
@@ -16,7 +18,7 @@ function BlogList() {
     "all",
   );
   const [categories, setCategories] = useState<Category[]>([
-    { id: "all", name: "全部" } as unknown as Category,
+    { id: "all", name: "" } as unknown as Category,
   ]);
   const { articles, loading, pagination, refetch } = useArticles({
     status: "published",
@@ -29,7 +31,7 @@ function BlogList() {
       const { data } = await categoryApi.getList();
       if (data && data.length > 0) {
         setCategories([
-          { id: "all", name: "全部" } as unknown as Category,
+          { id: "all", name: "" } as unknown as Category,
           ...data,
         ]);
       }
@@ -81,14 +83,15 @@ function BlogList() {
           ref={listHeaderRef}
           className="text-5xl font-bold text-center mb-12 neon-text scroll-mt-24"
         >
-          全部文章
+          {t("allArticles")}
         </h1>
 
         {/* 分类导航 - GooeyNav */}
         <div className="mb-12 flex justify-center">
           <GooeyNav
-            items={categories.map((cat) => ({
-              label: cat.name,
+            items={categories.map((cat, i) => ({
+              // 第一个固定是「全部」分类，名称走 i18n；真实分类名是数据，不翻译
+              label: i === 0 ? t("allCategory") : cat.name,
               href: "#",
             }))}
             particleCount={15}
@@ -159,14 +162,10 @@ function BlogList() {
             </div>
 
             <h3 className="text-2xl font-semibold text-gray-600 mb-3">
-              暂无文章
+              {t("noArticles")}
             </h3>
-            <p className="text-gray-500 text-center max-w-md">
-              这里还没有任何文章
-              <br />
-              <span className="text-sm opacity-70">
-                待博主更新后，精彩内容将在这里展示
-              </span>
+            <p className="text-gray-500 text-center max-w-md whitespace-pre-line">
+              {t("noArticlesHint")}
             </p>
           </div>
         ) : (
@@ -188,17 +187,17 @@ function BlogList() {
                   disabled={page === 1}
                   className="px-6 py-2 border border-primary text-primary rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary hover:text-dark transition-all cursor-pointer"
                 >
-                  上一页
+                  {t("prevPage")}
                 </button>
                 <span className="text-gray-400">
-                  第 {page} / {pagination.totalPages} 页
+                  {t("pageInfo", { current: page, total: pagination.totalPages })}
                 </span>
                 <button
                   onClick={() => handlePageChange(page + 1)}
                   disabled={page === pagination.totalPages}
                   className="px-6 py-2 border border-primary text-primary rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary hover:text-dark transition-all cursor-pointer"
                 >
-                  下一页
+                  {t("nextPage")}
                 </button>
               </div>
             )}

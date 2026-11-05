@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion' // eslint-disable-line no-unused-vars
+import { Globe } from 'lucide-react'
 import Avatar from './common/Avatar'
 import Magnet from './effects/Magnet'
 import { trackEvent } from '../utils/analytics'
+import { useLanguage } from '../utils/useLanguage'
+import { Language } from '../utils/i18n'
 
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [visitorId, setVisitorId] = useState('')
   const location = useLocation()
+  const { lang, setLang, t } = useLanguage()
 
   useEffect(() => {
     let vid = localStorage.getItem('visitor_id')
@@ -20,10 +24,10 @@ function Navbar() {
   }, [])
 
   const navLinks = [
-    { path: '/', label: '首页' },
-    { path: '/blog', label: '文章' },
-    { path: '/hot-news', label: '热点' },
-    { path: '/message', label: '留言' },
+    { path: '/', label: t('home') },
+    { path: '/blog', label: t('blog') },
+    { path: '/hot-news', label: t('hotNews') },
+    { path: '/message', label: t('message') },
   ]
 
   const isActive = (path: string) => location.pathname === path
@@ -36,6 +40,17 @@ function Navbar() {
     })
     // 滚动到顶部
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  // 语言切换（中/EN 一次点击来回切）
+  const handleToggleLanguage = () => {
+    const next: Language = lang === 'zh' ? 'en' : 'zh'
+    setLang(next)
+    trackEvent('language_switch', 'settings', {
+      from: lang,
+      to: next,
+      page_path: window.location.pathname,
+    })
   }
 
   return (
@@ -96,15 +111,27 @@ function Navbar() {
                   </Link>
                 </Magnet>
               ))}
+              {/* 语言切换按钮：样式与主题按钮（ThemeToggle）一致 */}
+              <button
+                onClick={handleToggleLanguage}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all duration-300 hover:scale-110 cursor-pointer flex items-center justify-center"
+                aria-label={lang === 'zh' ? 'Switch to English' : '切换为中文'}
+                title={lang === 'zh' ? 'Switch to English' : '切换为中文'}
+              >
+                <Globe className="w-5 h-5 text-cyan-200" />
+                <span className="ml-1 text-xs font-semibold tracking-wide">
+                  {lang === 'zh' ? 'EN' : '中'}
+                </span>
+              </button>
               {/* 个人中心 - 增大热区 */}
               <Magnet padding={0} strength={0.4} active={true}>
                 <Link
                   to="/profile"
-                  onClick={() => handleNavClick('个人中心')}
+                  onClick={() => handleNavClick(t('profile'))}
                   className={`p-2 rounded-full transition-all relative group flex items-center justify-center ${
                     isActive('/profile') ? 'ring-2 ring-purple-400' : ''
                   }`}
-                  title="个人中心"
+                  title={t('profile')}
                 >
                   <Avatar userId={visitorId} size={36} isSelf />
                   {/* 激活状态光晕 */}
@@ -118,20 +145,34 @@ function Navbar() {
             </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 text-primary cursor-pointer"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
-          </button>
+          <div className="flex items-center gap-1 md:hidden">
+            {/* 移动端语言切换 */}
+            <button
+              onClick={handleToggleLanguage}
+              className="p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all cursor-pointer flex items-center justify-center"
+              aria-label={lang === 'zh' ? 'Switch to English' : '切换为中文'}
+            >
+              <Globe className="w-5 h-5 text-cyan-200" />
+              <span className="ml-1 text-xs font-semibold tracking-wide">
+                {lang === 'zh' ? 'EN' : '中'}
+              </span>
+            </button>
+            <button
+              className="p-2 text-primary cursor-pointer"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Menu"
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -161,7 +202,7 @@ function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Avatar userId={visitorId} size={32} isSelf />
-                <span className="text-white/90">个人中心</span>
+                <span className="text-white/90">{t('profile')}</span>
               </Link>
             </div>
           </motion.div>

@@ -21,10 +21,10 @@ export default function BackToTop() {
   return (
     <button
       onClick={scrollToTop}
-      className="fixed bottom-24 right-6 z-50 w-10 h-10 rounded-full bg-purple-500 hover:bg-purple-600 text-white shadow-lg shadow-purple-500/30 flex items-center justify-center transition-all hover:scale-110 cursor-pointer p-0"
+      className="fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white shadow-lg shadow-purple-500/40 ring-2 ring-white/20 flex items-center justify-center transition-all hover:scale-110 cursor-pointer p-0"
       aria-label="回到顶部"
     >
-      <ArrowUp size={18} />
+      <ArrowUp size={22} strokeWidth={2.5} />
     </button>
   )
 }

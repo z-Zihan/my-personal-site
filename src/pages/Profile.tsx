@@ -70,6 +70,11 @@ export default function Profile() {
     toast.success('昵称已保存');
   };
 
+  // 语言切换时同步 <html lang>（useLanguage hook 未覆盖此页的 toast 提示场景）
+  useEffect(() => {
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
+  }, [language]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">

@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { useLanguage } from '../utils/useLanguage';
 
 export default function NotFound() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [countdown, setCountdown] = useState(5);
 
   // 倒计时自动返回首页（与文案承诺一致，兑现逻辑闭环）
@@ -107,7 +109,7 @@ export default function NotFound() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          页面走丢了
+          {t('pageLost')}
         </motion.h1>
 
         <motion.p
@@ -116,9 +118,9 @@ export default function NotFound() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          抱歉，您访问的页面不存在
+          {t('pageLostHint')}
           <br />
-          <span className="text-sm opacity-70">可能是链接已失效或页面已被删除</span>
+          <span className="text-sm opacity-70">{t('pageLostHintSub')}</span>
         </motion.p>
 
         {/* 操作按钮 */}
@@ -132,13 +134,13 @@ export default function NotFound() {
             onClick={() => navigate('/')}
             className="px-8 py-3 bg-white text-purple-600 font-semibold rounded-full hover:bg-white/90 transition-colors shadow-lg hover:shadow-xl hover:scale-105 transform duration-200"
           >
-            ← 返回首页
+            {t('backHome')}
           </button>
           <button
             onClick={() => window.history.back()}
             className="px-8 py-3 bg-white/20 text-white font-semibold rounded-full hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/30"
           >
-            返回上一页
+            {t('backPrevPage')}
           </button>
         </motion.div>
 
@@ -149,7 +151,7 @@ export default function NotFound() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
         >
-          或等待 {countdown} 秒自动返回首页...
+          {t('autoRedirect', { seconds: countdown })}
         </motion.p>
       </motion.div>
     </div>

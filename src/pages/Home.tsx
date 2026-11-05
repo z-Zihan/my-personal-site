@@ -12,10 +12,12 @@ import Aurora from '../components/effects/Aurora';
 import LoadingSpinner from '../components/effects/LoadingSpinner';
 import CountUpNumber from '../components/effects/CountUp';
 import { trackEvent } from '../utils/analytics';
+import { useLanguage } from '../utils/useLanguage';
 
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
   const [articles, setArticles] = useState<Article[]>([]);
   const [recommendedArticles, setRecommendedArticles] = useState<Article[]>([]);
   const [hotNews, setHotNews] = useState<HotNews[]>([]);
@@ -115,7 +117,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
           >
             <span className="bg-gradient-to-r from-purple-200 via-pink-200 to-cyan-200 bg-clip-text text-transparent">
-              探索技术 · 记录生活 · 分享思考
+              {t('heroTagline')}
             </span>
           </motion.p>
 
@@ -137,7 +139,7 @@ export default function Home() {
                 >
                   <CountUpNumber end={stats.totalArticles || 0} duration={2.5} />
                 </motion.div>
-                <div className="text-white/70">文章</div>
+                <div className="text-white/70">{t('articlesCount')}</div>
               </div>
               <div className="text-center group">
                 <motion.div
@@ -146,7 +148,7 @@ export default function Home() {
                 >
                   <CountUpNumber end={stats.totalViews || 0} duration={2.5} />
                 </motion.div>
-                <div className="text-white/70">阅读</div>
+                <div className="text-white/70">{t('readsCount')}</div>
               </div>
               <div className="text-center group">
                 <motion.div
@@ -155,7 +157,7 @@ export default function Home() {
                 >
                   <CountUpNumber end={stats.totalMessages || 0} duration={2.5} />
                 </motion.div>
-                <div className="text-white/70">留言</div>
+                <div className="text-white/70">{t('messagesCount')}</div>
               </div>
             </motion.div>
           )}
@@ -172,7 +174,7 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <Star className="inline w-6 h-6 mr-2" /> 推荐文章
+            <Star className="inline w-6 h-6 mr-2" /> {t('recommendedArticles')}
           </motion.h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -204,7 +206,7 @@ export default function Home() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <BookOpen className="inline w-6 h-6 mr-2" /> 最新文章
+          <BookOpen className="inline w-6 h-6 mr-2" /> {t('latestArticles')}
         </motion.h2>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -232,7 +234,7 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                查看全部文章 →
+                {t('viewAllArticles')} →
               </motion.button>
             </Magnet>
           </div>
@@ -261,7 +263,7 @@ export default function Home() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
                 </span>
-                <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">实时更新</span>
+                <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">{t('liveUpdates')}</span>
               </motion.div>
               <motion.h2
                 className="text-3xl font-bold text-gray-900 dark:text-white"
@@ -271,9 +273,9 @@ export default function Home() {
                 transition={{ duration: 0.6 }}
               >
                 <TrendingUp className="inline w-6 h-6 mr-2 text-orange-500" />
-                热点资讯
+                {t('hotNews')}
               </motion.h2>
-              <p className="text-gray-500 dark:text-gray-400 mt-2">追踪最新技术动态，把握行业脉搏</p>
+              <p className="text-gray-500 dark:text-gray-400 mt-2">{t('hotNewsSubtitle')}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -353,7 +355,7 @@ export default function Home() {
                   whileTap={{ scale: 0.95 }}
                 >
                   <TrendingUp className="w-4 h-4" />
-                  去热点资讯
+                  {t('goHotNews')}
                   <motion.span
                     animate={{ x: [0, 4, 0] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
