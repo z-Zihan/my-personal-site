@@ -1,11 +1,19 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import buildInfoPlugin from './vite-build-info-plugin'
+import buildMetaInjector from 'build-meta-injector'
 
 export default defineConfig({
   plugins: [
-    buildInfoPlugin(),
+    buildMetaInjector({
+      // 构建元数据注入（npm: build-meta-injector，替换原本地临时插件）
+      timeZone: 'Asia/Shanghai',
+      locale: 'zh-CN',
+      position: 'after-doctype',
+      branch: true,
+      fullCommitHash: false,
+      customData: { Site: "zZihan's Blog", Deployed: 'Vercel' },
+    }),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
