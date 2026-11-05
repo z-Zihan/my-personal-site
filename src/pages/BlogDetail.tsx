@@ -19,6 +19,9 @@ import { useLanguage } from "../utils/useLanguage";
 /** 阅读字号三档：小 / 标准 / 大 */
 type FontSizeLevel = "small" | "standard" | "large";
 
+/** 文章加载错误类型（渲染时按类型取 i18n 文案，避免状态里存中文） */
+type ErrorKind = "noId" | "notFound" | "loadFailed";
+
 const FONT_SIZE_STORAGE_KEY = "***";
 
 const FONT_SIZE_MAP: Record<FontSizeLevel, string> = {
@@ -150,7 +153,7 @@ export default function BlogDetail() {
   const { lang, t } = useLanguage();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorKind | null>(null);
   const [headerVisible, setHeaderVisible] = useState(true);
   const contentRef = useRef<HTMLElement>(null);
   const lastScrollY = useRef(0);
@@ -195,7 +198,7 @@ export default function BlogDetail() {
 
   useEffect(() => {
     if (!id) {
-      setError("文章 ID 不存在");
+      setError("noId");
       setLoading(false);
       return;
     }
@@ -258,13 +261,13 @@ export default function BlogDetail() {
       if (articleData) {
         setArticle(articleData);
       } else {
-        setError("文章不存在");
+        setError("notFound");
       }
     } catch (err: unknown) {
       if ((err as { response?: { status?: number } })?.response?.status === 404) {
-        setError("文章不存在");
+        setError("notFound");
       } else {
-        setError("加载失败，请稍后重试");
+        setError("loadFailed");
       }
     } finally {
       setLoading(false);
@@ -286,7 +289,7 @@ export default function BlogDetail() {
   }
 
   if (error || !article) {
-    const isNotFound = !error || error.includes("不存在");
+    const isNotFound = !error || error !== "loadFailed";
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">

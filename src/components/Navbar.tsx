@@ -115,8 +115,8 @@ function Navbar() {
               <button
                 onClick={handleToggleLanguage}
                 className="p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all duration-300 hover:scale-110 cursor-pointer flex items-center justify-center"
-                aria-label={lang === 'zh' ? 'Switch to English' : '切换为中文'}
-                title={lang === 'zh' ? 'Switch to English' : '切换为中文'}
+                aria-label={lang === 'zh' ? t('langSwitchToEnglish') : t('langSwitchToChinese')}
+                title={lang === 'zh' ? t('langSwitchToEnglish') : t('langSwitchToChinese')}
               >
                 <Globe className="w-5 h-5 text-cyan-200" />
                 <span className="ml-1 text-xs font-semibold tracking-wide">
@@ -150,7 +150,7 @@ function Navbar() {
             <button
               onClick={handleToggleLanguage}
               className="p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all cursor-pointer flex items-center justify-center"
-              aria-label={lang === 'zh' ? 'Switch to English' : '切换为中文'}
+              aria-label={lang === 'zh' ? t('langSwitchToEnglish') : t('langSwitchToChinese')}
             >
               <Globe className="w-5 h-5 text-cyan-200" />
               <span className="ml-1 text-xs font-semibold tracking-wide">
@@ -160,7 +160,7 @@ function Navbar() {
             <button
               className="p-2 text-primary cursor-pointer"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Menu"
+              aria-label={t('menu')}
             >
               {mobileMenuOpen ? (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,6 +1,7 @@
 import React from 'react'
 import { toast } from '../../utils/toast'
 import { trackEvent } from '../../utils/analytics'
+import { useLanguage } from '../../utils/useLanguage'
 
 interface ShareButtonsProps {
   title: string
@@ -9,6 +10,8 @@ interface ShareButtonsProps {
 }
 
 export default function ShareButtons({ title, url, articleId }: ShareButtonsProps) {
+  const { t } = useLanguage()
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(url)
@@ -17,9 +20,9 @@ export default function ShareButtons({ title, url, articleId }: ShareButtonsProp
         article_id: articleId,
         page_path: window.location.pathname,
       })
-      toast.success('链接已复制')
+      toast.success(t('linkCopied'))
     } catch (err) {
-      toast.error('复制失败')
+      toast.error(t('copyFailed'))
     }
   }
 
@@ -43,7 +46,7 @@ export default function ShareButtons({ title, url, articleId }: ShareButtonsProp
         onClick={() => handleShare('weibo')}
         className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors cursor-pointer"
       >
-        微博
+        {t('weibo')}
       </button>
       <button
         onClick={() => handleShare('twitter')}
@@ -55,7 +58,7 @@ export default function ShareButtons({ title, url, articleId }: ShareButtonsProp
         onClick={handleCopy}
         className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors cursor-pointer"
       >
-        复制链接
+        {t('copyLink')}
       </button>
     </div>
   )

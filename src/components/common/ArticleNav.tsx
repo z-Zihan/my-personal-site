@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { articleApi, Article } from '../../api/article';
+import { useLanguage } from '../../utils/useLanguage';
 
 interface ArticleNavProps {
   currentArticleId: string;
@@ -15,6 +16,7 @@ interface NavArticle {
 
 export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [prevArticle, setPrevArticle] = useState<NavArticle | null>(null);
   const [nextArticle, setNextArticle] = useState<NavArticle | null>(null);
   // 当前文章是否存在于已发布列表中（草稿预览等场景不在列表，此时隐藏上/下一篇导航）
@@ -158,7 +160,7 @@ export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
                 backdrop-blur-md shadow-lg shadow-emerald-500/20
                 border border-white/10"
             >
-              <span className="relative z-10">返回列表</span>
+              <span className="relative z-10">{t('backToList')}</span>
               {/* 小三角 */}
               <div className="absolute top-1/2 -translate-y-1/2 -left-1.5
                 w-3 h-3 rotate-45
@@ -221,7 +223,7 @@ export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
                   <div className="flex-1 min-w-0">
                     <span className="text-xs font-medium text-purple-500 dark:text-purple-400
                       tracking-wider uppercase">
-                      上一篇
+                      {t('previousArticle')}
                     </span>
                     <p className="mt-0.5 text-sm font-medium text-gray-700 dark:text-gray-200
                       truncate group-hover:text-purple-600 dark:group-hover:text-purple-300
@@ -247,8 +249,8 @@ export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
                     <ChevronLeft className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs tracking-wider uppercase">上一篇</span>
-                    <p className="mt-0.5 text-sm">已经是最新一篇了</p>
+                    <span className="text-xs tracking-wider uppercase">{t('previousArticle')}</span>
+                    <p className="mt-0.5 text-sm">{t('noPrevArticle')}</p>
                   </div>
                 </div>
               </div>
@@ -294,7 +296,7 @@ export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
                   <div className="flex-1 min-w-0">
                     <span className="text-xs font-medium text-cyan-500 dark:text-cyan-400
                       tracking-wider uppercase">
-                      下一篇
+                      {t('nextArticle')}
                     </span>
                     <p className="mt-0.5 text-sm font-medium text-gray-700 dark:text-gray-200
                       truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-300
@@ -329,8 +331,8 @@ export default function ArticleNav({ currentArticleId }: ArticleNavProps) {
                 border border-dashed border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3 justify-end text-gray-400 dark:text-gray-500">
                   <div>
-                    <span className="text-xs tracking-wider uppercase">下一篇</span>
-                    <p className="mt-0.5 text-sm">已经是最后一篇了</p>
+                    <span className="text-xs tracking-wider uppercase">{t('nextArticle')}</span>
+                    <p className="mt-0.5 text-sm">{t('noNextArticle')}</p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700
                     flex items-center justify-center">

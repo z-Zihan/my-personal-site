@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { searchApi } from '../../api/search'
 import { sanitizeInput, inputRules } from '../../utils/sanitize'
 import { trackEvent } from '../../utils/analytics'
+import { useLanguage } from '../../utils/useLanguage'
 
 interface SearchResult {
   id: number
@@ -24,6 +25,7 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
   const [loading, setLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const { t } = useLanguage()
 
   // 点击外部区域关闭下拉
   useEffect(() => {
@@ -110,7 +112,7 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
           value={query}
           onChange={(e) => setQuery(sanitizeInput(e.target.value))}
           onFocus={() => query.length >= 1 && setIsOpen(true)}
-          placeholder="搜索文章... ⌘K"
+          placeholder={t('searchPlaceholder')}
           maxLength={inputRules.searchMaxLength}
           className="w-full md:w-64 px-4 py-2 pl-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
         />
@@ -120,7 +122,7 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl max-h-96 overflow-y-auto z-50 border border-gray-200 dark:border-gray-700">
           {loading ? (
-            <div className="p-4 text-center text-gray-500">搜索中...</div>
+            <div className="p-4 text-center text-gray-500">{t('searching')}</div>
           ) : results.length > 0 ? (
             results.map((article) => (
               <div
@@ -139,7 +141,7 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
               </div>
             ))
           ) : query.length >= 1 ? (
-            <div className="p-4 text-center text-gray-500">未找到相关文章</div>
+            <div className="p-4 text-center text-gray-500">{t('noResults')}</div>
           ) : null}
         </div>
       )}

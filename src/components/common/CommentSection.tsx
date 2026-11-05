@@ -6,6 +6,7 @@ import Avatar from './Avatar'
 import { cleanUserInput, inputRules } from '../../utils/sanitize'
 import useVisitorStore from '../../store/visitorStore'
 import { trackEvent } from '../../utils/analytics'
+import { useLanguage } from '../../utils/useLanguage'
 
 interface Comment {
   id: number
@@ -29,6 +30,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
   const { getVisitorId, getVisitorName, initVisitor } = useVisitorStore()
   const [visitorId, setVisitorId] = useState('')
   const [visitorName, setVisitorName] = useState('')
+  const { lang, t } = useLanguage()
 
   useEffect(() => {
     // 初始化访客信息
@@ -54,13 +56,13 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
 
     // 验证输入长度
     if (newComment.length > inputRules.commentMaxLength) {
-      toast.error(`评论长度不能超过 ${inputRules.commentMaxLength} 个字符`)
+      toast.error(t('commentTooLong', { max: inputRules.commentMaxLength }))
       return
     }
 
     // 验证输入安全性
     if (!newComment.trim()) {
-      toast.error('请输入评论内容')
+      toast.error(t('commentEmpty'))
       return
     }
 
@@ -72,12 +74,12 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
           .then((res) => res.json())
           .then((data) => {
             if (data && !data.error) {
-              return (`${data.city || ''} ${data.country_name || ''}`.trim() || '未知') as string
+              return (`${data.city || ''} ${data.country_name || ''}`.trim() || t('unknownLocation')) as string
             }
-            return '未知'
+            return t('unknownLocation')
           })
-          .catch(() => '未知'),
-        new Promise((resolve) => setTimeout(() => resolve('未知'), 3000)),
+          .catch(() => t('unknownLocation')),
+        new Promise((resolve) => setTimeout(() => resolve(t('unknownLocation')), 3000)),
       ])
 
       // 清理输入内容，防止 XSS 攻击
@@ -88,7 +90,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
         visitor_id: visitorId,
         content: cleanedComment,
         visitor_name: visitorName || undefined,
-        location: location || '未知',
+        location: location || t('unknownLocation'),
       })
       // 评论埋点
       trackEvent('comment_submit', 'engagement', {
@@ -97,9 +99,9 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
       })
       setNewComment('')
       fetchComments()
-      toast.success('评论成功')
+      toast.success(t('commentSuccess'))
     } catch (error) {
-      toast.error('评论失败，请重试')
+      toast.error(t('commentFailed'))
     } finally {
       setLoading(false)
     }
@@ -117,13 +119,13 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
 
   return (
     <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-      <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">评论 ({comments.length})</h3>
+      <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">{t('comments')} ({comments.length})</h3>
 
       <form onSubmit={handleSubmit} className="mb-8">
         <textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          placeholder="写下你的评论..."
+          placeholder={t('commentPlaceholder')}
           rows={4}
           maxLength={inputRules.commentMaxLength}
           data-max-length={inputRules.commentMaxLength}
@@ -131,14 +133,14 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
         />
         <div className="flex items-center justify-between mt-2">
           <span className="text-sm text-gray-500">
-            {newComment.length}/{inputRules.commentMaxLength} 字
+            {t('charCount', { count: newComment.length, max: inputRules.commentMaxLength })}
           </span>
           <button
             type="submit"
             disabled={loading || !newComment.trim()}
             className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
-            {loading ? '提交中...' : '发表评论'}
+            {loading ? t('submitting') : t('postComment')}
           </button>
         </div>
       </form>
@@ -148,7 +150,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <span className="text-4xl mb-4" aria-hidden>🛋️</span>
             <p className="text-gray-500 dark:text-gray-400">
-              还没有评论，来抢沙发
+              {t('noCommentsYet')}
             </p>
           </div>
         ) : (
@@ -159,10 +161,10 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {comment.visitor_name || `访客 ${comment.visitor_id?.slice(-6)}`}
+                    {comment.visitor_name || t('guestUser', { id: comment.visitor_id?.slice(-6) })}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {new Date(comment.created_at).toLocaleString('zh-CN', {
+                    {new Date(comment.created_at).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {
                       year: 'numeric',
                       month: '2-digit',
                       day: '2-digit',
@@ -174,7 +176,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
                   </span>
                   <span className="text-xs text-gray-500 flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
-                    {comment.location || '未知'}
+                    {comment.location || t('unknownLocation')}
                   </span>
                 </div>
                 <p className="text-gray-900 dark:text-white">{comment.content}</p>

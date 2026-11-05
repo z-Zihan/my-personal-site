@@ -7,6 +7,7 @@ import PixelCard from './effects/PixelCard'
 import RandomTag from './common/Tag'
 import { EyeIcon, HeartIcon } from 'lucide-react'
 import { trackEvent } from '../utils/analytics'
+import { useLanguage } from '../utils/useLanguage'
 
 export interface Article {
   id: number | string
@@ -29,6 +30,7 @@ interface ArticleCardProps {
 
 function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
   const navigate = useNavigate()
+  const { t } = useLanguage()
 
   if (!article) return null
 
@@ -61,13 +63,13 @@ function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
       <div
         role="button"
         tabIndex={0}
-        aria-label={`阅读文章：${article.title}`}
+        aria-label={t('readArticle', { title: article.title })}
         onKeyDown={handleCardKeyDown}
         className="h-full rounded-xl focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2"
       >
       {isRecommended && (
         <div className="absolute top-2 right-2 z-10 bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
-          <Star className="w-4 h-4" /> 推荐
+          <Star className="w-4 h-4" /> {t('recommended')}
         </div>
       )}
       {/* 浅色背景层 */}

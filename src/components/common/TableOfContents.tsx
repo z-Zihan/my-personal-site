@@ -1,4 +1,5 @@
 import React, { useEffect, useState, RefObject } from 'react'
+import { useLanguage } from '../../utils/useLanguage'
 
 interface HeadingData {
   id: string
@@ -13,6 +14,7 @@ interface TableOfContentsProps {
 export default function TableOfContents({ contentRef }: TableOfContentsProps) {
   const [headings, setHeadings] = useState<HeadingData[]>([])
   const [activeId, setActiveId] = useState('')
+  const { t } = useLanguage()
 
   useEffect(() => {
     if (contentRef?.current) {
@@ -52,7 +54,7 @@ export default function TableOfContents({ contentRef }: TableOfContentsProps) {
 
   return (
     <nav className="hidden lg:block fixed right-8 top-1/2 -translate-y-1/2 w-64 max-h-[80vh] overflow-y-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-      <h4 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">目录</h4>
+      <h4 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">{t('toc')}</h4>
       <ul className="space-y-2">
         {headings.map(({ id, text, level }) => (
           <li key={id} className={`${level === 'h3' ? 'pl-4' : ''} transition-all duration-200`}>

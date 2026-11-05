@@ -4,6 +4,7 @@ import { articleApi } from '../../api/article'
 import { toast } from '../../utils/toast'
 import useVisitorStore from '../../store/visitorStore'
 import { trackEvent } from '../../utils/analytics'
+import { useLanguage } from '../../utils/useLanguage'
 
 interface LikeData {
   likes: number
@@ -65,6 +66,7 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
   const [isLiked, setIsLiked] = useState(false)
   const [loading, setLoading] = useState(false)
   const { getVisitorId } = useVisitorStore()
+  const { t } = useLanguage()
 
   // 初始化时检查是否已点赞
   useEffect(() => {
@@ -105,7 +107,7 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
           action: 'like',
           page_path: window.location.pathname,
         })
-        toast.success('点赞成功')
+        toast.success(t('likeSuccess'))
       } else {
         // 取消点赞 - 使用 DELETE 请求，同一个接口
         const res = await articleApi.unlike({
@@ -124,19 +126,19 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
           action: 'unlike',
           page_path: window.location.pathname,
         })
-        toast.success('已取消点赞')
+        toast.success(t('unlikeSuccess'))
       }
     } catch (error) {
       // 回滚 UI
       setLikes((prev) => (newLikeStatus ? prev - 1 : prev + 1))
       setIsLiked(!newLikeStatus)
 
-      const errorMsg = (error as any).response?.data?.message || (error as Error).message || '操作失败，请重试'
+      const errorMsg = (error as any).response?.data?.message || (error as Error).message || t('operationFailed')
       toast.error(errorMsg)
     } finally {
       setLoading(false)
     }
-  }, [articleId, isLiked, loading])
+  }, [articleId, isLiked, loading, t])
 
   return (
     <button
@@ -150,7 +152,7 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
         }
         ${loading ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105 active:scale-95 cursor-pointer'}
       `}
-      aria-label={isLiked ? '取消点赞' : '点赞'}
+      aria-label={isLiked ? t('unlike') : t('likeAction')}
       aria-pressed={isLiked}
     >
       {/* 光晕效果 */}
@@ -189,7 +191,7 @@ export default function LikeButton({ articleId, initialLikes }: LikeButtonProps)
             isLiked ? 'text-pink-100' : 'text-gray-500 dark:text-gray-400 group-hover:text-pink-500 dark:group-hover:text-pink-400'
           }`}
         >
-          {isLiked ? '已赞' : '点赞'}
+          {isLiked ? t('liked') : t('likeAction')}
         </span>
       )}
     </button>
