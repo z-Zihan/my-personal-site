@@ -8,6 +8,7 @@ export interface Translations {
   blog: string
   hotNews: string
   message: string
+  about: string
   admin: string
   login: string
   logout: string
@@ -152,6 +153,7 @@ const translations: Record<Language, Translations> = {
     blog: '文章',
     hotNews: '热点',
     message: '留言',
+    about: '关于',
     admin: '管理',
     login: '登录',
     logout: '退出',
@@ -315,6 +317,7 @@ const translations: Record<Language, Translations> = {
     blog: 'Blog',
     hotNews: 'News',
     message: 'Messages',
+    about: 'About',
     admin: 'Admin',
     login: 'Login',
     logout: 'Logout',

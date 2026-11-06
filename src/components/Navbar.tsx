@@ -28,6 +28,7 @@ function Navbar() {
     { path: '/blog', label: t('blog') },
     { path: '/hot-news', label: t('hotNews') },
     { path: '/message', label: t('message') },
+    { path: '/about', label: t('about') },
   ]
 
   const isActive = (path: string) => location.pathname === path

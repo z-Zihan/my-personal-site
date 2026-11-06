@@ -17,6 +17,8 @@ function App() {
 
   // 判断是否在文章详情页
   const isBlogDetailPage = location.pathname.startsWith('/blog/')
+  // About 页不渲染底部模糊遮罩，避免糊住首屏统计条和滚动内容
+  const isAboutPage = location.pathname.startsWith('/about')
 
   // 监听自定义事件来控制 header 显示状态
   useEffect(() => {
@@ -46,22 +48,24 @@ function App() {
       <Analytics />
       <BackToTop />
 
-      {/* Gradual Blur Effect at Bottom - 文章详情页向下滚动时隐藏 */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '7rem',
-          zIndex: 40,
-          pointerEvents: 'none',
-          opacity: isBlogDetailPage && !globalHeaderVisible ? 0 : 1,
-          transition: 'opacity 0.3s ease-in-out',
-        }}
-      >
-        <GradualBlur target="page" position="bottom" height="7rem" strength={2} divCount={5} curve="bezier" exponential opacity={1} />
-      </div>
+      {/* Gradual Blur Effect at Bottom - 文章详情页向下滚动时隐藏，About 页不渲染 */}
+      {!isAboutPage && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '7rem',
+            zIndex: 40,
+            pointerEvents: 'none',
+            opacity: isBlogDetailPage && !globalHeaderVisible ? 0 : 1,
+            transition: 'opacity 0.3s ease-in-out',
+          }}
+        >
+          <GradualBlur target="page" position="bottom" height="7rem" strength={2} divCount={5} curve="bezier" exponential opacity={1} />
+        </div>
+      )}
     </div>
   )
 }

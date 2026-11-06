@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from '../constants/apiConstants';
 
 export interface Stats {
   totalArticles?: number;
+  publishedArticles?: number;
   totalComments?: number;
   totalMessages?: number;
   totalViews?: number;
