@@ -126,6 +126,23 @@ function HotNewsPage() {
     if (!sourceFilters.includes(filter)) setFilter("all");
   }, [sourceFilters, filter]);
 
+  // tab 条横向溢出且未滚到底时才显示右侧渐变提示
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [showTabsFade, setShowTabsFade] = useState(false);
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    const update = () => setShowTabsFade(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", update);
+      ro.disconnect();
+    };
+  }, [loading, sourceFilters]);
+
   const filteredNews = useMemo(
     () => (filter === "all" ? news : news.filter((item) => item.source === filter)),
     [news, filter],
@@ -145,35 +162,43 @@ function HotNewsPage() {
 
         {/* 来源过滤 + 刷新 */}
         {!loading && news.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
-            <div className="flex flex-wrap items-center gap-2">
-              {sourceFilters.map((key) => {
-                const active = filter === key;
-                const style = key === "all" ? null : SOURCE_STYLES[key] || DEFAULT_SOURCE_STYLE;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setFilter(key)}
-                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer border ${
-                      active
-                        ? "bg-gradient-to-r from-orange-500 to-red-500 text-white border-transparent shadow-md shadow-orange-500/30"
-                        : "bg-white/70 text-gray-600 border-gray-200 hover:border-orange-300 hover:text-orange-600"
-                    }`}
-                  >
-                    {style && (
-                      <span className={`w-2 h-2 rounded-full ${active ? "bg-white" : style.dot}`} />
-                    )}
-                    {key === "all" ? t("hotNewsAll") : key}
-                  </button>
-                );
-              })}
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 mb-8">
+            <div className="relative basis-full sm:basis-auto sm:flex-1 min-w-0">
+              <div
+                ref={tabsRef}
+                className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {sourceFilters.map((key) => {
+                  const active = filter === key;
+                  const style = key === "all" ? null : SOURCE_STYLES[key] || DEFAULT_SOURCE_STYLE;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setFilter(key)}
+                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap shrink-0 transition-all cursor-pointer border ${
+                        active
+                          ? "bg-gradient-to-r from-orange-500 to-red-500 text-white border-transparent shadow-md shadow-orange-500/30"
+                          : "bg-white/70 text-gray-600 border-gray-200 hover:border-orange-300 hover:text-orange-600"
+                      }`}
+                    >
+                      {style && (
+                        <span className={`w-2 h-2 rounded-full ${active ? "bg-white" : style.dot}`} />
+                      )}
+                      {key === "all" ? t("hotNewsAll") : key}
+                    </button>
+                  );
+                })}
+              </div>
+              {showTabsFade && (
+                <div className="pointer-events-none absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-gray-50 dark:from-gray-900 to-transparent" />
+              )}
             </div>
             <button
               type="button"
               onClick={handleRefresh}
               disabled={refreshing}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 text-gray-600 border border-gray-200 hover:border-orange-300 hover:text-orange-600 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              className="ml-auto shrink-0 flex items-center gap-1.5 whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 text-gray-600 border border-gray-200 hover:border-orange-300 hover:text-orange-600 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <svg
                 className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
