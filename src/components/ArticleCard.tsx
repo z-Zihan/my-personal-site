@@ -56,7 +56,7 @@ function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
   return (
     <PixelCard
       variant="purple"
-      className="overflow-hidden cursor-pointer relative"
+      className="overflow-hidden cursor-pointer relative h-full"
       onClick={handleCardClick}
     >
       {/* 键盘可达性层：Enter/空格触发跳转，与整卡点击行为一致 */}
@@ -65,7 +65,7 @@ function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
         tabIndex={0}
         aria-label={t('readArticle', { title: article.title })}
         onKeyDown={handleCardKeyDown}
-        className="h-full rounded-xl focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2"
+        className="h-full flex flex-col rounded-xl focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2"
       >
       {isRecommended && (
         <div className="absolute top-2 right-2 z-10 bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
@@ -84,7 +84,7 @@ function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
           target.src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=400&fit=crop'
         }}
       />
-      <div className="p-6 relative z-10 pt-8">
+      <div className="p-6 relative z-10 pt-8 flex-1 flex flex-col">
         {/* 分类标签 */}
         {article.categories && (article.categories as { name: string }).name && (
           <div className="mb-3 absolute top-1 right-2">
@@ -92,8 +92,8 @@ function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
           </div>
         )}
         <h3 className="text-xl font-bold mb-2 line-clamp-2">{article.title}</h3>
-        <p className="text-gray-400 mb-4 line-clamp-2">{article.summary}</p>
-        <div className="flex items-center justify-between text-sm text-gray-400">
+        <p className="text-gray-400 line-clamp-2">{article.summary}</p>
+        <div className="flex items-center justify-between text-sm text-gray-400 mt-auto pt-4">
           <ReadingTime content={article.content} />
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
