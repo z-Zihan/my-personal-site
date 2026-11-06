@@ -5,6 +5,12 @@ import './index.css'
 import router from './router/index.jsx'
 import { initAnalytics } from './utils/analytics'
 import { initPerfMonitor } from './utils/perfMonitor'
+import { preloadHomeData } from './api/homePreload'
+
+// 首页直达时立即发起数据请求，与后续 JS 下载/渲染并行
+if (window.location.pathname === '/') {
+  preloadHomeData()
+}
 
 // 初始化埋点
 initAnalytics()

@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import { Star, BookOpen, TrendingUp, Newspaper } from 'lucide-react';
 import SearchBar from '../components/common/SearchBar';
 import ArticleCard from '../components/ArticleCard';
-import { articleApi, hotNewsApi, statsApi, Article, HotNews, Stats } from '../api';
+import type { Article, HotNews, Stats } from '../api';
+import { consumeHomeData } from '../api/homePreload';
 import Sparkles from '../components/effects/Sparkles';
 import BlurText from '../components/effects/BlurText';
 import Magnet from '../components/effects/Magnet';
@@ -61,13 +62,8 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
-      const [articlesRes, recommendedRes, newsRes, statsRes] = await Promise.all([
-        articleApi.getList({ page: 1, limit: 6, status: 'published' }),
-        // 推荐文章必须是发布状态
-        articleApi.getList({ page: 1, limit: 6, recommended: true, status: 'published' }),
-        hotNewsApi.getList(),
-        statsApi.getStats()
-      ]);
+      // 复用 main.tsx 中提前发起的请求（若有），否则现发
+      const [articlesRes, recommendedRes, newsRes, statsRes] = await consumeHomeData();
       const articlesData = (articlesRes as unknown as { data?: Article[] }).data || [];
       // 过滤出发布状态的推荐文章
       const recommendedData = (recommendedRes as unknown as { data?: Article[] }).data || [];

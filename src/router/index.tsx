@@ -5,7 +5,8 @@ import App from '../App'
 import LoadingSpinner from '../components/effects/LoadingSpinner'
 
 // 路由懒加载 - 减小首屏 bundle 体积
-const Home = lazy(() => import('../pages/Home'))
+// 首屏页静态引入：省掉一轮 Home chunk 及其依赖（request/ArticleCard 等）的串行发现
+import Home from '../pages/Home'
 const BlogList = lazy(() => import('../pages/BlogList'))
 const BlogDetail = lazy(() => import('../pages/BlogDetail'))
 const HotNews = lazy(() => import('../pages/HotNews'))

@@ -61,11 +61,25 @@ export default defineConfig({
       workbox: {
         maximumFileSizeToCacheInBytes: 2 * 1024 * 1024, // 2 MB
         globPatterns: ['**/*.{js,css,html,ico,svg,woff,woff2}'],
+        // 懒加载大块不进 precache（否则首次访问 SW 会后台偷拉 ~2.8MB），改由下方 runtimeCaching 按需缓存
+        globIgnores: ['**/{antd,charts,editor,markdown,countries.geo}-*.{js,css}'],
         // 确保新版本 Service Worker 立即激活并清除旧缓存
         skipWaiting: true,
         clientsClaim: true,
         // 不缓存 API 请求
         runtimeCaching: [
+          {
+            // 未 precache 的懒加载 chunk：访问到时才缓存（文件名带 hash，SWR 即可）
+            urlPattern: /\/assets\/.*\.(?:js|css)$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'assets-cache',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 30
+              }
+            }
+          },
           {
             // API 请求始终使用网络（针对线上地址）
             urlPattern: /^https:\/\/zzihanaini\.vercel\.app\/api\/.*/i,

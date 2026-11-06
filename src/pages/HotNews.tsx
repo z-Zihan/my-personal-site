@@ -118,9 +118,9 @@ function HotNewsPage() {
   );
 
   return (
-    <div ref={containerRef} className="min-h-screen pt-20 pb-24">
+    <div ref={containerRef} className="min-h-screen pt-20 pb-24 relative overflow-hidden">
       <Crosshair color="#f97316" containerRef={containerRef as React.RefObject<HTMLElement>} />
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-4xl mx-auto px-4 relative z-10">
         <Motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
