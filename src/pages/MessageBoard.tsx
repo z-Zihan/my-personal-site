@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { messageApi } from "../api/index";
 import { toast } from "../utils/toast";
@@ -10,6 +10,8 @@ import ElectricBorder from "../components/effects/ElectricBorder";
 const WorldMap = lazy(() => import("../components/effects/WorldMap"));
 import { useGeolocation } from "../hooks/useGeolocation";
 import { cleanUserInput, inputRules } from "../utils/sanitize";
+import { useLanguage } from "../utils/useLanguage";
+import { classifyMessage, applyOwnerWeight } from "../utils/messageFlags";
 import { Spin } from "antd";
 import {
   LikeOutlined,
@@ -26,6 +28,7 @@ const PAGE_SIZE = 10;
 type SortMode = "random" | "time" | "hot";
 
 function MessageBoard() {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<any[]>([]);
   const [totalMessages, setTotalMessages] = useState(0);
   const [content, setContent] = useState<string>("");
@@ -249,7 +252,7 @@ function MessageBoard() {
           ),
         );
 
-        toast.error("操作失败，请重试");
+        toast.error(t("operationFailed"));
       }
     } catch (error) {
       // 网络错误，回滚乐观更新
@@ -272,7 +275,7 @@ function MessageBoard() {
         ),
       );
 
-      toast.error("操作失败，请重试");
+      toast.error(t("operationFailed"));
     } finally {
       setLikingInProgress((prev) => {
         const newSet = new Set(prev);
@@ -288,7 +291,7 @@ function MessageBoard() {
 
     // 验证输入长度
     if (content.length > inputRules.messageMaxLength) {
-      toast.error(`留言长度不能超过 ${inputRules.messageMaxLength} 个字符`);
+      toast.error(t("messageTooLong", { max: inputRules.messageMaxLength }));
       return;
     }
 
@@ -310,9 +313,9 @@ function MessageBoard() {
       if (sortMode === 'random') setRandomSeed(newSeed);
       setMessages([]);
       fetchMessages(1, sortMode, newSeed);
-      toast.success("留言成功");
+      toast.success(t("messageSuccess"));
     } catch (error) {
-      toast.error("留言失败，请重试");
+      toast.error(t("messageFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -322,7 +325,7 @@ function MessageBoard() {
     try {
       await getLocation().then(setLocation);
     } catch (err) {
-      toast.error("获取位置失败");
+      toast.error(t("locationFailed"));
     }
   };
 
@@ -354,6 +357,12 @@ function MessageBoard() {
       fetchMessages(1, 'random', newSeed);
     }
   }, [sortMode, fetchMessages]);
+
+  // 博主留言加权：热门置顶、最新同分钟优先（随机不变）
+  const sortedMessages = useMemo(
+    () => applyOwnerWeight(messages, sortMode),
+    [messages, sortMode],
+  );
 
   // 滚动到留言输入框
   const scrollToInput = () => {
@@ -401,7 +410,7 @@ function MessageBoard() {
                   <circle cx="14" cy="12" r="2" fill="currentColor" />
                 </motion.svg>
                 <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                  {inputVisible ? "写句留言吧~" : "下面可以留言哦"}
+                  {inputVisible ? t("bubbleWriteHere") : t("bubbleScrollDown")}
                 </span>
               </div>
             </div>
@@ -497,10 +506,10 @@ function MessageBoard() {
             <div className="relative flex items-center justify-center gap-3">
               <GlobalOutlined className="text-2xl" style={{ color: "white" }} />
               <span className="text-lg font-bold text-white">
-                查看全球访客足迹
+                {t("viewVisitorMap")}
               </span>
               <span className="px-3 py-1 bg-white/20 rounded-full text-sm text-white/90 backdrop-blur-sm">
-                点击展开世界地图
+                {t("expandWorldMap")}
               </span>
             </div>
           </motion.button>
@@ -516,10 +525,10 @@ function MessageBoard() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-1 h-8 bg-gradient-to-b from-purple-400 to-cyan-400 rounded-full"></div>
-              <h2 className="text-2xl font-bold text-gray-800">所有留言</h2>
+              <h2 className="text-2xl font-bold text-gray-800">{t("allMessages")}</h2>
               {totalMessages > 0 && (
                 <span className="px-3 py-1 bg-purple-100 rounded-full text-sm text-purple-600">
-                  {totalMessages} 条
+                  {t("messageTotal", { count: totalMessages })}
                 </span>
               )}
             </div>
@@ -551,7 +560,7 @@ function MessageBoard() {
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                     />
                   </motion.svg>
-                  <span className="relative z-10 font-medium">换一批</span>
+                  <span className="relative z-10 font-medium">{t("shuffleMessages")}</span>
                 </motion.button>
               )}
               {/* 自定义排序切换 */}
@@ -560,7 +569,7 @@ function MessageBoard() {
                   [
                     {
                       value: "random" as SortMode,
-                      label: "随机",
+                      label: t("sortRandom"),
                       icon: (
                         <svg
                           className="w-4 h-4"
@@ -583,14 +592,14 @@ function MessageBoard() {
                     },
                     {
                       value: "time" as SortMode,
-                      label: "最新",
+                      label: t("sortLatest"),
                       icon: <ClockCircleOutlined />,
                       gradient: "from-cyan-500 to-blue-600",
                       glow: "shadow-cyan-500/40",
                     },
                     {
                       value: "hot" as SortMode,
-                      label: "热门",
+                      label: t("sortHot"),
                       icon: <FireOutlined />,
                       gradient: "from-orange-500 to-red-500",
                       glow: "shadow-orange-500/40",
@@ -678,7 +687,7 @@ function MessageBoard() {
                     />
                   </div>
                   <p className="text-lg text-gray-400 animate-pulse">
-                    正在加载留言...
+                    {t("loadingMessages")}
                   </p>
                 </div>
               ) : messages.length === 0 ? (
@@ -723,19 +732,21 @@ function MessageBoard() {
                   </div>
 
                   <h3 className="text-2xl font-semibold text-gray-300 mb-3">
-                    暂无留言
+                    {t("noMessages")}
                   </h3>
                   <p className="text-gray-500 text-center max-w-md">
-                    这里还没有任何留言
+                    {t("noMessagesHint")}
                     <br />
                     <span className="text-sm opacity-70">
-                      快来抢沙发，留下你的第一条评论吧！
+                      {t("noMessagesCta")}
                     </span>
                   </p>
                 </motion.div>
               ) : (
                 <>
-                  {messages.map((message, index) => (
+                  {sortedMessages.map((message, index) => {
+                    const isOwner = classifyMessage(message) === "owner";
+                    return (
                     <motion.div
                       key={message.id}
                       initial={{ opacity: 0, x: -20 }}
@@ -745,7 +756,11 @@ function MessageBoard() {
                     >
                       <PixelCard
                         variant="cyan"
-                        className="p-6 bg-white/90 backdrop-blur-xl border border-purple-100 hover:shadow-lg hover:shadow-purple-200/20 transition-all duration-300"
+                        className={`p-6 bg-white/90 backdrop-blur-xl border hover:shadow-lg hover:shadow-purple-200/20 transition-all duration-300 ${
+                          isOwner
+                            ? "border-purple-300 ring-1 ring-purple-300/60 shadow-md shadow-purple-200/30"
+                            : "border-purple-100"
+                        }`}
                       >
                         <div className="flex items-start gap-4">
                           <Avatar userId={message.visitor_id} size={48} />
@@ -753,8 +768,13 @@ function MessageBoard() {
                             <div className="flex items-center gap-3 mb-2 flex-wrap">
                               <span className="font-semibold text-gray-700">
                                 {message.visitor_name ||
-                                  `访客 ${message.visitor_id?.slice(-6)}`}
+                                  t("guestUser", { id: message.visitor_id?.slice(-6) ?? "" })}
                               </span>
+                              {isOwner && (
+                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-purple-500 to-fuchsia-500 shadow-sm shadow-purple-500/30">
+                                  {t("ownerBadge")}
+                                </span>
+                              )}
                               <span className="text-gray-400 text-sm">
                                 {formatDate(message.created_at)}
                               </span>
@@ -807,19 +827,20 @@ function MessageBoard() {
                         </div>
                       </PixelCard>
                     </motion.div>
-                  ))}
+                    );
+                  })}
 
                   {/* 加载更多触发器 */}
                   <div ref={loadMoreRef} className="py-4 flex justify-center">
                     {loadingMore && (
                       <div className="flex items-center gap-2 text-gray-400">
                         <Spin size="small" />
-                        <span>加载更多...</span>
+                        <span>{t("loadingMore")}</span>
                       </div>
                     )}
                     {!hasMore && messages.length > 0 && (
                       <div className="text-gray-400 text-sm">
-                        已加载全部留言
+                        {t("allMessagesLoaded")}
                       </div>
                     )}
                   </div>
@@ -859,8 +880,8 @@ function MessageBoard() {
                   </svg>
                   <span className="truncate max-w-xs">
                     {locationLoading
-                      ? "获取位置中..."
-                      : location || "未获取位置信息"}
+                      ? t("locationFetching")
+                      : location || t("locationNone")}
                   </span>
                 </div>
                 <button
@@ -870,17 +891,17 @@ function MessageBoard() {
                   className="text-xs px-3 py-1 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200 transition-colors duration-200 disabled:opacity-50 cursor-pointer"
                 >
                   {locationLoading
-                    ? "获取中..."
+                    ? t("locationGetting")
                     : location
-                      ? "更新位置"
-                      : "获取位置"}
+                      ? t("locationUpdate")
+                      : t("locationGet")}
                 </button>
               </div>
 
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="分享你的想法，留下你的足迹..."
+                placeholder={t("messagePlaceholder")}
                 rows={5}
                 maxLength={inputRules.messageMaxLength}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-700 placeholder-gray-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 focus:outline-none resize-none transition-all duration-300 cursor-pointer"
@@ -903,7 +924,7 @@ function MessageBoard() {
                     />
                   </svg>
                   <span>
-                    {content.length}/{inputRules.messageMaxLength} 字
+                    {t("charCount", { count: content.length, max: inputRules.messageMaxLength })}
                   </span>
                 </div>
 
@@ -946,7 +967,7 @@ function MessageBoard() {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           />
                         </svg>
-                        <span>提交中...</span>
+                        <span>{t("submitting")}</span>
                       </>
                     ) : (
                       <>
@@ -963,7 +984,7 @@ function MessageBoard() {
                             d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                           />
                         </svg>
-                        <span>提交留言</span>
+                        <span>{t("submitMessage")}</span>
                       </>
                     )}
                   </span>

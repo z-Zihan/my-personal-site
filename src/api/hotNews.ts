@@ -9,6 +9,8 @@ export interface HotNews {
   link?: string;
   source?: string;
   heat?: number;
+  /** 热度：GitHub=stars / Hacker News=score / V2EX=replies */
+  hot?: number;
   created_at?: string;
   [key: string]: unknown;
 }

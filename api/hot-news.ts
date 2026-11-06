@@ -7,152 +7,160 @@ export const config = {
 
 // 缓存时间：30 分钟（秒）
 const CACHE_DURATION = 30 * 60
+// 单源请求超时
+const FETCH_TIMEOUT = 5000
+// 每个源取的条数（3 源合计 18 条）
+const PER_SOURCE = 6
 
-// 免费热榜 API 列表
-const HOT_APIS = [
-  {
-    name: '微博热搜',
-    url: 'https://api.vvhan.com/api/hotlist/wbHot',
-    parser: (data: Record<string, unknown>) => {
-      if (data.success && Array.isArray(data.data)) {
-        return data.data.slice(0, 10).map((item: Record<string, unknown>) => ({
-          title: item.title || item.name,
-          link: item.url || `https://s.weibo.com/weibo?q=${encodeURIComponent(String(item.title || item.name || ''))}`,
-          source: '微博热搜',
-          hot: item.hot || item.num,
-        }))
-      }
-      return []
-    },
-  },
-  {
-    name: '知乎热榜',
-    url: 'https://api.vvhan.com/api/hotlist/zhihuHot',
-    parser: (data: Record<string, unknown>) => {
-      if (data.success && Array.isArray(data.data)) {
-        return data.data.slice(0, 10).map((item: Record<string, unknown>) => ({
-          title: item.title || item.name,
-          link: item.url || 'https://www.zhihu.com/hot',
-          source: '知乎热榜',
-          hot: item.hot,
-        }))
-      }
-      return []
-    },
-  },
-  {
-    name: '抖音热点',
-    url: 'https://api.vvhan.com/api/hotlist/douyinHot',
-    parser: (data: Record<string, unknown>) => {
-      if (data.success && Array.isArray(data.data)) {
-        return data.data.slice(0, 10).map((item: Record<string, unknown>) => ({
-          title: item.title || item.name,
-          link: item.url || 'https://www.douyin.com/hot',
-          source: '抖音热点',
-          hot: item.hot,
-        }))
-      }
-      return []
-    },
-  },
-  {
-    name: '今日头条',
-    url: 'https://api.vvhan.com/api/hotlist/toutiao',
-    parser: (data: Record<string, unknown>) => {
-      if (data.success && Array.isArray(data.data)) {
-        return data.data.slice(0, 10).map((item: Record<string, unknown>) => ({
-          title: item.title || item.name,
-          link: item.url || 'https://www.toutiao.com/',
-          source: '今日头条',
-          hot: item.hot,
-        }))
-      }
-      return []
-    },
-  },
-]
+type SourceName = 'GitHub' | 'Hacker News' | 'V2EX'
 
-// 模拟热点数据（作为 fallback）
+// 兜底数据：只放真实可访问的通用入口，不编造新闻标题
 const FALLBACK_NEWS: HotNews[] = [
-  { title: 'GitHub 今日 trending 项目推荐', link: 'https://github.com/trending', source: 'GitHub' },
-  { title: 'AI 技术最新进展汇总', link: 'https://github.com/topics/artificial-intelligence', source: 'GitHub Topics' },
-  { title: '前端开发工具链演进', link: 'https://github.com/topics/frontend', source: 'Dev Community' },
-  { title: '开源项目最佳实践指南', link: 'https://opensource.guide/', source: 'Open Source' },
-  { title: '云原生技术趋势分析', link: 'https://github.com/topics/cloud-native', source: 'Cloud Native' },
+  { title: 'GitHub Trending', link: 'https://github.com/trending', source: 'GitHub' },
+  { title: 'Hacker News — Top Stories', link: 'https://news.ycombinator.com/', source: 'Hacker News' },
+  { title: 'V2EX — 今日热议', link: 'https://www.v2ex.com/?tab=hot', source: 'V2EX' },
+  { title: 'zZihan Blog — Latest Posts', link: 'https://zzihanaini.vercel.app/blog', source: 'Blog' },
 ]
 
-// 从多个热榜 API 获取实时数据
-async function fetchFromHotAPIs(): Promise<HotNews[]> {
-  const allNews: HotNews[] = []
+async function fetchJson<T>(url: string, headers: Record<string, string> = {}): Promise<T> {
+  const response = await fetch(url, {
+    headers: { Accept: 'application/json', ...headers },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT),
+  })
+  if (!response.ok) throw new Error(`HTTP ${response.status} ${url}`)
+  return (await response.json()) as T
+}
 
-  // 随机选择 2-3 个 API 并行请求
-  const shuffled = [...HOT_APIS].sort(() => Math.random() - 0.5)
-  const selectedAPIs = shuffled.slice(0, 3)
+const unixToIso = (seconds?: number): string | undefined =>
+  typeof seconds === 'number' ? new Date(seconds * 1000).toISOString() : undefined
 
-  const results = await Promise.allSettled(
-    selectedAPIs.map(async (api) => {
-      try {
-        const response = await fetch(api.url, {
-          headers: { 'Accept': 'application/json' },
-          // 设置超时
-          signal: AbortSignal.timeout(5000),
-        })
-        if (!response.ok) throw new Error(`HTTP ${response.status}`)
-        const data = await response.json()
-        return api.parser(data as Record<string, unknown>)
-      } catch {
-        return []
-      }
-    })
+// GitHub：近 7 天新建仓库按 star 排序（新仓库爆星榜）
+async function fetchGitHub(): Promise<HotNews[]> {
+  try {
+    const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString().slice(0, 10)
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'zzihan-blog-hot-news',
+    }
+    const token = process.env.GITHUB_TOKEN
+    if (token) headers.Authorization = `Bearer ${token}`
+
+    const data = await fetchJson<{
+      items?: Array<{ full_name: string; html_url: string; stargazers_count: number; created_at?: string }>
+    }>(
+      `https://api.github.com/search/repositories?q=created:>${since}&sort=stars&order=desc&per_page=${PER_SOURCE}`,
+      headers
+    )
+    return (data.items || []).slice(0, PER_SOURCE).map((repo) => ({
+      title: repo.full_name,
+      link: repo.html_url,
+      hot: repo.stargazers_count,
+      source: 'GitHub' satisfies SourceName,
+      created_at: repo.created_at,
+    }))
+  } catch (e) {
+    console.error('GitHub source failed:', e)
+    return []
+  }
+}
+
+// Hacker News：Top Stories 前 N 条，并发拉详情
+async function fetchHackerNews(): Promise<HotNews[]> {
+  try {
+    const ids = await fetchJson<number[]>('https://hacker-news.firebaseio.com/v0/topstories.json')
+    const items = await Promise.allSettled(
+      ids.slice(0, PER_SOURCE).map((id) =>
+        fetchJson<{ id: number; title?: string; url?: string; score?: number; time?: number }>(
+          `https://hacker-news.firebaseio.com/v0/item/${id}.json`
+        )
+      )
+    )
+    return items
+      .filter((r): r is PromiseFulfilledResult<{ id: number; title?: string; url?: string; score?: number; time?: number }> =>
+        r.status === 'fulfilled' && !!r.value?.title
+      )
+      .map(({ value: item }) => ({
+        title: item.title as string,
+        link: item.url || `https://news.ycombinator.com/item?id=${item.id}`,
+        hot: item.score,
+        source: 'Hacker News' satisfies SourceName,
+        created_at: unixToIso(item.time),
+      }))
+  } catch (e) {
+    console.error('Hacker News source failed:', e)
+    return []
+  }
+}
+
+// V2EX：全站热帖
+async function fetchV2EX(): Promise<HotNews[]> {
+  try {
+    const topics = await fetchJson<
+      Array<{ title: string; url: string; replies?: number; created?: number }>
+    >('https://www.v2ex.com/api/topics/hot.json')
+    return (topics || []).slice(0, PER_SOURCE).map((topic) => ({
+      title: topic.title,
+      link: topic.url,
+      hot: topic.replies,
+      source: 'V2EX' satisfies SourceName,
+      created_at: unixToIso(topic.created),
+    }))
+  } catch (e) {
+    console.error('V2EX source failed:', e)
+    return []
+  }
+}
+
+// 三源并行，单源失败不影响其它；各源内部按 hot 排序后轮流穿插（不同源的热度量纲不可比）
+async function fetchLiveNews(): Promise<HotNews[]> {
+  const results = await Promise.allSettled([fetchGitHub(), fetchHackerNews(), fetchV2EX()])
+  const lists = results.map((r) =>
+    r.status === 'fulfilled' ? [...r.value].sort((a, b) => (b.hot || 0) - (a.hot || 0)) : []
   )
 
-  for (const result of results) {
-    if (result.status === 'fulfilled' && result.value.length > 0) {
-      allNews.push(...result.value)
+  const merged: HotNews[] = []
+  const maxLen = Math.max(0, ...lists.map((l) => l.length))
+  for (let i = 0; i < maxLen; i++) {
+    for (const list of lists) {
+      if (list[i]) merged.push(list[i])
     }
   }
-
-  // 按热度排序（如果有热度数据）
-  allNews.sort((a, b) => (b.hot || 0) - (a.hot || 0))
-
-  // 返回前 15 条
-  return allNews.slice(0, 15)
+  return merged
 }
 
-// 获取缓存的新闻数据
+// 获取缓存的新闻数据（多行 valid 时取最新一行，避免 .single() 报错）
 async function getCachedNews(): Promise<HotNews[] | null> {
-  const { data, error } = await supabase
-    .from('hot_news_cache')
-    .select('*')
-    .eq('is_valid', true)
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('hot_news_cache')
+      .select('*')
+      .eq('is_valid', true)
+      .order('updated_at', { ascending: false })
+      .limit(1)
 
-  if (error || !data) {
+    const row = data?.[0]
+    if (error || !row) return null
+
+    const cacheTime = new Date(row.updated_at).getTime()
+    if (Date.now() - cacheTime < CACHE_DURATION * 1000) {
+      const parsed = typeof row.news_data === 'string' ? JSON.parse(row.news_data) : row.news_data
+      return Array.isArray(parsed) ? (parsed as HotNews[]) : null
+    }
+    return null
+  } catch (e) {
+    console.error('Cache read failed:', e)
     return null
   }
-
-  // 检查缓存是否过期
-  const cacheTime = new Date(data.updated_at).getTime()
-  const now = Date.now()
-
-  if (now - cacheTime < CACHE_DURATION * 1000) {
-    return JSON.parse(data.news_data) as HotNews[]
-  }
-
-  return null
 }
 
-// 更新缓存
+// 更新缓存：旧的有效行全部置为失效，再插入新行
 async function updateCache(newsData: HotNews[]): Promise<void> {
   try {
-    // 先清空旧缓存
     await supabase.from('hot_news_cache').update({ is_valid: false }).eq('is_valid', true)
-
-    // 插入新缓存
     await supabase.from('hot_news_cache').insert({
       news_data: JSON.stringify(newsData),
       is_valid: true,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
   } catch (e) {
     console.error('Cache update failed:', e)
@@ -175,6 +183,17 @@ async function getManualNews(): Promise<HotNews[]> {
   }
 }
 
+// 手动热点在前，按链接去重
+function mergeNews(manual: HotNews[], live: HotNews[]): HotNews[] {
+  const seen = new Set<string>()
+  return [...manual, ...live].filter((item) => {
+    const key = item.link || item.title
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
@@ -185,43 +204,22 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    // 0. 优先合并管理员手动创建的热点（hot_news 表），始终返回
-    const manualNews = await getManualNews()
+    const [manualNews, cachedNews] = await Promise.all([getManualNews(), getCachedNews()])
 
-    // 1. 先尝试从缓存获取
-    const cachedNews = await getCachedNews()
     if (cachedNews && cachedNews.length > 0) {
-      console.log('Returning cached news')
-      return jsonResponse({ data: [...manualNews, ...cachedNews] })
+      return jsonResponse({ data: mergeNews(manualNews, cachedNews) })
     }
 
-    // 2. 缓存失效，尝试获取真实数据
-    let newsData = FALLBACK_NEWS
-
-    try {
-      newsData = await fetchFromHotAPIs()
-      if (newsData.length > 0) {
-        console.log('Fetched fresh news from Hot APIs')
-        // 更新缓存
-        await updateCache(newsData)
-      } else {
-        console.log('No data from APIs, using fallback')
-        newsData = FALLBACK_NEWS
-      }
-    } catch {
-      console.log('Using fallback news data (APIs unavailable)')
-      // 使用 fallback 数据
+    const liveNews = await fetchLiveNews()
+    if (liveNews.length > 0) {
+      await updateCache(liveNews)
+      return jsonResponse({ data: mergeNews(manualNews, liveNews) })
     }
 
-    return jsonResponse({ data: [...manualNews, ...newsData] })
+    console.log('No data from live sources, using fallback')
+    return jsonResponse({ data: mergeNews(manualNews, FALLBACK_NEWS) })
   } catch (error) {
     console.error('Error fetching hot news:', error)
-    // 始终返回 fallback 数据作为保底（含手动创建的热点）
-    try {
-      const manualNews = await getManualNews()
-      return jsonResponse({ data: [...manualNews, ...FALLBACK_NEWS] })
-    } catch {
-      return jsonResponse({ data: FALLBACK_NEWS })
-    }
+    return jsonResponse({ data: FALLBACK_NEWS })
   }
 }
