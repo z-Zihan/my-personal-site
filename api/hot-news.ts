@@ -10,7 +10,7 @@ const CACHE_DURATION = 30 * 60
 // 单源请求超时
 const FETCH_TIMEOUT = 5000
 // 每个源取的条数（6 源合计约 48 条）
-const PER_SOURCE = 8
+const PER_SOURCE = 20
 
 type SourceName = 'GitHub' | 'Hacker News' | 'V2EX' | 'Ruanyf Weekly' | 'DEV Community' | 'freeCodeCamp'
 
