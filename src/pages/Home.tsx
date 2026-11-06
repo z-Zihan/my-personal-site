@@ -89,10 +89,13 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors pb-24" suppressHydrationWarning>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-600 to-cyan-600 py-32" suppressHydrationWarning>
-        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
-        <Aurora colors={['#8b5cf6', '#ec4899', '#06b6d4']} opacity={0.4} />
-        <Sparkles count={80} />
+      <section className="relative bg-gradient-to-br from-purple-600 via-pink-600 to-cyan-600 py-32" suppressHydrationWarning>
+        {/* 只裁剪装饰层，section 本身不 overflow-hidden，否则搜索下拉会被截断 */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+          <Aurora colors={['#8b5cf6', '#ec4899', '#06b6d4']} opacity={0.4} />
+          <Sparkles count={80} />
+        </div>
         <div className="relative max-w-6xl mx-auto px-4 text-center z-10" suppressHydrationWarning>
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}

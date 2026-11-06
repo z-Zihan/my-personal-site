@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchApi } from '../../api/search'
-import { sanitizeInput, inputRules } from '../../utils/sanitize'
+import { inputRules } from '../../utils/sanitize'
 import { trackEvent } from '../../utils/analytics'
 import { useLanguage } from '../../utils/useLanguage'
 
@@ -56,10 +56,11 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (query.length >= 1) {
+      const keyword = query.trim()
+      if (keyword.length >= 1) {
         setLoading(true)
         try {
-          const res = await searchApi.search(query)
+          const res = await searchApi.search(keyword)
           const searchResults = (res as { data?: SearchResult[] }).data || []
           setResults(searchResults)
           setIsOpen(true)
@@ -104,23 +105,23 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
   }
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative w-full md:w-64 mx-auto" ref={containerRef}>
       <div className="relative">
         <input
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(e) => setQuery(sanitizeInput(e.target.value))}
+          onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.length >= 1 && setIsOpen(true)}
           placeholder={t('searchPlaceholder')}
           maxLength={inputRules.searchMaxLength}
-          className="w-full md:w-64 px-4 py-2 pl-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
+          className="w-full px-4 py-2 pl-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-text"
         />
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl max-h-96 overflow-y-auto z-50 border border-gray-200 dark:border-gray-700">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 w-full min-w-[320px] max-w-[calc(100vw-2rem)] mt-2 max-h-[min(24rem,60vh)] overflow-y-auto text-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-50 border border-gray-200 dark:border-gray-700">
           {loading ? (
             <div className="p-4 text-center text-gray-500">{t('searching')}</div>
           ) : results.length > 0 ? (
@@ -130,7 +131,7 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
                 onClick={() => handleSelect(article.id)}
                 className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-0 cursor-pointer"
               >
-                <h4 className="font-medium text-gray-900 dark:text-white">{article.title}</h4>
+                <h4 className="font-medium text-gray-900 dark:text-white truncate" title={article.title}>{article.title}</h4>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{article.summary}</p>
                 {formatDate(article.created_at as string | undefined) && (
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 flex items-center gap-1">

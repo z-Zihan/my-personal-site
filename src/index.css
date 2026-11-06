@@ -174,14 +174,14 @@ button, .btn, [role="button"] {
   cursor: pointer;
 }
 
-/* 全局输入框样式 - 添加鼠标指针样式 */
+/* 全局输入框样式：可输入文本的控件用文本光标，勾选/文件/按钮类控件用指针 */
 input, textarea {
-  cursor: pointer;
+  cursor: text;
 }
 
-/* 输入框聚焦时改变 cursor */
-input:focus, textarea:focus {
-  cursor: text;
+input[type="checkbox"], input[type="radio"], input[type="file"], input[type="range"],
+input[type="color"], input[type="submit"], input[type="button"], input[type="reset"] {
+  cursor: pointer;
 }
 
 /* 基础响应式断点 */

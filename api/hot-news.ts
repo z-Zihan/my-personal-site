@@ -9,16 +9,18 @@ export const config = {
 const CACHE_DURATION = 30 * 60
 // 单源请求超时
 const FETCH_TIMEOUT = 5000
-// 每个源取的条数（3 源合计 18 条）
-const PER_SOURCE = 6
+// 每个源取的条数（6 源合计约 48 条）
+const PER_SOURCE = 8
 
-type SourceName = 'GitHub' | 'Hacker News' | 'V2EX'
+type SourceName = 'GitHub' | 'Hacker News' | 'V2EX' | 'Ruanyf Weekly' | 'DEV Community' | 'freeCodeCamp'
 
 // 兜底数据：只放真实可访问的通用入口，不编造新闻标题
 const FALLBACK_NEWS: HotNews[] = [
   { title: 'GitHub Trending', link: 'https://github.com/trending', source: 'GitHub' },
   { title: 'Hacker News — Top Stories', link: 'https://news.ycombinator.com/', source: 'Hacker News' },
   { title: 'V2EX — 今日热议', link: 'https://www.v2ex.com/?tab=hot', source: 'V2EX' },
+  { title: 'DEV Community — Top This Week', link: 'https://dev.to/top/week', source: 'DEV Community' },
+  { title: '科技爱好者周刊', link: 'https://github.com/ruanyf/weekly', source: 'Ruanyf Weekly' },
   { title: 'zZihan Blog — Latest Posts', link: 'https://zzihanaini.vercel.app/blog', source: 'Blog' },
 ]
 
@@ -29,6 +31,12 @@ async function fetchJson<T>(url: string, headers: Record<string, string> = {}): 
   })
   if (!response.ok) throw new Error(`HTTP ${response.status} ${url}`)
   return (await response.json()) as T
+}
+
+async function fetchText(url: string, headers: Record<string, string> = {}): Promise<string> {
+  const response = await fetch(url, { headers, signal: AbortSignal.timeout(FETCH_TIMEOUT) })
+  if (!response.ok) throw new Error(`HTTP ${response.status} ${url}`)
+  return response.text()
 }
 
 const unixToIso = (seconds?: number): string | undefined =>
@@ -111,9 +119,85 @@ async function fetchV2EX(): Promise<HotNews[]> {
   }
 }
 
-// 三源并行，单源失败不影响其它；各源内部按 hot 排序后轮流穿插（不同源的热度量纲不可比）
+// 阮一峰科技爱好者周刊：README 顶部即最新一期的链接（contents API 列 400+ 文件太慢），
+// 再解析该期正文里「1、[标题](链接)」形式的条目
+async function fetchRuanyfWeekly(): Promise<HotNews[]> {
+  try {
+    const base = 'https://raw.githubusercontent.com/ruanyf/weekly/master'
+    const readme = await fetchText(`${base}/README.md`)
+    const latest = /docs\/issue-\d+\.md/.exec(readme)?.[0]
+    if (!latest) return []
+
+    const markdown = await fetchText(`${base}/${latest}`)
+    return [...markdown.matchAll(/^\d+、\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/gm)]
+      .slice(0, PER_SOURCE)
+      .map((m) => ({
+        title: m[1].trim(),
+        link: m[2],
+        source: 'Ruanyf Weekly' satisfies SourceName,
+      }))
+  } catch (e) {
+    console.error('Ruanyf Weekly source failed:', e)
+    return []
+  }
+}
+
+// DEV Community：近 7 天热门文章
+async function fetchDevTo(): Promise<HotNews[]> {
+  try {
+    const articles = await fetchJson<
+      Array<{ title: string; url: string; positive_reactions_count?: number; published_at?: string }>
+    >(`https://dev.to/api/articles?top=7&per_page=${PER_SOURCE}`)
+    return (articles || []).slice(0, PER_SOURCE).map((article) => ({
+      title: article.title,
+      link: article.url,
+      hot: article.positive_reactions_count,
+      source: 'DEV Community' satisfies SourceName,
+      created_at: article.published_at,
+    }))
+  } catch (e) {
+    console.error('DEV Community source failed:', e)
+    return []
+  }
+}
+
+// freeCodeCamp News：RSS 最新文章（Edge 无 DOMParser，用正则取字段）
+async function fetchFreeCodeCamp(): Promise<HotNews[]> {
+  try {
+    const xml = await fetchText('https://www.freecodecamp.org/news/rss/', {
+      Accept: 'application/rss+xml, application/xml',
+    })
+    const pick = (block: string, tag: string): string | undefined =>
+      new RegExp(`<${tag}>\\s*(?:<!\\[CDATA\\[)?\\s*([\\s\\S]*?)\\s*(?:\\]\\]>)?\\s*</${tag}>`).exec(block)?.[1]
+    return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)]
+      .map((m) => {
+        const pubDate = pick(m[1], 'pubDate')
+        const time = pubDate ? new Date(pubDate) : null
+        return {
+          title: pick(m[1], 'title') || '',
+          link: pick(m[1], 'link') || '',
+          source: 'freeCodeCamp' satisfies SourceName,
+          created_at: time && !Number.isNaN(time.getTime()) ? time.toISOString() : undefined,
+        }
+      })
+      .filter((item) => item.title && item.link)
+      .slice(0, PER_SOURCE)
+  } catch (e) {
+    console.error('freeCodeCamp source failed:', e)
+    return []
+  }
+}
+
+// 多源并行，单源失败不影响其它；各源内部按 hot 排序后轮流穿插（不同源的热度量纲不可比）
 async function fetchLiveNews(): Promise<HotNews[]> {
-  const results = await Promise.allSettled([fetchGitHub(), fetchHackerNews(), fetchV2EX()])
+  const results = await Promise.allSettled([
+    fetchGitHub(),
+    fetchHackerNews(),
+    fetchV2EX(),
+    fetchDevTo(),
+    fetchRuanyfWeekly(),
+    fetchFreeCodeCamp(),
+  ])
   const lists = results.map((r) =>
     r.status === 'fulfilled' ? [...r.value].sort((a, b) => (b.hot || 0) - (a.hot || 0)) : []
   )

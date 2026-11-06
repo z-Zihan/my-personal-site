@@ -9,17 +9,20 @@ import type { Translations } from "../utils/i18n";
 
 // 前端本地缓存时间：5 分钟
 const CLIENT_CACHE_DURATION = 5 * 60 * 1000;
-// v2：数据源切换为 GitHub / Hacker News / V2EX，旧缓存作废
-const CACHE_KEY = "hot_news_cache_v2";
+// v3：新增 DEV Community / 阮一峰周刊 / freeCodeCamp 源，旧缓存作废
+const CACHE_KEY = "hot_news_cache_v3";
 
-type SourceFilter = "all" | "GitHub" | "Hacker News" | "V2EX";
-const SOURCE_FILTERS: SourceFilter[] = ["all", "GitHub", "Hacker News", "V2EX"];
+// "all" 或数据里出现的任一 source 名
+type SourceFilter = string;
 
 // 来源徽章样式（来源名是专有名词，不翻译）
 const SOURCE_STYLES: Record<string, { dot: string; badge: string; hotIcon: string }> = {
   GitHub: { dot: "bg-gray-800", badge: "bg-gray-800/10 text-gray-800", hotIcon: "⭐" },
   "Hacker News": { dot: "bg-orange-500", badge: "bg-orange-500/10 text-orange-600", hotIcon: "▲" },
   V2EX: { dot: "bg-blue-500", badge: "bg-blue-500/10 text-blue-600", hotIcon: "💬" },
+  "DEV Community": { dot: "bg-indigo-500", badge: "bg-indigo-500/10 text-indigo-600", hotIcon: "❤️" },
+  "Ruanyf Weekly": { dot: "bg-emerald-500", badge: "bg-emerald-500/10 text-emerald-600", hotIcon: "🔥" },
+  freeCodeCamp: { dot: "bg-teal-600", badge: "bg-teal-600/10 text-teal-700", hotIcon: "🔥" },
 };
 const DEFAULT_SOURCE_STYLE = { dot: "bg-purple-500", badge: "bg-purple-500/10 text-purple-600", hotIcon: "🔥" };
 
@@ -112,6 +115,17 @@ function HotNewsPage() {
     fetchNews(true);
   };
 
+  // tab 按数据中实际出现的来源动态生成（保持出现顺序）
+  const sourceFilters = useMemo<SourceFilter[]>(
+    () => ["all", ...new Set(news.map((item) => item.source).filter((s): s is string => !!s))],
+    [news],
+  );
+
+  // 当前来源在新数据里消失时回退到 all
+  useEffect(() => {
+    if (!sourceFilters.includes(filter)) setFilter("all");
+  }, [sourceFilters, filter]);
+
   const filteredNews = useMemo(
     () => (filter === "all" ? news : news.filter((item) => item.source === filter)),
     [news, filter],
@@ -133,9 +147,9 @@ function HotNewsPage() {
         {!loading && news.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
             <div className="flex flex-wrap items-center gap-2">
-              {SOURCE_FILTERS.map((key) => {
+              {sourceFilters.map((key) => {
                 const active = filter === key;
-                const style = key === "all" ? null : SOURCE_STYLES[key];
+                const style = key === "all" ? null : SOURCE_STYLES[key] || DEFAULT_SOURCE_STYLE;
                 return (
                   <button
                     key={key}
