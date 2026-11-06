@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { messageApi } from "../api/index";
 import { toast } from "../utils/toast";
 import useVisitorStore from "../store/visitorStore";
-import { formatDate } from "../utils/helpers";
+import { formatDate, formatLocation } from "../utils/helpers";
 import Avatar from "../components/common/Avatar";
 import PixelCard from "../components/effects/PixelCard";
 import ElectricBorder from "../components/effects/ElectricBorder";
@@ -763,7 +763,7 @@ function MessageBoard() {
                         }`}
                       >
                         <div className="flex items-start gap-4">
-                          <Avatar userId={message.visitor_id} size={48} />
+                          <Avatar userId={message.visitor_id} size={48} name={message.visitor_name ?? undefined} />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-3 mb-2 flex-wrap">
                               <span className="font-semibold text-gray-700">
@@ -792,7 +792,7 @@ function MessageBoard() {
                                     />
                                   </svg>
                                   <span className="truncate max-w-md">
-                                    {message.location}
+                                    {formatLocation(message.location)}
                                   </span>
                                 </div>
                               )}

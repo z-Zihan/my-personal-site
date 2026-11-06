@@ -7,6 +7,8 @@ interface AvatarProps {
   className?: string
   editable?: boolean
   isSelf?: boolean
+  /** 显示名：有值时头像字符取其首字（英文首字母大写），渐变色仍由 userId 决定 */
+  name?: string
 }
 
 // 渐变色方案
@@ -92,8 +94,9 @@ const AVATAR_CHANGE_EVENT = 'avatar-seed-changed'
  * - editable=true: 点击可换头像（仅在 Profile 页使用）
  * - isSelf=true: 当前用户自己的头像，会读取自定义 seed（Navbar 等处使用）
  * - 默认: 根据 userId 确定性生成
+ * - name: 传入时字符取昵称首字，渐变色仍由 userId hash 决定
  */
-export default function Avatar({ userId, size = 40, className = '', editable = false, isSelf = false }: AvatarProps) {
+export default function Avatar({ userId, size = 40, className = '', editable = false, isSelf = false, name }: AvatarProps) {
   const [spinning, setSpinning] = useState(false)
   const [localSeed, setLocalSeed] = useState<number>(() => {
     const saved = localStorage.getItem(AVATAR_STORAGE_KEY)
@@ -114,11 +117,12 @@ export default function Avatar({ userId, size = 40, className = '', editable = f
   const shouldUseCustomSeed = editable || isSelf
 
   const avatar = useMemo(() => {
-    if (shouldUseCustomSeed && localSeed > 0) {
-      return generateAvatarFromSeed(localSeed)
-    }
-    return generateAvatar(userId)
-  }, [userId, shouldUseCustomSeed, localSeed])
+    const base = shouldUseCustomSeed && localSeed > 0
+      ? generateAvatarFromSeed(localSeed)
+      : generateAvatar(userId)
+    const initial = getNameInitial(name)
+    return initial ? { ...base, letter: initial } : base
+  }, [userId, shouldUseCustomSeed, localSeed, name])
 
   const handleClick = useCallback(() => {
     if (!editable) return
@@ -197,6 +201,14 @@ interface AvatarResult {
   letter: string
   backgroundColor?: string
   gradient?: [string, string]
+}
+
+/**
+ * 取昵称首字符：中文取第一个字，英文取首字母大写；空串返回 null
+ */
+function getNameInitial(name: string | undefined): string | null {
+  const first = Array.from(name?.trim() ?? '')[0]
+  return first ? first.toUpperCase() : null
 }
 
 /**
