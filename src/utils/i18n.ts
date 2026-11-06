@@ -144,6 +144,56 @@ export interface Translations {
   langSwitchToEnglish: string
   langSwitchToChinese: string
   menu: string
+  // 留言板
+  messageTotal: string
+  shuffleMessages: string
+  sortRandom: string
+  sortLatest: string
+  sortHot: string
+  loadingMessages: string
+  loadingMore: string
+  allMessagesLoaded: string
+  noMessagesHint: string
+  noMessagesCta: string
+  bubbleWriteHere: string
+  bubbleScrollDown: string
+  viewVisitorMap: string
+  expandWorldMap: string
+  messagePlaceholder: string
+  submitMessage: string
+  locationFetching: string
+  locationGet: string
+  locationUpdate: string
+  locationGetting: string
+  locationNone: string
+  locationFailed: string
+  messageSuccess: string
+  messageFailed: string
+  messageTooLong: string
+  ownerBadge: string
+  // 个人中心
+  personalInfo: string
+  nickname: string
+  nicknamePlaceholder: string
+  nicknameNotSet: string
+  nicknameSaved: string
+  nicknameTooLong: string
+  loadingProfile: string
+  switchedToDark: string
+  switchedToLight: string
+  // 热点资讯
+  hotNewsTitle: string
+  loadingHotNews: string
+  noHotNews: string
+  noHotNewsHint: string
+  noHotNewsHintSub: string
+  hotNewsRefresh: string
+  hotNewsAll: string
+  // 相对时间
+  justNow: string
+  minutesAgo: string
+  hoursAgo: string
+  daysAgo: string
 }
 
 const translations: Record<Language, Translations> = {
@@ -310,6 +360,60 @@ const translations: Record<Language, Translations> = {
     langSwitchToEnglish: '切换为英文',
     langSwitchToChinese: '切换为中文',
     menu: '菜单',
+
+    // 留言板
+    messageTotal: '{count} 条',
+    shuffleMessages: '换一批',
+    sortRandom: '随机',
+    sortLatest: '最新',
+    sortHot: '热门',
+    loadingMessages: '正在加载留言...',
+    loadingMore: '加载更多...',
+    allMessagesLoaded: '已加载全部留言',
+    noMessagesHint: '这里还没有任何留言',
+    noMessagesCta: '快来抢沙发，留下你的第一条评论吧！',
+    bubbleWriteHere: '写句留言吧~',
+    bubbleScrollDown: '下面可以留言哦',
+    viewVisitorMap: '查看全球访客足迹',
+    expandWorldMap: '点击展开世界地图',
+    messagePlaceholder: '分享你的想法，留下你的足迹...',
+    submitMessage: '提交留言',
+    locationFetching: '获取位置中...',
+    locationGet: '获取位置',
+    locationUpdate: '更新位置',
+    locationGetting: '获取中...',
+    locationNone: '未获取位置信息',
+    locationFailed: '获取位置失败',
+    messageSuccess: '留言成功',
+    messageFailed: '留言失败，请重试',
+    messageTooLong: '留言长度不能超过 {max} 个字符',
+    ownerBadge: '博主',
+
+    // 个人中心
+    personalInfo: '个人信息',
+    nickname: '昵称',
+    nicknamePlaceholder: '输入昵称',
+    nicknameNotSet: '未设置昵称',
+    nicknameSaved: '昵称已保存',
+    nicknameTooLong: '昵称长度不能超过 {max} 个字符',
+    loadingProfile: '加载个人信息...',
+    switchedToDark: '已切换到暗黑模式',
+    switchedToLight: '已切换到浅色模式',
+
+    // 热点资讯
+    hotNewsTitle: '热点资讯',
+    loadingHotNews: '正在加载热点资讯...',
+    noHotNews: '暂无热点资讯',
+    noHotNewsHint: '暂时还没有获取到热点信息',
+    noHotNewsHintSub: '请稍后再来查看最新资讯动态',
+    hotNewsRefresh: '刷新',
+    hotNewsAll: '全部',
+
+    // 相对时间
+    justNow: '刚刚',
+    minutesAgo: '{n}分钟前',
+    hoursAgo: '{n}小时前',
+    daysAgo: '{n}天前',
   },
   en: {
     // Navigation
@@ -474,6 +578,60 @@ const translations: Record<Language, Translations> = {
     langSwitchToEnglish: 'Switch to English',
     langSwitchToChinese: 'Switch to Chinese',
     menu: 'Menu',
+
+    // Message board
+    messageTotal: '{count} messages',
+    shuffleMessages: 'Shuffle',
+    sortRandom: 'Random',
+    sortLatest: 'Latest',
+    sortHot: 'Popular',
+    loadingMessages: 'Loading messages...',
+    loadingMore: 'Loading more...',
+    allMessagesLoaded: 'You have reached the end',
+    noMessagesHint: 'Nothing here yet',
+    noMessagesCta: 'Be the first to leave a message!',
+    bubbleWriteHere: 'Say something~',
+    bubbleScrollDown: 'Leave a message below',
+    viewVisitorMap: 'See visitors around the world',
+    expandWorldMap: 'Open world map',
+    messagePlaceholder: 'Share your thoughts, leave your mark...',
+    submitMessage: 'Post Message',
+    locationFetching: 'Locating...',
+    locationGet: 'Get location',
+    locationUpdate: 'Update location',
+    locationGetting: 'Locating...',
+    locationNone: 'Location unavailable',
+    locationFailed: 'Failed to get location',
+    messageSuccess: 'Message posted',
+    messageFailed: 'Failed to post message, please retry',
+    messageTooLong: 'Message cannot exceed {max} characters',
+    ownerBadge: 'Owner',
+
+    // Profile
+    personalInfo: 'Personal Info',
+    nickname: 'Nickname',
+    nicknamePlaceholder: 'Enter a nickname',
+    nicknameNotSet: 'No nickname yet',
+    nicknameSaved: 'Nickname saved',
+    nicknameTooLong: 'Nickname cannot exceed {max} characters',
+    loadingProfile: 'Loading profile...',
+    switchedToDark: 'Switched to dark mode',
+    switchedToLight: 'Switched to light mode',
+
+    // Hot news
+    hotNewsTitle: 'Tech Pulse',
+    loadingHotNews: 'Loading trending topics...',
+    noHotNews: 'Nothing trending yet',
+    noHotNewsHint: 'We could not fetch any trending topics right now',
+    noHotNewsHintSub: 'Please check back later',
+    hotNewsRefresh: 'Refresh',
+    hotNewsAll: 'All',
+
+    // Relative time
+    justNow: 'just now',
+    minutesAgo: '{n}m ago',
+    hoursAgo: '{n}h ago',
+    daysAgo: '{n}d ago',
   },
 }
 

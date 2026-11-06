@@ -54,8 +54,17 @@ export default async function handler(req: Request): Promise<Response> {
       .from('messages')
       .select('*', { count: 'exact' })
 
+    // 热门：博主留言（visitor_id 以 owner_ 开头）单独置顶在第 1 页，分页主体排除博主留言
+    let ownerMessages: unknown[] = []
     if (sort === 'hot') {
+      const { data: owners } = await supabase
+        .from('messages')
+        .select('*')
+        .like('visitor_id', 'owner\\_%')
+        .order('created_at', { ascending: false })
+      ownerMessages = owners || []
       query = query
+        .not('visitor_id', 'like', 'owner\\_%')
         .order('likes', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
     } else {
@@ -72,8 +81,8 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     return jsonResponse({
-      data: data || [],
-      total: count || 0,
+      data: page === 1 ? [...ownerMessages, ...(data || [])] : data || [],
+      total: (count || 0) + ownerMessages.length,
       hasMore: (page * pageSize) < (count || 0),
     })
   } catch (error) {

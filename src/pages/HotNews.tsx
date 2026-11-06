@@ -1,57 +1,121 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion as Motion } from "framer-motion";
 import { hotNewsApi } from "../api/index";
 import type { HotNews } from "../api/index";
 import PixelCard from "../components/effects/PixelCard";
 import Crosshair from "../components/effects/Crosshair";
+import { useLanguage } from "../utils/useLanguage";
+import type { Translations } from "../utils/i18n";
 
 // 前端本地缓存时间：5 分钟
 const CLIENT_CACHE_DURATION = 5 * 60 * 1000;
-const CACHE_KEY = "hot_news_cache";
+// v2：数据源切换为 GitHub / Hacker News / V2EX，旧缓存作废
+const CACHE_KEY = "hot_news_cache_v2";
+
+type SourceFilter = "all" | "GitHub" | "Hacker News" | "V2EX";
+const SOURCE_FILTERS: SourceFilter[] = ["all", "GitHub", "Hacker News", "V2EX"];
+
+// 来源徽章样式（来源名是专有名词，不翻译）
+const SOURCE_STYLES: Record<string, { dot: string; badge: string; hotIcon: string }> = {
+  GitHub: { dot: "bg-gray-800", badge: "bg-gray-800/10 text-gray-800", hotIcon: "⭐" },
+  "Hacker News": { dot: "bg-orange-500", badge: "bg-orange-500/10 text-orange-600", hotIcon: "▲" },
+  V2EX: { dot: "bg-blue-500", badge: "bg-blue-500/10 text-blue-600", hotIcon: "💬" },
+};
+const DEFAULT_SOURCE_STYLE = { dot: "bg-purple-500", badge: "bg-purple-500/10 text-purple-600", hotIcon: "🔥" };
+
+const formatHot = (n: number): string =>
+  n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n);
+
+type TFn = (key: keyof Translations, params?: Record<string, string | number>) => string;
+
+// 相对时间：just now / 5m ago / 2h ago / 3d ago（7 天以上显示日期）
+const formatRelative = (iso: string | undefined, t: TFn, lang: string): string => {
+  if (!iso) return "";
+  const time = new Date(iso).getTime();
+  if (Number.isNaN(time)) return "";
+  const diff = Math.max(0, Date.now() - time);
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (minutes < 1) return t("justNow");
+  if (minutes < 60) return t("minutesAgo", { n: minutes });
+  if (hours < 24) return t("hoursAgo", { n: hours });
+  if (days < 7) return t("daysAgo", { n: days });
+  return new Date(time).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US");
+};
 
 function HotNewsPage() {
+  const { t, lang } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const [news, setNews] = useState<HotNews[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [filter, setFilter] = useState<SourceFilter>("all");
 
-  useEffect(() => {
-    const fetchNews = async () => {
-      // 先尝试从本地缓存获取
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
+  const fetchNews = useCallback(async (force = false) => {
+    let cached: string | null = null;
+    try {
+      cached = localStorage.getItem(CACHE_KEY);
+    } catch {
+      /* localStorage 不可用 */
+    }
+
+    // 先尝试从本地缓存获取（手动刷新时跳过）
+    if (cached && !force) {
+      try {
         const { data, timestamp } = JSON.parse(cached);
         if (Date.now() - timestamp < CLIENT_CACHE_DURATION && data.length > 0) {
           setNews(data);
           setLoading(false);
           return;
         }
+      } catch {
+        /* 缓存损坏，忽略 */
       }
+    }
 
-      try {
-        const data = await hotNewsApi.getList();
-        const newsData = (data as unknown as { data?: HotNews[] }).data || [];
-        setNews(newsData);
+    try {
+      const data = await hotNewsApi.getList();
+      const newsData = (data as unknown as { data?: HotNews[] }).data || [];
+      setNews(newsData);
 
-        // 更新本地缓存
-        localStorage.setItem(
-          CACHE_KEY,
-          JSON.stringify({
-            data: newsData,
-            timestamp: Date.now(),
-          }),
-        );
-      } catch (error) {
-        // 如果请求失败，使用旧缓存（如果有）
-        if (cached) {
-          const { data } = JSON.parse(cached);
-          setNews(data);
+      // 更新本地缓存
+      localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({
+          data: newsData,
+          timestamp: Date.now(),
+        }),
+      );
+    } catch (error) {
+      // 如果请求失败，使用旧缓存（如果有）
+      if (cached) {
+        try {
+          setNews(JSON.parse(cached).data || []);
+        } catch {
+          /* ignore */
         }
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchNews();
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchNews();
+  }, [fetchNews]);
+
+  const handleRefresh = () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    fetchNews(true);
+  };
+
+  const filteredNews = useMemo(
+    () => (filter === "all" ? news : news.filter((item) => item.source === filter)),
+    [news, filter],
+  );
 
   return (
     <div ref={containerRef} className="min-h-screen pt-20 pb-24">
@@ -62,8 +126,58 @@ function HotNewsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-5xl font-bold text-center mb-12 neon-text"
         >
-          热点资讯
+          {t("hotNewsTitle")}
         </Motion.h1>
+
+        {/* 来源过滤 + 刷新 */}
+        {!loading && news.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+            <div className="flex flex-wrap items-center gap-2">
+              {SOURCE_FILTERS.map((key) => {
+                const active = filter === key;
+                const style = key === "all" ? null : SOURCE_STYLES[key];
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setFilter(key)}
+                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer border ${
+                      active
+                        ? "bg-gradient-to-r from-orange-500 to-red-500 text-white border-transparent shadow-md shadow-orange-500/30"
+                        : "bg-white/70 text-gray-600 border-gray-200 hover:border-orange-300 hover:text-orange-600"
+                    }`}
+                  >
+                    {style && (
+                      <span className={`w-2 h-2 rounded-full ${active ? "bg-white" : style.dot}`} />
+                    )}
+                    {key === "all" ? t("hotNewsAll") : key}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-white/70 text-gray-600 border border-gray-200 hover:border-orange-300 hover:text-orange-600 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <svg
+                className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              {t("hotNewsRefresh")}
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32">
@@ -97,10 +211,10 @@ function HotNewsPage() {
               />
             </div>
             <p className="text-lg text-gray-400 animate-pulse">
-              正在加载热点资讯...
+              {t("loadingHotNews")}
             </p>
           </div>
-        ) : news.length === 0 ? (
+        ) : filteredNews.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32">
             {/* 空状态 SVG 插图 */}
             <div className="relative mb-8">
@@ -138,27 +252,30 @@ function HotNewsPage() {
             </div>
 
             <h3 className="text-2xl font-semibold text-gray-300 mb-3">
-              暂无热点资讯
+              {t("noHotNews")}
             </h3>
             <p className="text-gray-500 text-center max-w-md">
-              暂时还没有获取到热点信息
+              {t("noHotNewsHint")}
               <br />
               <span className="text-sm opacity-70">
-                请稍后再来查看最新资讯动态
+                {t("noHotNewsHintSub")}
               </span>
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {news.map((item, index) => (
+            {filteredNews.map((item, index) => {
+              const style = (item.source && SOURCE_STYLES[item.source]) || DEFAULT_SOURCE_STYLE;
+              const relative = formatRelative(item.created_at, t, lang);
+              return (
               <Motion.a
-                key={`hot_news_${item.id}${index}`}
+                key={`hot_news_${item.id ?? item.link}${index}`}
                 href={item.link || item.url || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: Math.min(index, 12) * 0.04 }}
                 className="block"
               >
                 <PixelCard
@@ -167,17 +284,28 @@ function HotNewsPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <span className="text-3xl font-bold text-primary">
                           {String(index + 1).padStart(2, "0")}
                         </span>
                         {item.source && (
-                          <span className="px-2 py-1 bg-secondary/20 text-secondary text-xs rounded">
+                          <span
+                            className={`flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-full ${style.badge}`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
                             {item.source}
                           </span>
                         )}
+                        {typeof item.hot === "number" && item.hot > 0 && (
+                          <span className="text-xs font-medium text-gray-500 tabular-nums">
+                            {style.hotIcon} {formatHot(item.hot)}
+                          </span>
+                        )}
+                        {relative && (
+                          <span className="text-xs text-gray-400">{relative}</span>
+                        )}
                       </div>
-                      <h3 className="text-xl font-medium ml-12">
+                      <h3 className="text-xl font-medium ml-12 break-words">
                         {item.title}
                       </h3>
                     </div>
@@ -197,7 +325,8 @@ function HotNewsPage() {
                   </div>
                 </PixelCard>
               </Motion.a>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings, Sun, Moon, Globe, Palette } from 'lucide-react';
 import { toast } from '../utils/toast';
-import { getLanguage, setLanguage, t, Language } from '../utils/i18n';
+import type { Language } from '../utils/i18n';
+import { useLanguage } from '../utils/useLanguage';
 import { useThemeStore } from '../store/themeStore';
 import Avatar from '../components/common/Avatar';
 import { sanitizeInput, inputRules } from '../utils/sanitize';
@@ -11,7 +12,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { darkMode, setDarkMode } = useThemeStore();
   const [visitorId, setVisitorId] = useState(() => localStorage.getItem('visitor_id') || '');
-  const [language, setLang] = useState<Language>('zh');
+  const { t, lang: language, setLang } = useLanguage();
   const [userName, setUserName] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [stats, setStats] = useState({ comments: 0, likes: 0 });
@@ -29,10 +30,6 @@ export default function Profile() {
     }
     setVisitorId(vid);
 
-    // 获取语言设置
-    const lang = getLanguage();
-    setLang(lang);
-
     // 获取用户名
     const name = localStorage.getItem('userName') || '';
     setUserName(name);
@@ -45,21 +42,20 @@ export default function Profile() {
   }, []);
 
   const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang);
     setLang(lang);
-    toast.success(lang === 'zh' ? '语言已切换为中文' : 'Language switched to English');
+    toast.success(t(lang === 'zh' ? 'switchToChinese' : 'switchToEnglish'));
   };
 
   const handleThemeChange = (isDark: boolean) => {
     setDarkMode(isDark);
     localStorage.setItem('darkMode', isDark.toString());
-    toast.success(isDark ? '已切换到暗黑模式' : '已切换到浅色模式');
+    toast.success(t(isDark ? 'switchedToDark' : 'switchedToLight'));
   };
 
   const handleSaveName = () => {
     // 验证输入长度
     if (userName.length > inputRules.nicknameMaxLength) {
-      toast.error(`昵称长度不能超过 ${inputRules.nicknameMaxLength} 个字符`);
+      toast.error(t('nicknameTooLong', { max: inputRules.nicknameMaxLength }));
       return;
     }
 
@@ -67,13 +63,8 @@ export default function Profile() {
     const cleanedName = sanitizeInput(userName);
     localStorage.setItem('userName', cleanedName);
     setEditingName(false);
-    toast.success('昵称已保存');
+    toast.success(t('nicknameSaved'));
   };
-
-  // 语言切换时同步 <html lang>（useLanguage hook 未覆盖此页的 toast 提示场景）
-  useEffect(() => {
-    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
-  }, [language]);
 
   if (loading) {
     return (
@@ -83,7 +74,7 @@ export default function Profile() {
           <div className="w-20 h-20 border-4 border-pink-200 dark:border-pink-900 rounded-full animate-spin" style={{ borderLeftColor: '#ec4899', borderTopColor: '#a855f7' }} />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 border-4 border-purple-200 dark:border-purple-900 rounded-full animate-spin" style={{ animationDuration: '0.8s', animationDirection: 'reverse', borderRightColor: '#a855f7', borderBottomColor: '#06b6d4' }} />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full animate-pulse shadow-lg" />
-          <p className="text-center mt-8 text-gray-600 dark:text-gray-400 animate-pulse">加载个人信息...</p>
+          <p className="text-center mt-8 text-gray-600 dark:text-gray-400 animate-pulse">{t('loadingProfile')}</p>
         </div>
       </div>
     );
@@ -93,13 +84,13 @@ export default function Profile() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors pb-24">
       <div className="max-w-4xl mx-auto px-4 py-16">
         <h1 className="text-4xl font-bold text-center mb-12 text-gray-900 dark:text-white">
-          个人信息
+          {t('profile')}
         </h1>
 
         {/* 用户信息卡片 */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-            个人信息
+            {t('personalInfo')}
           </h2>
 
           {/* 头像和用户名 */}
@@ -107,7 +98,7 @@ export default function Profile() {
             <Avatar userId={visitorId} size={80} className="shadow-lg" editable />
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                昵称
+                {t('nickname')}
               </label>
               {editingName ? (
                 <div className="flex gap-2">
@@ -116,7 +107,7 @@ export default function Profile() {
                     value={userName}
                     onChange={(e) => setUserName(e.target.value)}
                     className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent cursor-pointer"
-                    placeholder="输入昵称"
+                    placeholder={t('nicknamePlaceholder')}
                     maxLength={inputRules.nicknameMaxLength}
                     autoFocus
                   />
@@ -124,7 +115,7 @@ export default function Profile() {
                     onClick={handleSaveName}
                     className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 cursor-pointer"
                   >
-                    保存
+                    {t('save')}
                   </button>
                   <button
                     onClick={() => {
@@ -133,19 +124,19 @@ export default function Profile() {
                     }}
                     className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer"
                   >
-                    取消
+                    {t('cancel')}
                   </button>
                 </div>
               ) : (
                 <div className="flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                   <span className="text-lg text-gray-900 dark:text-white">
-                    {userName || '未设置昵称'}
+                    {userName || t('nicknameNotSet')}
                   </span>
                   <button
                     onClick={() => setEditingName(true)}
                     className="text-purple-500 hover:text-purple-600 text-sm cursor-pointer"
                   >
-                    编辑
+                    {t('edit')}
                   </button>
                 </div>
               )}
@@ -202,7 +193,7 @@ export default function Profile() {
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                🇨🇳 中文
+                🇨🇳 {t('chinese')}
               </button>
               <button
                 onClick={() => handleLanguageChange('en')}
@@ -212,7 +203,7 @@ export default function Profile() {
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                🇺🇸 English
+                🇺🇸 {t('english')}
               </button>
             </div>
           </div>
@@ -231,7 +222,7 @@ export default function Profile() {
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                <Sun className="w-5 h-5" /> 浅色
+                <Sun className="w-5 h-5" /> {t('light')}
               </button>
               {/* <button
                 onClick={() => handleThemeChange(true)}
@@ -241,7 +232,7 @@ export default function Profile() {
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                <Moon className="w-5 h-5" /> 暗黑
+                <Moon className="w-5 h-5" /> {t('dark')}
               </button> */}
             </div>
           </div>
@@ -253,7 +244,7 @@ export default function Profile() {
             onClick={() => navigate('/')}
             className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:opacity-90 transition-opacity cursor-pointer"
           >
-            ← 返回首页
+            ← {t('backHome')}
           </button>
         </div>
       </div>
