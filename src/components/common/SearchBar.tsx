@@ -105,7 +105,7 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
   }
 
   return (
-    <div className="relative w-full md:w-64 mx-auto" ref={containerRef}>
+    <div className="relative w-full md:w-[36rem] max-w-full mx-auto" ref={containerRef}>
       <div className="relative">
         <input
           ref={inputRef}

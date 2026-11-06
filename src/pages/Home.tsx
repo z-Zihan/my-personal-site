@@ -120,7 +120,7 @@ export default function Home() {
             </span>
           </motion.p>
 
-          <div className="max-w-md mx-auto mb-8">
+          <div className="max-w-2xl mx-auto mb-8">
             <SearchBar />
           </div>
 
