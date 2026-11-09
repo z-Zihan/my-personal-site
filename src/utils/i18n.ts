@@ -67,6 +67,9 @@ export interface Translations {
   pageInfo: string
   noArticles: string
   noArticlesHint: string
+  sortNewest: string
+  sortOldest: string
+  sortHottest: string
   // 文章详情
   viewsSuffix: string
   loadingArticle: string
@@ -271,6 +274,9 @@ const translations: Record<Language, Translations> = {
     pageInfo: '第 {current} / {total} 页',
     noArticles: '暂无文章',
     noArticlesHint: '这里还没有任何文章\n待博主更新后，精彩内容将在这里展示',
+    sortNewest: '最新',
+    sortOldest: '最早',
+    sortHottest: '最热',
 
     // 文章详情
     viewsSuffix: '次阅读',
@@ -489,6 +495,9 @@ const translations: Record<Language, Translations> = {
     pageInfo: 'Page {current} of {total}',
     noArticles: 'No posts yet',
     noArticlesHint: 'Nothing here at the moment\nCheck back soon — new posts are on the way',
+    sortNewest: 'Newest',
+    sortOldest: 'Oldest',
+    sortHottest: 'Hottest',
 
     // Article detail
     viewsSuffix: 'views',

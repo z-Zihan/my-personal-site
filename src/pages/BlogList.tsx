@@ -8,6 +8,14 @@ import { categoryApi, Category } from "../api/category";
 import { trackEvent } from "../utils/analytics";
 import { useLanguage } from "../utils/useLanguage";
 
+type SortOrder = "newest" | "oldest" | "hottest";
+
+const SORT_OPTIONS: { value: SortOrder; labelKey: "sortNewest" | "sortOldest" | "sortHottest" }[] = [
+  { value: "newest", labelKey: "sortNewest" },
+  { value: "oldest", labelKey: "sortOldest" },
+  { value: "hottest", labelKey: "sortHottest" },
+];
+
 function BlogList() {
   const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -17,6 +25,7 @@ function BlogList() {
   const [selectedCategory, setSelectedCategory] = useState<number | "all">(
     "all",
   );
+  const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
   const [categories, setCategories] = useState<Category[]>([
     { id: "all", name: "" } as unknown as Category,
   ]);
@@ -24,6 +33,8 @@ function BlogList() {
     status: "published",
     limit: 18,
     category_id: selectedCategory !== "all" ? selectedCategory : undefined,
+    // 排序随 initialParams 透传，分页/切分类时保持当前排序
+    sort: sortOrder,
   });
 
   const fetchCategories = async () => {
@@ -60,6 +71,17 @@ function BlogList() {
     });
   }, [selectedCategory]);
 
+  const handleSortChange = (sort: SortOrder) => {
+    if (sort === sortOrder) return;
+    trackEvent('article_sort', 'navigation', {
+      sort,
+      page_path: window.location.pathname,
+    });
+    setSortOrder(sort);
+    setPage(1);
+    refetch({ page: 1, sort });
+  };
+
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       setPage(newPage);
@@ -87,7 +109,7 @@ function BlogList() {
         </h1>
 
         {/* 分类导航 - GooeyNav */}
-        <div className="mb-12 flex justify-center">
+        <div className="mb-8 flex justify-center">
           <GooeyNav
             items={categories.map((cat, i) => ({
               // 第一个固定是「全部」分类，名称走 i18n；真实分类名是数据，不翻译
@@ -112,6 +134,30 @@ function BlogList() {
               setPage(1);
             }}
           />
+        </div>
+
+        {/* 排序切换 */}
+        <div className="mb-12 flex justify-center">
+          <div className="inline-flex items-center gap-1 p-1 rounded-full border border-primary/30 bg-dark/60 backdrop-blur-sm">
+            {SORT_OPTIONS.map((option) => {
+              const active = sortOrder === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => handleSortChange(option.value)}
+                  className={`px-5 py-1.5 rounded-full text-sm transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2 ${
+                    active
+                      ? "bg-primary text-dark font-semibold shadow-lg shadow-primary/30"
+                      : "text-gray-400 hover:text-primary"
+                  }`}
+                >
+                  {t(option.labelKey)}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {loading ? (

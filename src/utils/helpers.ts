@@ -10,22 +10,34 @@ export function formatDate(dateString: string | number | Date): string {
   })
 }
 
-export function formatRelativeTime(dateString: string | number | Date): string {
+/**
+ * 相对时间：30 天内显示「N天前 / Nd ago」，超过 30 天显示 YYYY/MM/DD
+ * @param lang - 文案语言，默认 zh
+ */
+export function formatRelativeTime(
+  dateString: string | number | Date,
+  lang: 'zh' | 'en' = 'zh'
+): string {
   if (!dateString) return ''
   const date = new Date(dateString)
+  if (isNaN(date.getTime())) return ''
   const now = new Date()
-  const diff = now.getTime() - date.getTime()
+  const diff = Math.max(0, now.getTime() - date.getTime())
 
   const minutes = Math.floor(diff / 60000)
   const hours = Math.floor(diff / 3600000)
   const days = Math.floor(diff / 86400000)
+  const isZh = lang === 'zh'
 
-  if (minutes < 1) return '刚刚'
-  if (minutes < 60) return `${minutes}分钟前`
-  if (hours < 24) return `${hours}小时前`
-  if (days < 7) return `${days}天前`
+  if (minutes < 1) return isZh ? '刚刚' : 'just now'
+  if (minutes < 60) return isZh ? `${minutes}分钟前` : `${minutes}m ago`
+  if (hours < 24) return isZh ? `${hours}小时前` : `${hours}h ago`
+  if (days <= 30) return isZh ? `${days}天前` : `${days}d ago`
 
-  return formatDate(dateString)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}/${m}/${d}`
 }
 
 export function truncateText(text: string, maxLength: number): string {

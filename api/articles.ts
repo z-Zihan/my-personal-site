@@ -21,6 +21,9 @@ export default async function handler(req: Request): Promise<Response> {
     const status = url.searchParams.get('status')
     const recommended = url.searchParams.get('recommended')
     const category_id = url.searchParams.get('category_id')
+    // 排序：newest（默认）| oldest | hottest，非法值回退 newest
+    const sortParam = url.searchParams.get('sort')
+    const sort = sortParam === 'oldest' || sortParam === 'hottest' ? sortParam : 'newest'
 
     let query = supabase
       .from('articles')
@@ -36,9 +39,14 @@ export default async function handler(req: Request): Promise<Response> {
       query = query.eq('is_recommended', true)
         .order('recommend_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false })
+    } else if (sort === 'hottest') {
+      // 最热：按阅读数倒序，同阅读数按创建时间倒序
+      query = query
+        .order('views', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false })
     } else {
-      // 普通文章列表，按创建时间倒序
-      query = query.order('created_at', { ascending: false })
+      // 最新 / 最早：按创建时间排序
+      query = query.order('created_at', { ascending: sort === 'oldest' })
     }
 
     query = query.range((page - 1) * limit, page * limit - 1)

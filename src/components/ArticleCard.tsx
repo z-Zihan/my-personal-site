@@ -5,9 +5,10 @@ import ReadingTime from './common/ReadingTime'
 import { getArticleCover } from '../utils/defaultCovers'
 import PixelCard from './effects/PixelCard'
 import RandomTag from './common/Tag'
-import { EyeIcon, HeartIcon } from 'lucide-react'
+import { EyeIcon, HeartIcon, CalendarIcon } from 'lucide-react'
 import { trackEvent } from '../utils/analytics'
 import { useLanguage } from '../utils/useLanguage'
+import { formatRelativeTime } from '../utils/helpers'
 
 export interface Article {
   id: number | string
@@ -17,6 +18,7 @@ export interface Article {
   cover?: string
   views?: number
   likes?: number
+  created_at?: string
   categories?: {
     name: string
   }
@@ -30,7 +32,7 @@ interface ArticleCardProps {
 
 function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
   const navigate = useNavigate()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
 
   if (!article) return null
 
@@ -94,7 +96,15 @@ function ArticleCard({ article, isRecommended = false }: ArticleCardProps) {
         <h3 className="text-xl font-bold mb-2 line-clamp-2">{article.title}</h3>
         <p className="text-gray-400 line-clamp-2">{article.summary}</p>
         <div className="flex items-center justify-between text-sm text-gray-400 mt-auto pt-4">
-          <ReadingTime content={article.content} />
+          <div className="flex items-center gap-3">
+            <ReadingTime content={article.content} />
+            {article.created_at && (
+              <time dateTime={article.created_at} className="flex items-center gap-1">
+                <CalendarIcon className="w-4 h-4" />
+                {formatRelativeTime(article.created_at, lang)}
+              </time>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
               <EyeIcon className="w-4 h-4" />
