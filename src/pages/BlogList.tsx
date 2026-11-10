@@ -16,6 +16,18 @@ const SORT_OPTIONS: { value: SortOrder; labelKey: "sortNewest" | "sortOldest" | 
   { value: "hottest", labelKey: "sortHottest" },
 ];
 
+// 分类 slug → i18n 词条 key;不在表内的分类保持后端原名(数据不翻译)
+const CATEGORY_I18N_KEYS: Record<string, string> = {
+  tech: "categoryTech",
+  life: "categoryLife",
+  thoughts: "categoryThoughts",
+  share: "categoryShare",
+  "教程": "categoryTutorial",
+  "前端": "categoryFrontend",
+  "后端": "categoryBackend",
+  "工具": "categoryTools",
+};
+
 function BlogList() {
   const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -112,8 +124,13 @@ function BlogList() {
         <div className="mb-8 flex justify-center">
           <GooeyNav
             items={categories.map((cat, i) => ({
-              // 第一个固定是「全部」分类，名称走 i18n；真实分类名是数据，不翻译
-              label: i === 0 ? t("allCategory") : cat.name,
+              // 第一个固定是「全部」；真实分类名按 slug 查 i18n，未收录的分类保持后端原名
+              label:
+                i === 0
+                  ? t("allCategory")
+                  : cat.slug && CATEGORY_I18N_KEYS[cat.slug]
+                    ? t(CATEGORY_I18N_KEYS[cat.slug] as Parameters<typeof t>[0])
+                    : cat.name,
               href: "#",
             }))}
             particleCount={15}

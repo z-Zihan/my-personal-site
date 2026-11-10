@@ -4,6 +4,8 @@ import { API_ENDPOINTS } from '../constants/apiConstants';
 export interface Category {
   id?: number;
   name: string;
+  slug?: string;
+  color?: string;
   description?: string;
   created_at?: string;
   [key: string]: unknown;

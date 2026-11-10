@@ -62,6 +62,14 @@ export interface Translations {
   // 文章列表
   allArticles: string
   allCategory: string
+  categoryTech: string
+  categoryLife: string
+  categoryThoughts: string
+  categoryShare: string
+  categoryTutorial: string
+  categoryFrontend: string
+  categoryBackend: string
+  categoryTools: string
   prevPage: string
   nextPage: string
   pageInfo: string
@@ -276,6 +284,14 @@ const translations: Record<Language, Translations> = {
     // 文章列表
     allArticles: '全部文章',
     allCategory: '全部',
+    categoryTech: '技术',
+    categoryLife: '生活',
+    categoryThoughts: '随笔',
+    categoryShare: '分享',
+    categoryTutorial: '教程',
+    categoryFrontend: '前端',
+    categoryBackend: '后端',
+    categoryTools: '工具',
     prevPage: '上一页',
     nextPage: '下一页',
     pageInfo: '第 {current} / {total} 页',
@@ -504,6 +520,14 @@ const translations: Record<Language, Translations> = {
     // Blog list
     allArticles: 'All Posts',
     allCategory: 'All',
+    categoryTech: 'Tech',
+    categoryLife: 'Life',
+    categoryThoughts: 'Essays',
+    categoryShare: 'Shares',
+    categoryTutorial: 'Tutorials',
+    categoryFrontend: 'Frontend',
+    categoryBackend: 'Backend',
+    categoryTools: 'Tools',
     prevPage: 'Previous',
     nextPage: 'Next',
     pageInfo: 'Page {current} of {total}',

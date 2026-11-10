@@ -161,6 +161,15 @@ const GooeyNav = ({
             --color-3: hsl(190 80% 50%);
             --color-4: hsl(30 80% 50%);
           }
+          /* 主题变量:浅色底=白、墨=黑;深色底=墨、字=浅。gooey 滤镜靠同色底+darken 混合挖洞,颜色必须跟背景走 */
+          .gooey-nav {
+            --gooey-bg: #ffffff;
+            --gooey-ink: #0b0d0f;
+          }
+          .dark .gooey-nav {
+            --gooey-bg: #1f2937; /* 比页面 gray-900 略亮:darken 混合后取页面底色,滤镜层无缝 */
+            --gooey-ink: #e5e7eb;
+          }
           .effect {
             position: absolute;
             opacity: 1;
@@ -170,11 +179,11 @@ const GooeyNav = ({
             z-index: 1;
           }
           .effect.text {
-            color: black;
+            color: var(--gooey-ink);
             transition: color 0.3s ease;
           }
           .effect.text.active {
-            color: white;
+            color: #ffffff;
           }
           .effect.filter {
             filter: blur(7px) contrast(100) blur(0);
@@ -183,15 +192,16 @@ const GooeyNav = ({
           .effect.filter::before {
             content: "";
             position: absolute;
-            inset: -75px;
+            inset: -40px;
             z-index: -2;
-            background: white;
+            background: var(--gooey-bg);
+            border-radius: 32px;
           }
           .effect.filter::after {
             content: "";
             position: absolute;
             inset: 0;
-            background: black;
+            background: var(--gooey-ink);
             transform: scale(0);
             opacity: 0;
             z-index: -1;
@@ -273,23 +283,23 @@ const GooeyNav = ({
               opacity: 0;
             }
           }
-          li {
-            color: black;
+          .gooey-nav li {
+            color: var(--gooey-ink);
           }
-          li.active {
-            color: white;
+          .gooey-nav li.active {
+            color: #ffffff;
             text-shadow: none;
           }
-          li.active::after {
+          .gooey-nav li.active::after {
             opacity: 1;
             transform: scale(1);
           }
-          li::after {
+          .gooey-nav li::after {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: 8px;
-            background: black;
+            background: var(--gooey-pill, #8b5cf6);
             opacity: 0;
             transform: scale(0);
             transition: all 0.3s ease;
@@ -297,19 +307,19 @@ const GooeyNav = ({
           }
         `}
       </style>
-      <div className="relative" ref={containerRef}>
-        <nav className="flex relative" style={{ transform: 'translate3d(0,0,0.01px)' }}>
+      <div className="gooey-nav relative max-w-full" ref={containerRef}>
+        <nav className="flex relative justify-center" style={{ transform: 'translate3d(0,0,0.01px)' }}>
           <ul
             ref={navRef}
-            className="flex gap-8 list-none p-0 px-4 m-0 relative z-[3]"
+            className="flex flex-wrap justify-center gap-x-6 gap-y-2 list-none p-0 px-4 py-1 m-0 relative z-[3] max-w-full"
             style={{
-              color: 'black',
+              color: 'var(--gooey-ink)',
             }}
           >
             {items.map((item, index) => (
               <li
                 key={index}
-                className={`rounded-full relative cursor-pointer transition-[background-color_color_box-shadow] duration-300 ease shadow-[0_0_0.5px_1.5px_transparent] text-black ${
+                className={`rounded-full relative cursor-pointer transition-[background-color_color_box-shadow] duration-300 ease shadow-[0_0_0.5px_1.5px_transparent] ${
                   activeIndex === index ? 'active' : ''
                 }`}
               >
@@ -317,7 +327,7 @@ const GooeyNav = ({
                   onClick={(e) => handleClick(e as unknown as React.MouseEvent<HTMLLIElement>, index)}
                   href={item.href}
                   onKeyDown={(e) => handleKeyDown(e, index)}
-                  className="outline-none py-[0.6em] px-[1em] inline-block"
+                  className="outline-none py-[0.5em] px-[0.9em] inline-block whitespace-nowrap text-sm"
                 >
                   {item.label}
                 </a>
