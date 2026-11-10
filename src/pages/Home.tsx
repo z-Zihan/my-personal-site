@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, BookOpen, TrendingUp, Newspaper } from 'lucide-react';
+import { Star, BookOpen, TrendingUp, Newspaper, Gamepad2 } from 'lucide-react';
 import SearchBar from '../components/common/SearchBar';
 import ArticleCard from '../components/ArticleCard';
 import type { Article, HotNews, Stats } from '../api';
@@ -161,6 +161,62 @@ export default function Home() {
             </motion.div>
           )}
         </div>
+      </section>
+
+      {/* Tech Demo:浏览器 FPS 技术演示 */}
+      <section className="max-w-6xl mx-auto px-4 pt-16">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="relative overflow-hidden rounded-2xl bg-gray-900 dark:bg-black text-white"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-pink-900/30 to-cyan-900/40" />
+          <div className="relative flex flex-col md:flex-row items-center gap-6 px-8 py-10">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs font-semibold tracking-widest uppercase text-purple-300">
+                  {t('techDemoTag')}
+                </span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-200 border border-purple-400/30">
+                  WebGL · 单文件 · 零外部资源
+                </span>
+              </div>
+              <h3 className="text-2xl md:text-3xl font-bold mb-3">{t('techDemoTitle')}</h3>
+              <p className="text-gray-300 mb-6 leading-relaxed">
+                {t('techDemoDesc')}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="/tech-demo-canglan.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackEvent('tech_demo_click', 'engagement', { page_path: window.location.pathname })}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-500 hover:bg-purple-400 text-white rounded-full font-medium transition-colors"
+                >
+                  <Gamepad2 className="w-5 h-5" /> {t('techDemoPlay')}
+                </a>
+                <button
+                  onClick={() => navigate('/blog')}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 border border-white/20 hover:bg-white/10 text-white/90 rounded-full font-medium transition-colors"
+                >
+                  {t('techDemoReadMore')}
+                </button>
+              </div>
+            </div>
+            <div className="hidden md:grid grid-cols-2 gap-2 flex-none" aria-hidden="true">
+              {['GPU 程序化贴图', 'WebAudio 合成音效', 'AgX + ACES 调色', '体积光 · 软阴影'].map((feat) => (
+                <div
+                  key={feat}
+                  className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-300 whitespace-nowrap"
+                >
+                  {feat}
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* 推荐文章 */}

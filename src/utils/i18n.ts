@@ -86,6 +86,11 @@ export interface Translations {
   fontSizeStandard: string
   fontSizeLarge: string
   tocHint: string
+  techDemoTag: string
+  techDemoTitle: string
+  techDemoDesc: string
+  techDemoPlay: string
+  techDemoReadMore: string
   copied: string
   copyCode: string
   articleOf: string
@@ -294,6 +299,11 @@ const translations: Record<Language, Translations> = {
     fontSizeStandard: '标准',
     fontSizeLarge: '大',
     tocHint: '长文可用右侧目录快速跳转章节',
+    techDemoTag: 'Tech Demo',
+    techDemoTitle: '苍澜港 · 浏览器 FPS 技术演示',
+    techDemoDesc: '一个跑在浏览器里的第一人称射击技术演示:单 HTML 文件、零外部资源,贴图 GPU 程序化烘焙、音效 WebAudio 实时合成、模型代码生成。点击即玩,移动端也能跑。',
+    techDemoPlay: '立即开玩',
+    techDemoReadMore: '看技术拆解',
     copied: '已复制 ✓',
     copyCode: '复制',
     articleOf: '{index} / {total} 篇',
@@ -515,6 +525,11 @@ const translations: Record<Language, Translations> = {
     fontSizeStandard: 'M',
     fontSizeLarge: 'L',
     tocHint: 'Long read? Use the outline on the right to jump between sections',
+    techDemoTag: 'Tech Demo',
+    techDemoTitle: 'Canglan Port · Browser FPS Tech Demo',
+    techDemoDesc: 'A first-person shooter tech demo that runs in your browser: a single HTML file with zero external assets — GPU-procedural textures, WebAudio-synthesized sound, code-generated models. Click and play, works on mobile too.',
+    techDemoPlay: 'Play Now',
+    techDemoReadMore: 'Read the Breakdown',
     copied: 'Copied ✓',
     copyCode: 'Copy',
     articleOf: '{index} / {total}',
