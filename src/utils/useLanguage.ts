@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getLanguage, setLanguage, t, Language, Translations } from './i18n'
+import { getLanguage, setLanguage, t, tArr, Language, Translations } from './i18n'
 
 /** 插值参数：t('pageInfo', { current: 1, total: 5 }) */
 export type TranslationParams = Record<string, string | number>
@@ -11,6 +11,8 @@ export interface UseLanguageResult {
   setLang: (lang: Language) => void
   /** 翻译函数（已绑定当前语言，支持 {key} 插值） */
   t: (key: keyof Translations, params?: TranslationParams) => string
+  /** 数组型翻译（已绑定当前语言，如标签列表） */
+  tArr: (key: keyof Translations) => string[]
 }
 
 const LANGUAGE_CHANGED_EVENT = 'languageChanged'
@@ -51,7 +53,7 @@ export function useLanguage(): UseLanguageResult {
     [lang]
   )
 
-  return { lang, setLang, t: translate }
+  return { lang, setLang, t: translate, tArr: (key) => tArr(key, lang) }
 }
 
 export default useLanguage

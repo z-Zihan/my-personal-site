@@ -18,7 +18,7 @@ import { useLanguage } from '../utils/useLanguage';
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, tArr } = useLanguage();
   const [articles, setArticles] = useState<Article[]>([]);
   const [recommendedArticles, setRecommendedArticles] = useState<Article[]>([]);
   const [hotNews, setHotNews] = useState<HotNews[]>([]);
@@ -180,7 +180,7 @@ export default function Home() {
                   {t('techDemoTag')}
                 </span>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-200 border border-purple-400/30">
-                  WebGL · 单文件 · 零外部资源
+                  {t('techDemoBadge')}
                 </span>
               </div>
               <h3 className="text-2xl md:text-3xl font-bold mb-3">{t('techDemoTitle')}</h3>
@@ -206,7 +206,7 @@ export default function Home() {
               </div>
             </div>
             <div className="hidden md:grid grid-cols-2 gap-2 flex-none" aria-hidden="true">
-              {['GPU 程序化贴图', 'WebAudio 合成音效', 'AgX + ACES 调色', '体积光 · 软阴影'].map((feat) => (
+              {tArr('techDemoFeatures').map((feat) => (
                 <div
                   key={feat}
                   className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-300 whitespace-nowrap"

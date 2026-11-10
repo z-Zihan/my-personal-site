@@ -91,6 +91,8 @@ export interface Translations {
   techDemoDesc: string
   techDemoPlay: string
   techDemoReadMore: string
+  techDemoBadge: string
+  techDemoFeatures: string[]
   copied: string
   copyCode: string
   articleOf: string
@@ -302,6 +304,8 @@ const translations: Record<Language, Translations> = {
     techDemoTag: 'Tech Demo',
     techDemoTitle: '苍澜港 · 浏览器 FPS 技术演示',
     techDemoDesc: '一个跑在浏览器里的第一人称射击技术演示:单 HTML 文件、零外部资源,贴图 GPU 程序化烘焙、音效 WebAudio 实时合成、模型代码生成。点击即玩,移动端也能跑。',
+    techDemoBadge: 'WebGL · 单文件 · 零外部资源',
+    techDemoFeatures: ['GPU 程序化贴图', 'WebAudio 合成音效', 'AgX + ACES 调色', '体积光 · 软阴影'],
     techDemoPlay: '立即开玩',
     techDemoReadMore: '看技术拆解',
     copied: '已复制 ✓',
@@ -528,6 +532,8 @@ const translations: Record<Language, Translations> = {
     techDemoTag: 'Tech Demo',
     techDemoTitle: 'Canglan Port · Browser FPS Tech Demo',
     techDemoDesc: 'A first-person shooter tech demo that runs in your browser: a single HTML file with zero external assets — GPU-procedural textures, WebAudio-synthesized sound, code-generated models. Click and play, works on mobile too.',
+    techDemoBadge: 'WebGL · Single file · Zero assets',
+    techDemoFeatures: ['Procedural GPU textures', 'Synthesized WebAudio SFX', 'AgX + ACES grading', 'Volumetric light · Soft shadows'],
     techDemoPlay: 'Play Now',
     techDemoReadMore: 'Read the Breakdown',
     copied: 'Copied ✓',
@@ -710,8 +716,18 @@ export const t = (
   lang: Language = getLanguage(),
   params?: TranslationParams
 ): string => {
-  const template = translations[lang]?.[key] || translations.zh[key] || (key as string)
+  const raw: unknown = translations[lang]?.[key] ?? translations.zh[key]
+  const template = typeof raw === 'string' ? raw : (key as string)
   return interpolate(template, params)
+}
+
+// 获取数组型翻译（如标签列表），支持语言回退
+export const tArr = (
+  key: keyof Translations,
+  lang: Language = getLanguage()
+): string[] => {
+  const value: unknown = translations[lang]?.[key] ?? translations.zh[key]
+  return Array.isArray(value) ? (value as string[]) : []
 }
 
 // 获取所有翻译
@@ -723,6 +739,7 @@ export default {
   getLanguage,
   setLanguage,
   t,
+  tArr,
   getTranslations,
   translations,
 }
