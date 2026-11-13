@@ -172,7 +172,8 @@ export default async function handler(req: Request): Promise<Response> {
   // /blog/<id> 或旧格式 /article/<id> 都查库
   const blogMatch = pagePath.match(/^\/(blog|article)\/([^/?#]+)/)
   if (blogMatch) {
-    const id = decodeURIComponent(blogMatch[1])
+    // [1] 是 blog|article 前缀,[2] 才是文章 id
+    const id = decodeURIComponent(blogMatch[2])
     // 跳过 UUID 形式以外的异常 id，避免无谓查询
     try {
       article = await fetchArticle(id)
