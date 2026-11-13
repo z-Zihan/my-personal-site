@@ -26,7 +26,8 @@ const CommentManager = lazy(() => import('../pages/Admin/CommentManager'))
 const CategoryManager = lazy(() => import('../pages/Admin/CategoryManager'))
 const HotNewsManager = lazy(() => import('../pages/Admin/HotNewsManager'))
 const EventManager = lazy(() => import('../pages/Admin/EventManager'))
-const MockDataGenerator = lazy(() => import('../pages/Admin/MockDataGenerator'))
+// Mock 数据生成器暂时下线 (2026-11-13: 数据已全部清零,防止再生成假数据)
+// const MockDataGenerator = lazy(() => import('../pages/Admin/MockDataGenerator'))
 const PerfDashboard = lazy(() => import('../pages/Admin/PerfDashboard'))
 
 function LazyPage({ children }: { children: React.ReactNode }) {
@@ -107,10 +108,11 @@ const router = createBrowserRouter([
         path: 'perf',
         element: <LazyPage><PerfDashboard /></LazyPage>,
       },
-      {
-        path: 'mock-data',
-        element: <LazyPage><MockDataGenerator /></LazyPage>,
-      },
+      // Mock 数据生成器暂时下线 (2026-11-13: 数据已全部清零,防止再生成假数据)
+      // {
+      //   path: 'mock-data',
+      //   element: <LazyPage><MockDataGenerator /></LazyPage>,
+      // },
     ],
   },
 

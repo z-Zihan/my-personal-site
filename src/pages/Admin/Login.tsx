@@ -15,6 +15,7 @@ function AdminLogin() {
   const location = useLocation()
   const { login, isAuthenticated } = useAuthStore()
   const [submitting, setSubmitting] = useState(false)
+  const [passwordHint, setPasswordHint] = useState<string | null>(() => localStorage.getItem('admin_password_hint'))
   const darkMode = useThemeStore((s) => s.darkMode)
 
   // 检查是否是开发模式
@@ -56,6 +57,10 @@ function AdminLogin() {
       const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString()
       if (data?.token) {
         const user: User = data?.user as User || { username: values.username }
+        const hint = data?.password_hint
+        if (typeof hint === 'string' && hint) {
+          localStorage.setItem('admin_password_hint', hint)
+        }
         login(data.token, user, expiresAt)
         message.success('登录成功')
         navigate('/admin/dashboard')
@@ -68,6 +73,8 @@ function AdminLogin() {
       const msg =
         error.response?.data?.error ||
         (error.response ? `登录失败（${error.response.status}）` : error.code === 'ERR_NETWORK' ? '网络连接失败，请检查网络后试' : '登录失败，请稍后重试')
+      // 登录失败时刷新一次密码提示(服务端可能在期间更新过)
+      setPasswordHint(localStorage.getItem('admin_password_hint'))
       message.error(msg)
     } finally {
       setSubmitting(false)
@@ -185,7 +192,7 @@ function AdminLogin() {
               name="password"
               label="密码"
               rules={[{ required: true, message: '请输入密码' }]}
-              style={{ marginBottom: 24 }}
+              style={{ marginBottom: 8 }}
             >
               <Input.Password
                 prefix={<LockOutlined style={{ color: 'rgba(128,128,128,0.6)' }} />}
@@ -193,6 +200,19 @@ function AdminLogin() {
                 size="large"
               />
             </Form.Item>
+
+            {passwordHint && (
+              <div style={{
+                marginBottom: 16,
+                padding: '6px 10px',
+                borderRadius: 6,
+                background: darkMode ? 'rgba(112, 0, 255, 0.12)' : 'rgba(112, 0, 255, 0.06)',
+                color: darkMode ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.45)',
+                fontSize: 12,
+              }}>
+                💡 密码提示：{passwordHint}
+              </div>
+            )}
 
             <Form.Item style={{ marginBottom: 0 }}>
               <Button

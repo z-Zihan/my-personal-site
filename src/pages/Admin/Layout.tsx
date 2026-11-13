@@ -14,7 +14,7 @@ import {
   MoonOutlined,
   SunOutlined,
   ThunderboltOutlined,
-  DatabaseOutlined,
+  // DatabaseOutlined, // Mock 数据生成器暂时下线
   UserOutlined,
   DownOutlined,
 } from '@ant-design/icons'
@@ -40,7 +40,7 @@ const PAGE_TITLES: Array<[prefix: string, title: string]> = [
   ['/admin/hot-news', '热点资讯'],
   ['/admin/events', '埋点管理'],
   ['/admin/perf', '性能监控'],
-  ['/admin/mock-data', '数据生成'],
+  // ['/admin/mock-data', '数据生成'], // Mock 数据生成器暂时下线 (2026-11-13)
 ]
 
 function getPageTitle(pathname: string): string {
@@ -123,11 +123,12 @@ function AdminLayout() {
       icon: <DashboardOutlined />,
       label: '性能监控',
     },
-    {
-      key: '/admin/mock-data',
-      icon: <DatabaseOutlined />,
-      label: '数据生成',
-    },
+    // Mock 数据生成器暂时下线 (2026-11-13: 数据已全部清零,防止再生成假数据)
+    // {
+    //   key: '/admin/mock-data',
+    //   icon: <DatabaseOutlined />,
+    //   label: '数据生成',
+    // },
   ]
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {

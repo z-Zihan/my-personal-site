@@ -211,6 +211,8 @@ export interface LoginResponse {
   user: {
     username: string
   }
+  /** 密码提示(服务端环境变量配置,可选) */
+  password_hint?: string
 }
 
 export interface TokenVerifyRequest {

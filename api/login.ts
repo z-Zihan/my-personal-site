@@ -39,9 +39,14 @@ export default async function handler(req: Request): Promise<Response> {
       return errorResponse('请输入用户名和密码', 400)
     }
 
-    // 从环境变量读取管理员账号密码，默认值仅用于开发环境
+    // 从环境变量读取管理员账号密码（2026-11-13: 密码不进源码,只在 Vercel 环境变量配置）
     const validUsername = process.env.ADMIN_USERNAME || 'admin'
-    const validPassword = process.env.ADMIN_PASSWORD || 'admin'
+    const validPassword = process.env.ADMIN_PASSWORD
+
+    if (!validPassword) {
+      console.error('ADMIN_PASSWORD environment variable is not configured')
+      return errorResponse('服务端未配置管理员密码，请在 Vercel 环境变量中设置 ADMIN_PASSWORD', 500)
+    }
 
     if (username !== validUsername || password !== validPassword) {
       attempts.count += 1
@@ -62,6 +67,7 @@ export default async function handler(req: Request): Promise<Response> {
       token,
       expires_at: expiresAt.toISOString(),
       user: { username: 'admin' },
+      password_hint: process.env.ADMIN_PASSWORD_HINT || undefined,
     }
 
     return jsonResponse({ data: response })
