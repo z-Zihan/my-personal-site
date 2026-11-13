@@ -135,13 +135,30 @@ async function handleTrack(req: Request): Promise<Response> {
       }))
 
     // 并行批量执行所有数据库操作
-    await Promise.all([
+    const results = await Promise.all([
       supabase.from('visitors').upsert(visitorUpserts, { onConflict: 'visitor_id' }),
       pageViewInserts.length > 0
         ? supabase.from('page_views').insert(pageViewInserts)
-        : Promise.resolve(),
+        : Promise.resolve({ error: null }),
       eventInserts.length > 0
         ? supabase.from('events').insert(eventInserts)
+        : Promise.resolve({ error: null }),
+    ])
+
+    // 容错降级:若 DB 尚未执行 sql/04 增列(traffic_class/user_agent),去掉新字段重试,避免丢数据
+    const stripNewCols = {
+      page: (rows: Record<string, unknown>[]) =>
+        rows.map(({ traffic_class: _tc, user_agent: _ua, ...rest }) => rest),
+      event: (rows: Record<string, unknown>[]) =>
+        rows.map(({ traffic_class: _tc, ...rest }) => rest),
+    }
+    const [, pvRes, evRes] = results as Array<{ error: { message: string } | null }>
+    await Promise.all([
+      pvRes?.error
+        ? supabase.from('page_views').insert(stripNewCols.page(pageViewInserts as unknown as Record<string, unknown>[]))
+        : Promise.resolve(),
+      evRes?.error
+        ? supabase.from('events').insert(stripNewCols.event(eventInserts as unknown as Record<string, unknown>[]))
         : Promise.resolve(),
     ])
 
