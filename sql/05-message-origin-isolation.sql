@@ -10,6 +10,8 @@
 -- 1. 重建随机排序 RPC:只返回真实留言
 --    真实留言 visitor_id 格式: visitor_<13位时间戳>_<随机串>
 --    排除: owner_*(博主) / visitor_<纯数字>(seed) / mock_visitor_* / intl_*(生成)
+-- 旧版本函数签名可能是 double precision(线上已存在的旧 RPC),两个签名都清掉避免重载冲突
+DROP FUNCTION IF EXISTS get_messages_random(DOUBLE PRECISION, INTEGER, INTEGER);
 DROP FUNCTION IF EXISTS get_messages_random(NUMERIC, INTEGER, INTEGER);
 CREATE OR REPLACE FUNCTION get_messages_random(
   p_seed NUMERIC,
