@@ -18,8 +18,11 @@ function AdminLogin() {
   const [passwordHint, setPasswordHint] = useState<string | null>(() => localStorage.getItem('admin_password_hint'))
   const darkMode = useThemeStore((s) => s.darkMode)
 
-  // 检查是否是开发模式
-  const isDev = new URLSearchParams(location.search).get('dev') === '1'
+  // 检查是否是开发模式(仅本地 dev server 有效;生产构建 import.meta.env.DEV 恒为 false,
+  // 防止线上通过 ?dev=1 绕过登录 —— 2026-11-13 安全修复)
+  const isDev =
+    import.meta.env.DEV &&
+    new URLSearchParams(location.search).get('dev') === '1'
 
   // 主题初始化：跟随全站主题存储（未设置过则跟随系统偏好）
   useEffect(() => {
