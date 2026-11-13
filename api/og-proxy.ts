@@ -143,9 +143,19 @@ export default async function handler(req: Request): Promise<Response> {
         return new Response(null, { status: 302, headers: { Location: `${SITE_URL}/` } })
       }
     }
+    const targetPath = url.searchParams.get('url') || '/'
+    // /article/* 是旧链接格式(2026-11-13 Twitter 帖子发过),浏览器访问直接 301 到 /blog/*
+    if (targetPath.startsWith('/article/')) {
+      return new Response(null, {
+        status: 301,
+        headers: {
+          Location: `${targetPath.replace(/^\/article\//, '/blog/')}?_ogb=1`,
+          'Cache-Control': 'no-store',
+        },
+      })
+    }
     // 首次浏览器访问 → 302 加绕过标记（rewrites 对带 query 的请求同样命中，
     // 但本函数靠 _ogb=1 识别已处理过）
-    const targetPath = url.searchParams.get('url') || '/'
     return new Response(null, {
       status: 302,
       headers: {
@@ -159,8 +169,8 @@ export default async function handler(req: Request): Promise<Response> {
   const pagePath = url.searchParams.get('url') || '/'
   let article: ArticleRow | null = null
 
-  // /blog/<id> 形式才查库
-  const blogMatch = pagePath.match(/^\/blog\/([^/?#]+)/)
+  // /blog/<id> 或旧格式 /article/<id> 都查库
+  const blogMatch = pagePath.match(/^\/(blog|article)\/([^/?#]+)/)
   if (blogMatch) {
     const id = decodeURIComponent(blogMatch[1])
     // 跳过 UUID 形式以外的异常 id，避免无谓查询

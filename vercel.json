@@ -13,6 +13,10 @@
       "destination": "/api/og-proxy?url=/blog/:path*"
     },
     {
+      "source": "/article/:path*",
+      "destination": "/api/og-proxy?url=/article/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
