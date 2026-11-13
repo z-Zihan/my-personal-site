@@ -63,6 +63,17 @@ export default async function handler(req: Request): Promise<Response> {
   return errorResponse('Method not allowed', 405)
 }
 
+/** x-vercel-ip-* 头是 URL 编码的(城市名如 %E5%8C%97%E4%BA%AC),解码;空/unknown 返回 null */
+function decodeHeader(v: string | null): string | null {
+  if (!v) return null
+  try {
+    const decoded = decodeURIComponent(v).trim()
+    return decoded && decoded.toLowerCase() !== 'unknown' ? decoded : null
+  } catch {
+    return v || null
+  }
+}
+
 // 处理事件上报
 async function handleTrack(req: Request): Promise<Response> {
   try {
@@ -92,12 +103,19 @@ async function handleTrack(req: Request): Promise<Response> {
 
     // 按类型分组，使用批量插入代替逐条 await
     const now = new Date().toISOString()
+    // 地理信息:Vercel 在每个请求头免费注入访客 IP 的归属地(x-vercel-ip-*)
+    // 前端拿不到归属地,这里从请求头取;事件体里前端提供的值仅作兜底
+    const geoCountry = decodeHeader(req.headers.get('x-vercel-ip-country'))
+    const geoRegion = decodeHeader(req.headers.get('x-vercel-ip-country-region'))
+    const geoCity = decodeHeader(req.headers.get('x-vercel-ip-city'))
+    // 访客 IP(x-forwarded-for 首个),仅供归属地查询/排查,不做展示
+    const clientIp = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || null
     const visitorUpserts = events.map(event => ({
       visitor_id: event.visitor_id,
-      ip_address: event.ip || null,
-      country: event.country || null,
-      region: event.region || null,
-      city: event.city || null,
+      ip_address: clientIp,
+      country: geoCountry || event.country || null,
+      region: geoRegion || event.region || null,
+      city: geoCity || event.city || null,
       language: event.language || null,
       screen_resolution: event.screenResolution || null,
       timezone: event.timezone || null,
@@ -378,10 +396,10 @@ async function handleStats(req: Request): Promise<Response> {
           return errorResponse('event_name is required', 400)
         }
 
-        // 获取事件列表（包含 visitor_id 用于关联查询）
+        // 获取事件列表（包含 visitor_id 用于关联查询;element_* 用于展示"点击了什么"）
         const eventsList = await supabase
           .from('events')
-          .select('id, visitor_id, page_path, created_at, event_data')
+          .select('id, visitor_id, page_path, created_at, event_data, element_selector, element_text')
           .eq('event_name', eventName)
           .gte('created_at', startDate)
           .order('created_at', { ascending: false })
@@ -494,6 +512,8 @@ async function handleStats(req: Request): Promise<Response> {
             page_path: e.page_path || '',
             created_at: e.created_at,
             event_data: e.event_data || {},
+            element_selector: e.element_selector || null,
+            element_text: e.element_text || null,
           })),
         }
         break

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card, Table, Tag, Row, Col, Statistic, Typography, Progress, DatePicker, Button, Space, Select, Pagination, Segmented } from 'antd'
+import { Card, Table, Tag, Row, Col, Statistic, Typography, Progress, DatePicker, Button, Space, Select, Pagination, Segmented, Tooltip as AntTooltip } from 'antd'
 import EmptyState from '../../components/common/EmptyState'
 import {
   EyeOutlined,
@@ -620,6 +620,28 @@ function EventManager() {
                             dataIndex: 'page_path',
                             key: 'page_path',
                             render: (path: string) => <code style={{ fontSize: 12 }}>{path}</code>,
+                          },
+                          {
+                            title: '点击目标',
+                            key: 'element',
+                            render: (_: unknown, record: { element_text?: string | null; element_selector?: string | null; event_data?: Record<string, unknown> }) => {
+                              // click 事件:优先显示点击的文案;其他事件显示关键参数
+                              const text = record.element_text?.trim()
+                              if (text) {
+                                return (
+                                  <AntTooltip title={record.element_selector || text}>
+                                    <Tag color="cyan" style={{ fontSize: 11, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {text.slice(0, 30)}
+                                    </Tag>
+                                  </AntTooltip>
+                                )
+                              }
+                              const sel = record.element_selector
+                              if (sel) {
+                                return <code style={{ fontSize: 11 }}>{sel.slice(0, 30)}</code>
+                              }
+                              return <Text type="secondary">-</Text>
+                            },
                           },
                           {
                             title: '事件参数',
