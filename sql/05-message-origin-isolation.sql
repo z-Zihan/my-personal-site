@@ -29,9 +29,10 @@ RETURNS TABLE (
 LANGUAGE sql
 AS $$
   WITH real_messages AS (
+    -- 锚定开头 ^ 避免误匹配 mock_visitor_*
     SELECT *
     FROM messages
-    WHERE visitor_id ~ '^visitor_[0-9]{13,}_'  -- 锚定开头,避免误匹配 mock_visitor_*
+    WHERE visitor_id ~ '^visitor_[0-9]{13,}_'
   )
   SELECT id, visitor_id, content, visitor_name, location, likes, created_at,
          (SELECT COUNT(*) FROM real_messages)::BIGINT AS total_count
@@ -51,8 +52,10 @@ RETURNS TABLE (real_count BIGINT, owner_count BIGINT)
 LANGUAGE sql
 AS $$
   SELECT
-    COUNT(*) FILTER (WHERE visitor_id ~ '^visitor_[0-9]{13,}_'  -- 锚定开头,避免误匹配 mock_visitor_*)::BIGINT AS real_count,
-    COUNT(*) FILTER (WHERE visitor_id LIKE 'owner_%')::BIGINT AS owner_count
+    -- 真实留言: visitor_<13位以上时间戳>_ 开头(锚定开头,避免误匹配 mock_visitor_*)
+    COUNT(*) FILTER (WHERE visitor_id ~ '^visitor_[0-9]{13,}_')::BIGINT AS real_count,
+    -- 博主留言: owner_ 开头
+    COUNT(*) FILTER (WHERE visitor_id LIKE 'owner\_%')::BIGINT AS owner_count
   FROM messages;
 $$;
 
