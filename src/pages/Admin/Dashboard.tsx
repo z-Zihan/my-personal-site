@@ -58,6 +58,8 @@ function Dashboard() {
     totalPageViews?: number
     totalSessions?: number
     totalEvents?: number
+    realPageViews?: number
+    trafficBreakdown?: { real?: number; bot?: number; dev?: number; owner?: number; unclassified?: number }
     daily?: Array<{ date: string; views: number }>
     pages?: Array<{ path: string; views: number }>
     devices?: Array<{ name: string; value: number }>
@@ -204,9 +206,14 @@ function Dashboard() {
           <Card style={{ position: 'relative', overflow: 'hidden' }}>
             {statAccent('#52c41a')}
             <Statistic
-              title="总会话数"
-              value={analytics.totalSessions || 0}
+              title="真实访问(排除爬虫/开发/本人)"
+              value={analytics.realPageViews ?? analytics.trafficBreakdown?.real ?? 0}
               prefix={<ThunderboltOutlined style={{ color: '#52c41a' }} />}
+              suffix={
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  爬虫 {analytics.trafficBreakdown?.bot ?? 0} · 开发 {analytics.trafficBreakdown?.dev ?? 0} · 本人 {analytics.trafficBreakdown?.owner ?? 0}
+                </Text>
+              }
             />
           </Card>
         </Col>

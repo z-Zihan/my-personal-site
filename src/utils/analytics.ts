@@ -27,6 +27,10 @@ interface AnalyticsEvent extends DeviceInfo {
   event_data?: Record<string, unknown>
   visitor_id?: string
   session_id?: string
+  /** 流量环境标记: prod|dev|bot(由 visitor_id 前缀解析) */
+  env?: string
+  /** 是否博主本人登录态(admin token 存在时为 true) */
+  is_owner?: boolean
   timestamp?: string
 }
 
@@ -37,12 +41,62 @@ const ANALYTICS_CONFIG: AnalyticsConfig = {
   maxQueueSize: 50,
 }
 
-// 生成访客 ID
+// ===== 流量环境识别(2026-11-13) =====
+// 访客 ID 格式: v.{prod|dev}.{bot|human}.{reason}.{random}
+//   prod.human = 真实访客(生产环境非爬虫) —— 唯一计入真实流量的类型
+//   dev.*      = 本地/内网开发访问(不计入)
+//   *.bot.*    = 爬虫/预渲染/自动化工具(不计入)
+const KNOWN_BOTS = /bot|crawl|spider|slurp|bingpreview|facebookexternalhit|embedly|quora link preview|outbrain|preview|linkedin|twitterbot|whatsapp|telegrambot|discordapp|bytespider|petalbot|yandex|baiduspider|sogou|duckduck/i
+const BOT_BROWSER_MARKS: Array<[RegExp, string]> = [
+  [/vercelbot|vercel-screenshot|_HEADLESS_/i, 'headless-vercel'],
+  [/headless/i, 'headless-browser'],
+  [/puppeteer|playwright|phantomjs|selenium/i, 'automation'],
+  [/lighthouse|pagespeed/i, 'lighthouse'],
+]
+
+const detectEnv = (): 'prod' | 'dev' => {
+  const h = window.location.hostname
+  if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0') return 'dev'
+  if (/^10\.|^192\.168\.|^172\.(1[6-9]|2\d|3[01])\./.test(h)) return 'dev'
+  // 内网 IP:端口 形式也视为开发环境
+  if (/^\d+\.\d+\.\d+\.\d+:/.test(h)) return 'dev'
+  return 'prod'
+}
+
+const detectBot = (ua: string): [boolean, string] => {
+  if (!ua || ua.length < 10) return [true, 'no-ua']
+  const m = KNOWN_BOTS.exec(ua)
+  if (m) return [true, m[0].toLowerCase()]
+  for (const [re, name] of BOT_BROWSER_MARKS) {
+    if (re.test(ua)) return [true, name]
+  }
+  return [false, '']
+}
+
+const getEnvTag = (): string => {
+  const stored = sessionStorage.getItem('_envtag')
+  if (stored) return stored
+  const ua = navigator.userAgent
+  const [isBot, reason] = detectBot(ua)
+  const env = detectEnv()
+  const tag = `v.${env}.${isBot ? 'bot' : 'human'}.${reason || 'na'}`
+  sessionStorage.setItem('_envtag', tag)
+  return tag
+}
+
 const generateVisitorId = (): string => {
   const stored = localStorage.getItem('_vid')
-  if (stored) return stored
+  if (stored) {
+    // 兼容旧格式 ID(v_xxx,无环境标记):升级为新格式,保持同一访客统计连续性
+    if (!stored.startsWith('v.')) {
+      const upgraded = `${getEnvTag()}.${stored.replace(/^v_/, '')}`
+      localStorage.setItem('_vid', upgraded)
+      return upgraded
+    }
+    return stored
+  }
 
-  const newId = 'v_' + Math.random().toString(36).substring(2) + Date.now().toString(36)
+  const newId = `${getEnvTag()}.${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`
   localStorage.setItem('_vid', newId)
   return newId
 }
@@ -113,14 +167,45 @@ const flushEvents = async () => {
   }
 }
 
+// 是否博主本人:admin_token 存在且未过期(判定逻辑与 store/authStore.ts 对齐)
+const isOwnerSession = (): boolean => {
+  try {
+    const token = localStorage.getItem('admin_token')
+    if (!token) return false
+    const expiresAt = localStorage.getItem('admin_token_expires_at')
+    if (expiresAt) {
+      const t = parseInt(expiresAt, 10)
+      if (!isNaN(t) && Date.now() > t) return false
+    }
+    return true
+  } catch {
+    return false
+  }
+}
+
+// 从 visitor_id 解析环境标记(v.prod.human.na.xxx → prod/human)
+const parseEnvFromVisitorId = (vid: string): { env: string; isBot: boolean } => {
+  const parts = vid.split('.')
+  if (parts.length >= 4 && parts[0] === 'v') {
+    return { env: parts[1], isBot: parts[2] === 'bot' }
+  }
+  // 兜底:旧格式按主机判断
+  return { env: detectEnv(), isBot: false }
+}
+
 // 添加事件到队列
 const queueEvent = (event: Omit<AnalyticsEvent, 'visitor_id' | 'session_id' | 'timestamp'>) => {
   if (!ANALYTICS_CONFIG.enabled) return
 
+  const vid = generateVisitorId()
+  const { env, isBot } = parseEnvFromVisitorId(vid)
+
   eventQueue.push({
     ...event,
-    visitor_id: generateVisitorId(),
+    visitor_id: vid,
     session_id: generateSessionId(),
+    env: isBot ? 'bot' : env,
+    is_owner: isOwnerSession(),
     timestamp: new Date().toISOString(),
   } as AnalyticsEvent)
 

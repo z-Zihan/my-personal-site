@@ -25,6 +25,10 @@ interface TrackEvent {
   deviceType?: string
   browser?: string
   os?: string
+  /** 前端标记的流量环境: prod|dev|bot */
+  env?: string
+  /** 前端标记的博主登录态 */
+  is_owner?: boolean
 }
 
 interface DailyStats {
@@ -68,6 +72,24 @@ async function handleTrack(req: Request): Promise<Response> {
       return errorResponse('Invalid events data', 400)
     }
 
+    // ===== 服务端流量分类(2026-11-13) =====
+    // 服务端 UA 兜底判定,与前端 env 标记取更严格的结局(bot 优先)。
+    // 分类结果三值: real | dev | bot | owner
+    const SERVER_BOTS = /bot|crawl|spider|slurp|bingpreview|facebookexternalhit|headless|vercel-screenshot|lighthouse|pagespeed|puppeteer|playwright|phantomjs|preview/i
+    const uaHeader = (req.headers.get('user-agent') || '').slice(0, 200)
+    const uaIsBot = !uaHeader || uaHeader.length < 10 || SERVER_BOTS.test(uaHeader)
+
+    const classify = (event: TrackEvent): 'real' | 'dev' | 'bot' | 'owner' => {
+      if (event.is_owner) return 'owner'
+      // visitor_id 前缀: v.{env}.{bot|human}.{reason}
+      const parts = (event.visitor_id || '').split('.')
+      let env = parts.length >= 4 && parts[0] === 'v' ? parts[1] : 'prod'
+      let frontendBot = parts.length >= 4 && parts[0] === 'v' ? parts[2] === 'bot' : false
+      if (uaIsBot || frontendBot) return 'bot'
+      if (env === 'dev') return 'dev'
+      return 'real'
+    }
+
     // 按类型分组，使用批量插入代替逐条 await
     const now = new Date().toISOString()
     const visitorUpserts = events.map(event => ({
@@ -80,6 +102,7 @@ async function handleTrack(req: Request): Promise<Response> {
       screen_resolution: event.screenResolution || null,
       timezone: event.timezone || null,
       last_seen_at: now,
+      user_agent: uaHeader || null,
     }))
 
     const pageViewInserts = events
@@ -93,6 +116,8 @@ async function handleTrack(req: Request): Promise<Response> {
         device_type: event.deviceType,
         browser: event.browser,
         os: event.os,
+        traffic_class: classify(event),
+        user_agent: uaHeader || null,
       }))
 
     const eventInserts = events
@@ -102,10 +127,11 @@ async function handleTrack(req: Request): Promise<Response> {
         session_id: event.session_id,
         event_name: event.event_name,
         event_type: event.event_type,
-        event_data: event.event_data || {},
+        event_data: { ...(event.event_data || {}), env: event.env, is_owner: event.is_owner },
         page_path: event.page_path,
         element_selector: event.element_selector,
         element_text: event.element_text,
+        traffic_class: classify(event),
       }))
 
     // 并行批量执行所有数据库操作
@@ -140,7 +166,7 @@ async function handleStats(req: Request): Promise<Response> {
 
     switch (type) {
       case 'overview': {
-        const [visitors, pageViews, sessions, events] = await Promise.all([
+        const [visitors, pageViews, sessions, events, realPageViews, botPageViews, devPageViews, ownerPageViews] = await Promise.all([
           supabase
             .from('visitors')
             .select('id', { count: 'exact', head: true }),
@@ -151,41 +177,46 @@ async function handleStats(req: Request): Promise<Response> {
             .from('sessions')
             .select('id', { count: 'exact', head: true }),
           supabase.from('events').select('id', { count: 'exact', head: true }),
+          // 真实流量口径: 排除爬虫/开发环境/博主本人
+          supabase.from('page_views').select('id', { count: 'exact', head: true }).eq('traffic_class', 'real'),
+          supabase.from('page_views').select('id', { count: 'exact', head: true }).eq('traffic_class', 'bot'),
+          supabase.from('page_views').select('id', { count: 'exact', head: true }).eq('traffic_class', 'dev'),
+          supabase.from('page_views').select('id', { count: 'exact', head: true }).eq('traffic_class', 'owner'),
         ])
         data = {
           totalVisitors: visitors.count || 0,
           totalPageViews: pageViews.count || 0,
           totalSessions: sessions.count || 0,
           totalEvents: events.count || 0,
+          // 真实流量(2026-11-13 埋点改造后开始累计;旧数据无 traffic_class 默认视为未分类)
+          realPageViews: realPageViews.count || 0,
+          trafficBreakdown: {
+            real: realPageViews.count || 0,
+            bot: botPageViews.count || 0,
+            dev: devPageViews.count || 0,
+            owner: ownerPageViews.count || 0,
+            unclassified: (pageViews.count || 0) - (realPageViews.count || 0) - (botPageViews.count || 0) - (devPageViews.count || 0) - (ownerPageViews.count || 0),
+          },
         }
         break
       }
 
       case 'daily':
-        // 每日趋势 - 使用 aggregate 分组统计
+        // 每日趋势 - 只统计真实流量(排除 bot/dev/owner;旧数据未分类也计入,避免历史曲线塌零)
         {
-          const { data: dailyData, error } = await supabase.rpc('get_daily_pageviews', {
-            start_date: startDate
+          const dailyResult = await supabase
+            .from('page_views')
+            .select('created_at, traffic_class')
+            .gte('created_at', startDate)
+          const rawDailyData = dailyResult.data || []
+          const dailyStats: Record<string, number> = {}
+          rawDailyData.forEach((pv: { created_at: string; traffic_class?: string }) => {
+            // 排除明确的非真实流量
+            if (pv.traffic_class && pv.traffic_class !== 'real') return
+            const date = pv.created_at.split('T')[0]
+            dailyStats[date] = (dailyStats[date] || 0) + 1
           })
-          if (error && !error.message.includes('Function')) {
-            console.error('RPC error:', error)
-          }
-          // 如果 RPC 函数不存在，回退到普通查询
-          if (!dailyData || error) {
-            const dailyResult = await supabase
-              .from('page_views')
-              .select('created_at')
-              .gte('created_at', startDate)
-            const rawDailyData = dailyResult.data || []
-            const dailyStats: Record<string, number> = {}
-            rawDailyData.forEach((pv: { created_at: string }) => {
-              const date = pv.created_at.split('T')[0]
-              dailyStats[date] = (dailyStats[date] || 0) + 1
-            })
-            data = Object.entries(dailyStats).map(([date, views]) => ({ date, views }))
-          } else {
-            data = dailyData
-          }
+          data = Object.entries(dailyStats).map(([date, views]) => ({ date, views }))
           break
         }
 
