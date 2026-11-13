@@ -30,6 +30,7 @@ import { analyticsApi } from '../../api/analytics'
 import PageHeader from './PageHeader'
 import { useThemeStore } from '../../store/themeStore'
 import dayjs from 'dayjs'
+import { countryToZh } from '../../utils/countryZh'
 
 const { Text } = Typography
 const { RangePicker } = DatePicker
@@ -542,7 +543,14 @@ function EventManager() {
                           title: '地区',
                           dataIndex: 'name',
                           key: 'name',
-                          render: (name: string) => <Tag color="blue">{name}</Tag>,
+                          render: (name: string) => {
+                            const zh = countryToZh(name)
+                            return (
+                              <AntTooltip title={zh === name ? `国家代码: ${name}` : `${name} → ${zh}`}>
+                                <Tag color="blue">{zh}</Tag>
+                              </AntTooltip>
+                            )
+                          },
                         },
                         {
                           title: '次数',

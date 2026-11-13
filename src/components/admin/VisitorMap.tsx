@@ -17,6 +17,7 @@ echarts.use([
 ])
 import { analyticsApi } from '../../api/analytics'
 import { useThemeStore } from '../../store/themeStore'
+import { countryToZh } from '../../utils/countryZh'
 import worldMapData from '../../data/maps/countries.geo.json'
 
 // 兼容 echarts GeoJSON 类型
@@ -171,8 +172,10 @@ export default function VisitorMap() {
         trigger: 'item',
         formatter: (params: unknown) => {
           const p = params as EChartsTooltipParams
-          if (!p.value || p.value === 0) return `${p.name}: 暂无数据`
-          return `${p.name}<br/>访客数：${p.value}`
+          const zh = countryToZh(p.name)
+          if (!p.value || p.value === 0) return `${zh}: 暂无数据`
+          const codeLine = zh === p.name ? '' : `<br/>代码：${p.name}`
+          return `${zh}${codeLine}<br/>访客数：${p.value}`
         },
         backgroundColor: darkMode ? 'rgba(31, 31, 31, 0.95)' : 'rgba(255, 255, 255, 0.95)',
         borderColor: '#7000ff',

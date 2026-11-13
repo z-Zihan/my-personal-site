@@ -4,6 +4,20 @@ export const config = {
   runtime: 'edge',
 }
 
+// 国家代码/英文名 → 中文(展示层用;前端 countryZh.ts 有完整版,这里是服务端精简版)
+const COUNTRY_ZH_MAP: Record<string, string> = {
+  CN: '中国', TW: '中国台湾', HK: '中国香港', MO: '中国澳门',
+  US: '美国', GB: '英国', JP: '日本', KR: '韩国', SG: '新加坡',
+  DE: '德国', FR: '法国', IT: '意大利', ES: '西班牙', PT: '葡萄牙',
+  NL: '荷兰', BE: '比利时', CH: '瑞士', SE: '瑞典', NO: '挪威',
+  DK: '丹麦', FI: '芬兰', IE: '爱尔兰', PL: '波兰', CZ: '捷克',
+  RU: '俄罗斯', UA: '乌克兰', IN: '印度', ID: '印度尼西亚',
+  MY: '马来西亚', TH: '泰国', VN: '越南', PH: '菲律宾',
+  CA: '加拿大', MX: '墨西哥', BR: '巴西', AR: '阿根廷', CL: '智利',
+  AU: '澳大利亚', NZ: '新西兰', ZA: '南非', EG: '埃及',
+  AE: '阿联酋', SA: '沙特阿拉伯', IL: '以色列', TR: '土耳其',
+}
+
 interface TrackEvent {
   visitor_id: string
   ip?: string
@@ -365,10 +379,13 @@ async function handleStats(req: Request): Promise<Response> {
             countryStats[country] = (countryStats[country] || 0) + 1
           })
           data = Object.entries(countryStats)
-            .map(([name, value]) => ({ name, value }))
+            .map(([name, value]) => ({ name, value, name_zh: COUNTRY_ZH_MAP[name] || name }))
             .sort((a, b) => b.value - a.value)
         } else {
-          data = countryData
+          data = (countryData || []).map((r: { name?: string; country?: string; value?: number; visitors?: number }) => {
+            const name = r.name || r.country || 'Unknown'
+            return { name, value: r.value ?? r.visitors ?? 0, name_zh: COUNTRY_ZH_MAP[name] || name }
+          })
         }
         break
       }
@@ -443,7 +460,7 @@ async function handleStats(req: Request): Promise<Response> {
           countryStats[country] = (countryStats[country] || 0) + 1
         })
         const countries = Object.entries(countryStats)
-          .map(([name, value]) => ({ name, value }))
+          .map(([name, value]) => ({ name, value, name_zh: COUNTRY_ZH_MAP[name] || name }))
           .sort((a, b) => b.value - a.value)
 
         // 获取关联的 page_views 用于设备和浏览器分析
