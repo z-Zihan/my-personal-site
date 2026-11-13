@@ -15,7 +15,7 @@ function AdminLogin() {
   const location = useLocation()
   const { login, isAuthenticated } = useAuthStore()
   const [submitting, setSubmitting] = useState(false)
-  const [passwordHint, setPasswordHint] = useState<string | null>(() => localStorage.getItem('admin_password_hint'))
+  const [passwordHint, setPasswordHint] = useState<string | null>(null)
   const darkMode = useThemeStore((s) => s.darkMode)
 
   // 检查是否是开发模式(仅本地 dev server 有效;生产构建 import.meta.env.DEV 恒为 false,
@@ -40,6 +40,28 @@ function AdminLogin() {
       navigate('/admin/dashboard', { replace: true })
     }
   }, [isAuthenticated, navigate])
+
+  // 拉取密码提示(公开接口;忘记密码时在登录前就能看到)
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/password-hint')
+      .then((r) => r.json())
+      .then((res) => {
+        const hint = res?.data?.password_hint
+        if (!cancelled && typeof hint === 'string' && hint) {
+          setPasswordHint(hint)
+          localStorage.setItem('admin_password_hint', hint)
+        }
+      })
+      .catch(() => {
+        // 接口失败时回退 localStorage 缓存
+        const cached = localStorage.getItem('admin_password_hint')
+        if (!cancelled && cached) setPasswordHint(cached)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // 开发模式自动登录
   useEffect(() => {
