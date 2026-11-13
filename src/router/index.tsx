@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate, useParams, useLocation } from 'react-router-dom'
 import { RouteErrorBoundary } from '../components/ErrorBoundary'
 import App from '../App'
 import LoadingSpinner from '../components/effects/LoadingSpinner'
@@ -22,6 +22,7 @@ const Dashboard = lazy(() => import('../pages/Admin/Dashboard'))
 const ArticleManager = lazy(() => import('../pages/Admin/ArticleManager'))
 const ArticleEditor = lazy(() => import('../pages/Admin/ArticleEditor'))
 const MessageManager = lazy(() => import('../pages/Admin/MessageManager'))
+const SystemMessageManager = lazy(() => import('../pages/Admin/SystemMessageManager'))
 const CommentManager = lazy(() => import('../pages/Admin/CommentManager'))
 const CategoryManager = lazy(() => import('../pages/Admin/CategoryManager'))
 const HotNewsManager = lazy(() => import('../pages/Admin/HotNewsManager'))
@@ -32,6 +33,13 @@ const PerfDashboard = lazy(() => import('../pages/Admin/PerfDashboard'))
 
 function LazyPage({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
+}
+
+/** /article/:id → /blog/:id 兼容跳转(带 query 保留) */
+function LegacyArticleRedirect() {
+  const { id } = useParams()
+  const location = useLocation()
+  return <Navigate to={`/blog/${id}${location.search}`} replace />
 }
 
 const router = createBrowserRouter([
@@ -89,6 +97,10 @@ const router = createBrowserRouter([
         element: <LazyPage><MessageManager /></LazyPage>,
       },
       {
+        path: 'system-messages',
+        element: <LazyPage><SystemMessageManager /></LazyPage>,
+      },
+      {
         path: 'comments',
         element: <LazyPage><CommentManager /></LazyPage>,
       },
@@ -114,6 +126,13 @@ const router = createBrowserRouter([
       //   element: <LazyPage><MockDataGenerator /></LazyPage>,
       // },
     ],
+  },
+
+  // 旧 /article/:id 链接兼容重定向(2026-11-13:Twitter 帖子里发过 /article/xxx 格式链接)
+  // /article/<uuid> → /blog/<uuid>,老链接自动跳转不再 404
+  {
+    path: '/article/:id',
+    element: <LegacyArticleRedirect />,
   },
 
   // 404 页面 - 放在最后

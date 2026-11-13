@@ -58,6 +58,23 @@ export const messageApi = {
   batchDelete: (ids: number[]) => post(API_ENDPOINTS.BATCH_DELETE_MESSAGE, { ids }),
 
   /**
+   * 更新留言(后台系统留言编辑用)
+   * @param data - { id, content?, visitor_name?, location?, likes?, created_at? }
+   */
+  update: (data: { id: string } & Record<string, unknown>) => post(API_ENDPOINTS.UPDATE_MESSAGE, data),
+
+  /**
+   * 系统留言列表(origin=system,与前台隔离)
+   */
+  getSystemList: (params: { page?: number; pageSize?: number } = {}) =>
+    get<MessageListResponse>(API_ENDPOINTS.MESSAGES, {
+      origin: 'system',
+      sort: 'time',
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? 15,
+    }),
+
+  /**
    * 点赞/取消点赞留言
    * @param messageId - 留言 ID
    */

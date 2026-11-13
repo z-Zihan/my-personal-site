@@ -7,6 +7,7 @@ import {
   FileTextOutlined,
   MessageOutlined,
   CommentOutlined,
+  RobotOutlined,
   TagsOutlined,
   FireOutlined,
   LogoutOutlined,
@@ -36,6 +37,7 @@ const PAGE_TITLES: Array<[prefix: string, title: string]> = [
   ['/admin/articles', '文章管理'],
   ['/admin/comments', '评论管理'],
   ['/admin/messages', '留言管理'],
+  ['/admin/system-messages', '系统留言'],
   ['/admin/categories', '分类管理'],
   ['/admin/hot-news', '热点资讯'],
   ['/admin/events', '埋点管理'],
@@ -104,6 +106,11 @@ function AdminLayout() {
       label: '留言管理',
     },
     {
+      key: '/admin/system-messages',
+      icon: <RobotOutlined />,
+      label: '系统留言',
+    },
+    {
       key: '/admin/categories',
       icon: <TagsOutlined />,
       label: '分类管理',
@@ -141,6 +148,7 @@ function AdminLayout() {
     if (path.startsWith('/admin/dashboard')) return '/admin/dashboard'
     if (path.startsWith('/admin/articles')) return '/admin/articles'
     if (path.startsWith('/admin/comments')) return '/admin/comments'
+    if (path.startsWith('/admin/system-messages')) return '/admin/system-messages'
     if (path.startsWith('/admin/messages')) return '/admin/messages'
     if (path.startsWith('/admin/categories')) return '/admin/categories'
     if (path.startsWith('/admin/hot-news')) return '/admin/hot-news'

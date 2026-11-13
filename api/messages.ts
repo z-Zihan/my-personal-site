@@ -19,6 +19,8 @@ export default async function handler(req: Request): Promise<Response> {
     const pageSize = Math.min(50, Math.max(1, parseInt(url.searchParams.get('pageSize') || '10')))
     const sort = (url.searchParams.get('sort') || 'time') as 'time' | 'hot' | 'random'
     const seed = url.searchParams.get('seed') ? parseFloat(url.searchParams.get('seed')!) : null
+    // origin=system: 后台"系统留言"专用,返回系统生成的留言(seed/mock),倒序
+    const origin = url.searchParams.get('origin')
     const offset = (page - 1) * pageSize
 
     // 随机排序模式：使用 PostgreSQL setseed + random() 实现可复现的随机分页
@@ -49,10 +51,37 @@ export default async function handler(req: Request): Promise<Response> {
       })
     }
 
+    // ---- origin=system: 后台系统留言列表(与前台完全隔离) ----
+    if (origin === 'system') {
+      const { data, error, count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact' })
+        // 系统留言 = 全部 - 真实(^visitor_<13位ts>_) - 博主(owner_*)
+        .not('visitor_id', 'match', '^(owner_|visitor_[0-9]{13,}_)')
+        .order('created_at', { ascending: false })
+        .range(offset, offset + pageSize - 1)
+
+      if (error) {
+        return errorResponse(error.message, 500)
+      }
+
+      return jsonResponse({
+        data: data || [],
+        total: count || 0,
+        hasMore: (page * pageSize) < (count || 0),
+      })
+    }
+
     // 最新 / 热门排序模式：使用 Supabase 查询
+    // 2026-11-13 来源隔离：前台只展示真实留言(visitor_<ts>_<rand> 前缀)
+    // owner_* / visitor_<纯数字>(seed) / mock_visitor_* / intl_* 都是系统生成,走后台"系统留言"入口管理
     let query = supabase
       .from('messages')
       .select('*', { count: 'exact' })
+      // PostgREST 正则匹配(match = ~):^visitor_<13位以上数字>_ 才是真实留言
+      // (visitorStore 生成 visitor_<Date.now()>_<rand>)
+      // 排除 seed(visitor_00N)/mock_visitor_*/intl_*;^ 锚点必须带,否则会误匹配 mock_visitor_*
+      .filter('visitor_id', 'match', '^visitor_[0-9]{13,}_')
 
     // 热门：博主留言（visitor_id 以 owner_ 开头）单独置顶在第 1 页，分页主体排除博主留言
     let ownerMessages: unknown[] = []

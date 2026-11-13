@@ -2,11 +2,21 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../utils/useLanguage';
+import { trackEvent } from '../utils/analytics';
 
 export default function NotFound() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [countdown, setCountdown] = useState(5);
+
+  // 404 埋点:统计有多少访客命中 404 页(2026-11-13)
+  useEffect(() => {
+    trackEvent('page_404', 'error', {
+      path: window.location.pathname,
+      referrer: document.referrer,
+      full_url: window.location.href,
+    });
+  }, []);
 
   // 倒计时自动返回首页（与文案承诺一致，兑现逻辑闭环）
   useEffect(() => {

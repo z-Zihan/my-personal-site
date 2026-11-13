@@ -15,17 +15,21 @@ export default async function handler(req: Request): Promise<Response> {
 
   try {
     // 并行查询所有统计数据
+    // 2026-11-13: totalMessages 只统计真实留言(^visitor_<13位ts>_) + 博主留言(owner_*)
+    // 排除系统生成的 seed(visitor_00N)/mock_visitor_*/intl_* 留言
     const [
       { count: articlesCount },
       { data: viewsData },
-      { count: messagesCount },
+      { count: realMessagesCount },
+      { count: ownerMessagesCount },
       { count: newsCount },
       { data: dailyViews },
       { count: publishedCount }
     ] = await Promise.all([
       supabase.from('articles').select('*', { count: 'exact', head: true }),
       supabase.from('articles').select('views'),
-      supabase.from('messages').select('*', { count: 'exact', head: true }),
+      supabase.from('messages').select('*', { count: 'exact', head: true }).filter('visitor_id', 'match', '^visitor_[0-9]{13,}_'),
+      supabase.from('messages').select('*', { count: 'exact', head: true }).filter('visitor_id', 'match', '^owner_'),
       supabase.from('hot_news').select('*', { count: 'exact', head: true }),
       supabase
         .from('daily_views')
@@ -42,7 +46,7 @@ export default async function handler(req: Request): Promise<Response> {
         totalArticles: articlesCount || 0,
         publishedArticles: publishedCount || 0,
         totalViews,
-        totalMessages: messagesCount || 0,
+        totalMessages: (realMessagesCount || 0) + (ownerMessagesCount || 0),
         totalNews: newsCount || 0,
         dailyViews: dailyViews || [],
       },
