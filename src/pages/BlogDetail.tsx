@@ -270,6 +270,12 @@ export default function BlogDetail() {
       if (articleData) {
         setArticle(articleData);
       } else {
+        // 文章不存在(假链接/已删除):上报 404 埋点
+        trackEvent("page_404", "error", {
+          path: window.location.pathname,
+          reason: "article_not_found",
+          referrer: document.referrer,
+        });
         setError("notFound");
       }
     } catch (err: unknown) {

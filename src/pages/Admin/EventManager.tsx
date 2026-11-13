@@ -18,6 +18,7 @@ import {
   UserOutlined,
   ArrowLeftOutlined,
   BookOutlined,
+  WarningOutlined,
 } from '@ant-design/icons'
 import { TrendingUp } from 'lucide-react'
 import {
@@ -54,6 +55,7 @@ const EVENT_CONFIG: Record<string, { label: string; icon: React.ReactNode; color
   'view_all_articles_click': { label: '查看全部文章', icon: <BookOutlined />, color: '#52c41a', description: '用户点击查看全部文章按钮' },
   'go_hot_news_click': { label: '去热点资讯', icon: <TrendingUp />, color: '#fa541c', description: '用户点击去热点资讯按钮' },
   'category_switch': { label: '分类切换', icon: <ThunderboltOutlined />, color: '#13c2c2', description: '用户在文章列表切换分类' },
+  'page_404': { label: '404 访问', icon: <WarningOutlined />, color: '#ff4d4f', description: '访客命中了不存在的页面或已删除的文章(含推文旧链接 /article/*、失效 /blog/id)' },
 }
 
 // 日期快捷选项
