@@ -86,12 +86,15 @@ export default async function handler(req: Request): Promise<Response> {
       // 排除 seed(visitor_00N)/mock_visitor_*/intl_*;^ 锚点必须带,否则会误匹配 mock_visitor_*
       .filter('visitor_id', 'match', '^visitor_[0-9]{13,}_')
 
-    // 后台管理请求:追加 owner_* 博主留言(OR 条件),与仪表盘留言数口径一致
-    // PostgREST or 语法:or=(visitor_id.match.^visitor_[0-9]{13,}_,visitor_id.like.owner_*)
-    // 注意前面的 .filter(match) 在 OR 模式下会被 or 条件覆盖,这里显式带全两个分支
-    // 正则里 {13,} 的逗号会破坏 or 逻辑树解析,值必须用双引号包裹
+    // 后台管理请求:改为单条 or 过滤(真实访客 OR 博主),与仪表盘留言数口径一致。
+    // 注意:supabase-js 的 .filter() 与 .or() 是 AND 关系,叠加会导致 filter(match) 又把
+    // owner_* 过滤掉(or 条件失效,2026-11-16 实测)。or 模式下必须去掉前置 filter,
+    // 把真实留言的正则完整放进 or 里。正则值要双引号包裹({13,} 内逗号会破坏解析)。
     if (isAdmin) {
-      query = query.or('visitor_id.match."^visitor_[0-9]{13,}_",visitor_id.like.owner_*')
+      query = supabase
+        .from('messages')
+        .select('*', { count: 'exact' })
+        .or('visitor_id.match."^visitor_[0-9]{13,}_",visitor_id.like.owner_*')
     }
 
     // 热门：博主留言（visitor_id 以 owner_ 开头）单独置顶在第 1 页，分页主体排除博主留言
