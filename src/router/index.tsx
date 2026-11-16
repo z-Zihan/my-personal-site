@@ -21,8 +21,8 @@ const AdminLogin = lazy(() => import('../pages/Admin/Login'))
 const Dashboard = lazy(() => import('../pages/Admin/Dashboard'))
 const ArticleManager = lazy(() => import('../pages/Admin/ArticleManager'))
 const ArticleEditor = lazy(() => import('../pages/Admin/ArticleEditor'))
-const MessageManager = lazy(() => import('../pages/Admin/MessageManager'))
-const SystemMessageManager = lazy(() => import('../pages/Admin/SystemMessageManager'))
+// 留言管理合并页(2026-11-16):真实留言 + 系统留言 Tab,原 SystemMessageManager 独立路由移除
+const MessagesPage = lazy(() => import('../pages/Admin/MessagesPage'))
 const CommentManager = lazy(() => import('../pages/Admin/CommentManager'))
 const CategoryManager = lazy(() => import('../pages/Admin/CategoryManager'))
 const HotNewsManager = lazy(() => import('../pages/Admin/HotNewsManager'))
@@ -94,11 +94,12 @@ const router = createBrowserRouter([
       },
       {
         path: 'messages',
-        element: <LazyPage><MessageManager /></LazyPage>,
+        element: <LazyPage><MessagesPage /></LazyPage>,
       },
+      // /admin/system-messages 已合并进 /admin/messages(2026-11-16),老链接重定向
       {
         path: 'system-messages',
-        element: <LazyPage><SystemMessageManager /></LazyPage>,
+        element: <Navigate to="/admin/messages" replace />,
       },
       {
         path: 'comments',
