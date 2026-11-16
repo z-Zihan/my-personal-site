@@ -74,7 +74,10 @@ export default async function handler(req: Request): Promise<Response> {
 
     // 最新 / 热门排序模式：使用 Supabase 查询
     // 2026-11-13 来源隔离：前台只展示真实留言(visitor_<ts>_<rand> 前缀)
-    // owner_* / visitor_<纯数字>(seed) / mock_visitor_* / intl_* 都是系统生成,走后台"系统留言"入口管理
+    // 2026-11-16 后台管理口径修正:该默认列表同时服务前台留言板与后台"留言管理→真实留言"Tab,
+    //   后台需要看到博主留言(owner_*),否则仪表盘留言数(真实+owner)与列表对不上。
+    //   通过 isAdmin 参数区分:后台请求包含 owner_*,前台请求维持排除。
+    const isAdmin = url.searchParams.get('admin') === '1'
     let query = supabase
       .from('messages')
       .select('*', { count: 'exact' })
@@ -83,19 +86,31 @@ export default async function handler(req: Request): Promise<Response> {
       // 排除 seed(visitor_00N)/mock_visitor_*/intl_*;^ 锚点必须带,否则会误匹配 mock_visitor_*
       .filter('visitor_id', 'match', '^visitor_[0-9]{13,}_')
 
+    // 后台管理请求:追加 owner_* 博主留言(OR 条件),与仪表盘留言数口径一致
+    if (isAdmin) {
+      query = query.or('visitor_id.match.^visitor_[0-9]{13,}_,visitor_id.match.^owner_')
+    }
+
     // 热门：博主留言（visitor_id 以 owner_ 开头）单独置顶在第 1 页，分页主体排除博主留言
     let ownerMessages: unknown[] = []
     if (sort === 'hot') {
+      // 前台 hot 模式:博主留言置顶在第 1 页,主体排除;后台(admin=1)不单独置顶也不排除(已在 OR 条件里)
       const { data: owners } = await supabase
         .from('messages')
         .select('*')
         .like('visitor_id', 'owner\\_%')
         .order('created_at', { ascending: false })
-      ownerMessages = owners || []
-      query = query
-        .not('visitor_id', 'like', 'owner\\_%')
-        .order('likes', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false })
+      ownerMessages = isAdmin ? [] : owners || []
+      if (!isAdmin) {
+        query = query
+          .not('visitor_id', 'like', 'owner\\_%')
+          .order('likes', { ascending: false, nullsFirst: false })
+          .order('created_at', { ascending: false })
+      } else {
+        query = query
+          .order('likes', { ascending: false, nullsFirst: false })
+          .order('created_at', { ascending: false })
+      }
     } else {
       // sort === 'time' (默认)
       query = query.order('created_at', { ascending: false })

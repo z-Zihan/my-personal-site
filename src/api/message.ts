@@ -16,6 +16,8 @@ export interface MessageListParams {
   pageSize?: number;
   sort?: 'time' | 'hot' | 'random';
   seed?: number;
+  /** 后台管理口径:包含博主留言(owner_*),与仪表盘留言数一致 */
+  admin?: boolean;
 }
 
 export interface MessageListResponse {
@@ -37,6 +39,7 @@ export const messageApi = {
       pageSize: params.pageSize ?? 10,
       sort: params.sort ?? 'time',
       ...(params.seed !== undefined ? { seed: params.seed } : {}),
+      ...(params.admin ? { admin: 1 } : {}),
     }),
 
   /**

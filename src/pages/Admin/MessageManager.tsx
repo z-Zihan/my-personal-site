@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { messageApi, Message } from '../../api/index'
-import { Table, Button, Popconfirm, message, Typography, Input, Space } from 'antd'
+import { Table, Button, Popconfirm, message, Typography, Input, Space, Tag } from 'antd'
 import type { Key } from 'antd/es/table/interface'
 import { DeleteOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons'
 import PageHeader from './PageHeader'
@@ -26,7 +26,8 @@ function MessageManager() {
     setLoading(true)
     try {
       // 服务端分页：返回 { data, total, hasMore }
-      const res = await messageApi.getList({ page: pageArg, pageSize: pageSizeArg })
+      // admin=1:包含博主留言(owner_*),与仪表盘留言数口径一致
+      const res = await messageApi.getList({ page: pageArg, pageSize: pageSizeArg, admin: true })
       const payload = res as unknown as { data?: Message[]; total?: number }
       setMessages(payload?.data || [])
       setTotal(payload?.total ?? payload?.data?.length ?? 0)
@@ -110,6 +111,16 @@ function MessageManager() {
   }
 
   const columns = [
+    {
+      title: '来源',
+      key: 'origin',
+      width: 90,
+      render: (_: unknown, record: Message) => {
+        const vid = String((record as unknown as { visitor_id?: string }).visitor_id || '')
+        if (vid.startsWith('owner_')) return <Tag color="gold">博主</Tag>
+        return <Tag color="green">访客</Tag>
+      },
+    },
     {
       title: '留言内容',
       dataIndex: 'content',
