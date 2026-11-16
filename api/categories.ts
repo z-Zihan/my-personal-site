@@ -1,28 +1,24 @@
+export default async function handler(req: Request): Promise<Response> {
+  if (req.method === 'OPTIONS') {
+    return optionsResponse()
+  }
+  if (req.method === 'GET') {
+    // 分类列表是站点公开数据，匿名可读；写操作才走 requireAdmin
+    return adminHandler(req)
+  }
+  return requireAdmin(adminHandler)(req)
+}
+
 import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import { requireAdmin } from './_auth'
 import type { Category } from '../src/types/database'
 
 export const config = {
   runtime: 'edge',
 }
 
-// 简单的 token 验证函数
-function validateToken(token: string | null): boolean {
-  if (!token || !token.startsWith('admin_')) {
-    return false
-  }
-  const parts = token.split('_')
-  if (parts.length < 3) {
-    return false
-  }
-  const timestamp = parseInt(parts[1])
-  if (isNaN(timestamp)) {
-    return false
-  }
-  const expiresAt = timestamp + 7 * 24 * 60 * 60 * 1000
-  return Date.now() < expiresAt
-}
 
-export default async function handler(req: Request): Promise<Response> {
+async function adminHandler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -48,16 +44,6 @@ export default async function handler(req: Request): Promise<Response> {
 
   // POST - 创建新分类（需要认证）
   if (req.method === 'POST') {
-    // 验证管理员 token
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Unauthorized', 401)
-    }
-    const token = authHeader.substring(7)
-    if (!validateToken(token)) {
-      return errorResponse('Invalid or expired token', 401)
-    }
-
     try {
       const { name } = await req.json() as { name: string }
 
@@ -106,16 +92,6 @@ export default async function handler(req: Request): Promise<Response> {
 
   // PUT - 更新分类（需要认证）
   if (req.method === 'PUT') {
-    // 验证管理员 token
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Unauthorized', 401)
-    }
-    const token = authHeader.substring(7)
-    if (!validateToken(token)) {
-      return errorResponse('Invalid or expired token', 401)
-    }
-
     try {
       const { id, name } = await req.json() as { id: string; name: string }
 
@@ -164,16 +140,6 @@ export default async function handler(req: Request): Promise<Response> {
 
   // DELETE - 删除分类（需要认证）
   if (req.method === 'DELETE') {
-    // 验证管理员 token
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Unauthorized', 401)
-    }
-    const token = authHeader.substring(7)
-    if (!validateToken(token)) {
-      return errorResponse('Invalid or expired token', 401)
-    }
-
     try {
       const url = new URL(req.url)
       const id = url.searchParams.get('id')

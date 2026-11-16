@@ -1,4 +1,5 @@
 import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import { verifyAdminToken } from './_auth'
 import type { Article, Tag, Comment, Like } from '../src/types/database'
 
 export const config = {
@@ -24,6 +25,16 @@ export default async function handler(req: Request): Promise<Response> {
     // 排序：newest（默认）| oldest | hottest，非法值回退 newest
     const sortParam = url.searchParams.get('sort')
     const sort = sortParam === 'oldest' || sortParam === 'hottest' ? sortParam : 'newest'
+
+    // 2026-11-16: 草稿列表属于管理数据，需管理员 token（公开列表只返回已发布文章）
+    if (status === 'draft' || status === 'scheduled') {
+      const authHeader = req.headers.get('Authorization')
+      const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null
+      const valid = await verifyAdminToken(token)
+      if (!valid) {
+        return errorResponse('Unauthorized', 401)
+      }
+    }
 
     let query = supabase
       .from('articles')

@@ -1,4 +1,5 @@
 import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import { requireAdmin } from './_auth'
 import type { ImageUploadResponse } from '../src/types/database'
 
 export const config = {
@@ -39,7 +40,7 @@ async function ensureBucketExists(): Promise<boolean> {
   }
 }
 
-export default async function handler(req: Request): Promise<Response> {
+export default requireAdmin(async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return optionsResponse()
   }
@@ -113,4 +114,4 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   return errorResponse('Method not allowed', 405)
-}
+})

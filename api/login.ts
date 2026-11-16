@@ -1,4 +1,5 @@
 import { supabase, jsonResponse, errorResponse, optionsResponse } from './_lib'
+import { createAdminToken } from './_auth'
 import type { LoginRequest, LoginResponse } from '../src/types/database'
 
 export const config = {
@@ -57,10 +58,13 @@ export default async function handler(req: Request): Promise<Response> {
 
     loginAttempts.delete(ip)
 
-    // 生成 token（有效期 7 天，与 verify-token 一致）
-    const randomBytes = new Uint8Array(32)
-    crypto.getRandomValues(randomBytes)
-    const token = `admin_${Date.now()}_${Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`
+    // 生成 v2 HMAC 签名 token（2026-11-16: 取代无签名的 admin_<ts>_<hex>）
+    // 签名密钥从 ADMIN_PASSWORD 派生，见 _auth.ts；有效期 7 天
+    const token = await createAdminToken()
+    if (!token) {
+      // 与上方密码校验的 fail-closed 分支保持一致（防御性：走到这里说明密码必然已配置）
+      return errorResponse('服务端未配置管理员密码，请在 Vercel 环境变量中设置 ADMIN_PASSWORD', 500)
+    }
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 天后过期
 
     const response: LoginResponse = {

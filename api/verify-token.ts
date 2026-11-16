@@ -1,4 +1,5 @@
 import { jsonResponse, errorResponse, optionsResponse } from './_lib'
+import { verifyAdminToken } from './_auth'
 import type { TokenVerifyResponse } from '../src/types/database'
 
 export const config = {
@@ -22,25 +23,9 @@ export default async function handler(req: Request): Promise<Response> {
       return jsonResponse<TokenVerifyResponse>({ valid: false })
     }
 
-    // 验证 token 格式
-    if (!token.startsWith('admin_')) {
-      return jsonResponse<TokenVerifyResponse>({ valid: false })
-    }
-
-    // 提取时间戳并检查是否过期（7 天）
-    const parts = token.split('_')
-    if (parts.length < 3) {
-      return jsonResponse<TokenVerifyResponse>({ valid: false })
-    }
-
-    const timestamp = parseInt(parts[1])
-    const expiresAt = timestamp + 7 * 24 * 60 * 60 * 1000
-
-    if (Date.now() > expiresAt) {
-      return jsonResponse<TokenVerifyResponse>({ valid: false })
-    }
-
-    return jsonResponse<TokenVerifyResponse>({ valid: true })
+    // v2 HMAC 签名校验（2026-11-16）：无签名或签名不符一律 valid:false
+    const valid = await verifyAdminToken(token)
+    return jsonResponse<TokenVerifyResponse>({ valid })
   } catch (error) {
     console.error('Error verifying token:', error)
     return errorResponse('Internal server error', 500)
