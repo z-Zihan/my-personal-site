@@ -56,6 +56,11 @@ export default function RichEditor({ value, onChange, height = 400 }: RichEditor
         // 相对路径：生产环境同域直达，开发环境走 vercel dev / vite 代理
         server: '/api/upload-image',
         fieldName: 'image',
+        // 2026-11-16: 上传接口已要求管理员 token，随请求带上（后端校验 Bearer）
+        headers: (() => {
+          const token = localStorage.getItem('admin_token')
+          return token ? { Authorization: `Bearer ${token}` } : {}
+        })(),
         customInsert(res: { success: boolean; url: string; fileName?: string }, insertFn: (url: string, name: string, href: string) => void) {
           if (res.success && res.url) {
             insertFn(res.url, res.fileName || 'image', res.url)
