@@ -87,8 +87,10 @@ export default async function handler(req: Request): Promise<Response> {
       .filter('visitor_id', 'match', '^visitor_[0-9]{13,}_')
 
     // 后台管理请求:追加 owner_* 博主留言(OR 条件),与仪表盘留言数口径一致
+    // PostgREST or 语法:or=(visitor_id.match.^visitor_[0-9]{13,}_,visitor_id.like.owner_*)
+    // 注意前面的 .filter(match) 在 OR 模式下会被 or 条件覆盖,这里显式带全两个分支
     if (isAdmin) {
-      query = query.or('visitor_id.match.^visitor_[0-9]{13,}_,visitor_id.match.^owner_')
+      query = query.or('(visitor_id.match.^visitor_[0-9]{13,}_,visitor_id.like.owner_*)')
     }
 
     // 热门：博主留言（visitor_id 以 owner_ 开头）单独置顶在第 1 页，分页主体排除博主留言
