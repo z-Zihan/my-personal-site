@@ -101,6 +101,13 @@ export interface Translations {
   techDemoReadMore: string
   techDemoBadge: string
   techDemoFeatures: string[]
+  gameNav: string
+  gameTag: string
+  gameTitle: string
+  gameDesc: string
+  gameFullscreen: string
+  gameNewTab: string
+  gameFeatures: string[]
   copied: string
   copyCode: string
   articleOf: string
@@ -324,6 +331,13 @@ const translations: Record<Language, Translations> = {
     techDemoFeatures: ['GPU 程序化贴图', 'WebAudio 合成音效', 'AgX + ACES 调色', '体积光 · 软阴影'],
     techDemoPlay: '立即开玩',
     techDemoReadMore: '看技术拆解',
+    gameNav: '游戏',
+    gameTag: 'Browser Game',
+    gameTitle: 'Ember Swarm · 余烬虫群',
+    gameDesc: '吸血鬼幸存者-like roguelite 原型:WASD 移动、武器全自动攻击,击杀掉落经验宝石,升级三选一强化,每 60 秒一波敌人,第 5 分钟 Boss 降临。Canvas 2D 零运行时依赖,进度自动保存在本地。',
+    gameFullscreen: '全屏游玩',
+    gameNewTab: '新窗口打开',
+    gameFeatures: ['WASD / 方向键移动', '武器全自动攻击', '升级三选一 roguelite 强化'],
     copied: '已复制 ✓',
     copyCode: '复制',
     articleOf: '{index} / {total} 篇',
@@ -560,6 +574,13 @@ const translations: Record<Language, Translations> = {
     techDemoFeatures: ['Procedural GPU textures', 'Synthesized WebAudio SFX', 'AgX + ACES grading', 'Volumetric light · Soft shadows'],
     techDemoPlay: 'Play Now',
     techDemoReadMore: 'Read the Breakdown',
+    gameNav: 'Game',
+    gameTag: 'Browser Game',
+    gameTitle: 'Ember Swarm',
+    gameDesc: 'A Vampire-Survivors-like roguelite prototype: move with WASD, weapons fire fully automatically, defeated enemies drop XP gems, level up with a pick-one-of-three upgrade, a new wave every 60 seconds, and the boss arrives at minute 5. Canvas 2D with zero runtime dependencies — progress is saved locally.',
+    gameFullscreen: 'Fullscreen',
+    gameNewTab: 'Open in new tab',
+    gameFeatures: ['Move with WASD / arrows', 'Weapons auto-attack', 'Roguelite pick-1-of-3 level-ups'],
     copied: 'Copied ✓',
     copyCode: 'Copy',
     articleOf: '{index} / {total}',

@@ -13,6 +13,7 @@ const HotNews = lazy(() => import('../pages/HotNews'))
 const MessageBoard = lazy(() => import('../pages/MessageBoard'))
 const Profile = lazy(() => import('../pages/Profile'))
 const About = lazy(() => import('../pages/About'))
+const Game = lazy(() => import('../pages/Game'))
 const NotFound = lazy(() => import('../pages/NotFound'))
 
 // 后台页面懒加载
@@ -55,6 +56,7 @@ const router = createBrowserRouter([
       { path: 'hot-news', element: <LazyPage><HotNews /></LazyPage> },
       { path: 'message', element: <LazyPage><MessageBoard /></LazyPage> },
       { path: 'about', element: <LazyPage><About /></LazyPage> },
+      { path: 'game', element: <LazyPage><Game /></LazyPage> },
       { path: 'profile', element: <LazyPage><Profile /></LazyPage> },
     ],
   },
