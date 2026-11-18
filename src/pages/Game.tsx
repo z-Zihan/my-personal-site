@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink, Gamepad2, Maximize2 } from 'lucide-react';
 import { useLanguage } from '../utils/useLanguage';
+import { tArr } from '../utils/i18n';
 import { trackEvent } from '../utils/analytics';
 import type { Translations } from '../utils/i18n';
 
@@ -91,7 +92,7 @@ function GamePage() {
 
           {/* 操作说明卡 */}
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {(t('gameFeatures') as unknown as string[]).map((feat, i) => (
+            {tArr('gameFeatures').map((feat, i) => (
               <div
                 key={i}
                 className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-300 text-center"
